@@ -104,8 +104,8 @@ export const user = pgTable(
     emailVerified: boolean("email_verified").notNull(),
     image: text("image"),
     role: roleEnum("role").notNull().default("CLIENT"),
-    created_at: timestamp("created_at").notNull(),
-    updated_at: timestamp("updated_at").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
     banned: boolean("banned").default(false),
     banReason: text("ban_reason"),
     banExpires: timestamp("ban_expires"),
@@ -122,18 +122,18 @@ export const session = pgTable(
     id: text("id").notNull().primaryKey(),
     expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull(),
-    created_at: timestamp("created_at").notNull(),
-    updated_at: timestamp("updated_at").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    user_id: text("user_id")
+    userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     impersonatedBy: text("impersonated_by"),
   },
   (t) => [
     uniqueIndex("session_token_idx").on(t.token),
-    index("session_user_id_idx").on(t.user_id),
+    index("session_user_id_idx").on(t.userId),
   ],
 );
 
@@ -143,7 +143,7 @@ export const account = pgTable(
     id: text("id").notNull().primaryKey(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
-    user_id: text("user_id")
+    userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     accessToken: text("access_token"),
@@ -153,10 +153,10 @@ export const account = pgTable(
     refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
     scope: text("scope"),
     password: text("password"),
-    created_at: timestamp("created_at").notNull(),
-    updated_at: timestamp("updated_at").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
   },
-  (t) => [index("account_user_id_idx").on(t.user_id)],
+  (t) => [index("account_user_id_idx").on(t.userId)],
 );
 
 export const verification = pgTable(
@@ -166,8 +166,8 @@ export const verification = pgTable(
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
-    created_at: timestamp("created_at"),
-    updated_at: timestamp("updated_at"),
+    createdAt: timestamp("created_at"),
+    updatedAt: timestamp("updated_at"),
   },
   (t) => [index("verification_identifier_idx").on(t.identifier)],
 );
@@ -397,11 +397,11 @@ export const userRelations = relations(user, ({ many }) => ({
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
-  user: one(user, { fields: [session.user_id], references: [user.id] }),
+  user: one(user, { fields: [session.userId], references: [user.id] }),
 }));
 
 export const accountRelations = relations(account, ({ one }) => ({
-  user: one(user, { fields: [account.user_id], references: [user.id] }),
+  user: one(user, { fields: [account.userId], references: [user.id] }),
 }));
 
 export const categoryRelations = relations(category, ({ many }) => ({

@@ -1,5 +1,6 @@
 // Seed script for the e-commerce schema (categories, products, variations,
-// cart items, orders with embedded shipping details, order items, ratings)
+// cart items, orders with embedded shipping + per-item weight/price
+// snapshots, order items, ratings)
 
 import { db } from "#/infrastructure/config/database.js";
 import { auth } from "#/infrastructure/config/auth.js";
@@ -44,6 +45,15 @@ function randomFrom<T>(arr: readonly T[]): T {
 
 function shuffle<T>(arr: readonly T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 /* ------------------------------------------------------------------ */
@@ -273,6 +283,8 @@ async function seed() {
   console.log("🌱 Seeding database...");
 
   /* --------------------------- Clear DB ---------------------------- */
+  // order_item -> variation is ON DELETE RESTRICT now, so order_item must
+  // be cleared before variation (it already was — keeping that order).
   await db.delete(outbox);
   await db.delete(rating);
   await db.delete(orderItem);
@@ -363,6 +375,7 @@ async function seed() {
     id: string;
     name: string;
     price: number;
+    discountPrice: number | null;
     isShoe: boolean;
   }> = [];
 
@@ -371,11 +384,11 @@ async function seed() {
     await db.insert(product).values({
       id,
       name: p.name,
+      slug: slugify(p.name),
       description: p.description,
       categoryId: categoryMap.get(p.category) ?? null,
       brand: p.brand,
       material: p.material,
-      average_rating: randomInt(35, 50) / 10,
       price: p.price,
       discount_price: p.discountPrice ?? null,
     });
@@ -383,20 +396,25 @@ async function seed() {
       id,
       name: p.name,
       price: p.price,
+      discountPrice: p.discountPrice ?? null,
       isShoe: !!p.isShoe,
     });
   }
   console.log(`  ✓ ${createdProducts.length} products inserted`);
 
   /* --------------------------- Variations ----------------------------- */
+  // available_qty is no longer a stored column (it's presumably derived as
+  // total_qty - reserved_qty at read time), so we only compute it locally
+  // here to bound the random cart/order quantities below.
   console.log("→ Inserting variations");
 
   const allVariations: Array<{
     id: string;
     product_id: string;
     price: number;
+    discountPrice: number | null;
     weight_in_grams: number;
-    available_qty: number;
+    availableForSeed: number;
   }> = [];
 
   for (const prod of createdProducts) {
@@ -417,7 +435,6 @@ async function seed() {
           color: colorVal,
           total_qty: total,
           reserved_qty: reserved,
-          available_qty: total - reserved,
           weight_in_grams: weight,
         });
       }
@@ -428,14 +445,17 @@ async function seed() {
         id: v.id,
         product_id: v.product_id,
         price: prod.price,
+        discountPrice: prod.discountPrice,
         weight_in_grams: v.weight_in_grams,
-        available_qty: v.available_qty,
+        availableForSeed: v.total_qty - v.reserved_qty,
       })),
     );
   }
   console.log(`  ✓ ${allVariations.length} variations inserted`);
 
   /* --------------------------- Files / Images -------------------------- */
+  // `color` was dropped from the file table — images are no longer tagged
+  // per-color, so we just seed a main + alternate shot per product.
   console.log("→ Inserting product images");
 
   for (const prod of createdProducts) {
@@ -444,7 +464,6 @@ async function seed() {
       key: `img_${base}_main`,
       name: `${prod.name} main photo`,
       public_url: IMAGE_URL,
-      color: null,
       product_id: prod.id,
       is_main: true,
     });
@@ -452,7 +471,6 @@ async function seed() {
       key: `img_${base}_alt`,
       name: `${prod.name} alternate photo`,
       public_url: IMAGE_URL,
-      color: null,
       product_id: prod.id,
       is_main: false,
     });
@@ -464,7 +482,7 @@ async function seed() {
 
   const cartRows: Array<{
     id: string;
-    userId: string;
+    user_id: string;
     variation_id: string;
     selected_qty: number;
   }> = [];
@@ -474,19 +492,23 @@ async function seed() {
     for (const v of pickedVariations) {
       cartRows.push({
         id: uuid(),
-        userId: client.id,
+        user_id: client.id,
         variation_id: v.id,
-        selected_qty: randomInt(1, Math.max(1, Math.min(3, v.available_qty))),
+        selected_qty: randomInt(
+          1,
+          Math.max(1, Math.min(3, v.availableForSeed)),
+        ),
       });
     }
   }
   if (cartRows.length) await db.insert(cartItem).values(cartRows);
   console.log(`  ✓ ${cartRows.length} cart items inserted`);
 
-  /* --------------------------- Orders (with embedded shipping) ---------- */
-  // NOTE: shipping_details is no longer its own table — it's a jsonb
-  // snapshot stored directly on the order row. We build that object inline
-  // per order instead of inserting into a separate shippingDetails table.
+  /* --------------------------- Orders + Order Items --------------------- */
+  // total_order_price / total_products_price / total_weight_in_kg no longer
+  // live on `order` — they're derivable from order_item rows, which now
+  // each carry their own price/discount/weight snapshot. shipping_details
+  // is an embedded jsonb snapshot rather than a separate table/FK.
   console.log("→ Inserting orders and order items");
 
   let ordersInserted = 0;
@@ -514,11 +536,7 @@ async function seed() {
 
     const itemCount = randomInt(1, 3);
     const pickedVariations = shuffle(allVariations).slice(0, itemCount);
-
-    const productsPrice = pickedVariations.reduce((sum, v) => sum + v.price, 0);
     const shippingPrice = 600;
-    const totalWeightInKg =
-      pickedVariations.reduce((sum, v) => sum + v.weight_in_grams, 0) / 1000;
 
     const orderId = uuid();
     const status = randomFrom(ORDER_STATUSES);
@@ -528,12 +546,9 @@ async function seed() {
       tracking_number: `OV${randomInt(100000, 999999)}`,
       status,
       shipping_status: null,
-      userId: client.id,
-      total_order_price: productsPrice + shippingPrice,
-      total_products_price: productsPrice,
+      user_id: client.id,
       shipping_price_at_order_time: shippingPrice,
       selected_shipping_provider: "WORLD_EXPRESS",
-      total_weight_in_kg: totalWeightInKg,
       shipping_details: shippingDetailsPayload,
     });
     ordersInserted++;
@@ -544,6 +559,11 @@ async function seed() {
       variation_id: v.id,
       qty: randomInt(1, 2),
       unit_price_at_order_time: v.price,
+      unit_discount_price_at_order_time: v.discountPrice,
+      // weight_at_order_time is assumed to be kg (real, matching the old
+      // order-level total_weight_in_kg convention) — flip this to grams if
+      // your column actually expects the raw gram value instead.
+      weight_at_order_time: v.weight_in_grams / 1000,
     }));
     await db.insert(orderItem).values(orderItemRows);
     orderItemsInserted += orderItemRows.length;
@@ -552,8 +572,8 @@ async function seed() {
     // worker/consumer has something pending to process out of the box.
     if (status === "CONFIRMED") {
       await db.insert(outbox).values({
-        eventType: "order.confirmed",
-        payload: { orderId, userId: client.id },
+        event_type: "order.confirmed",
+        payload: { orderId, user_id: client.id },
         status: "pending",
       });
       outboxEventsInserted++;
@@ -567,21 +587,21 @@ async function seed() {
   console.log("→ Inserting ratings");
 
   const ratingRows: Array<{
-    userId: string;
+    user_id: string;
     product_id: string;
     rating: number;
     comment: string;
-    isApproved: boolean;
+    is_approved: boolean;
   }> = [];
   for (const client of createdClients) {
     const ratedProducts = shuffle(createdProducts).slice(0, randomInt(1, 2));
     for (const prod of ratedProducts) {
       ratingRows.push({
-        userId: client.id,
+        user_id: client.id,
         product_id: prod.id,
         rating: randomInt(3, 5),
         comment: randomFrom(REVIEW_COMMENTS),
-        isApproved: Math.random() > 0.3,
+        is_approved: Math.random() > 0.3,
       });
     }
   }
