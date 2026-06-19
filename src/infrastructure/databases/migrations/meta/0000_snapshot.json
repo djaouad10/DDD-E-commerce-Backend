@@ -1,5 +1,5 @@
 {
-  "id": "62d97d1d-244e-4696-ac73-f8435dacd7f4",
+  "id": "dfd07140-0715-4de9-bcdd-113f94b2b68e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -296,12 +296,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "color": {
-          "name": "color",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": false
-        },
         "product_id": {
           "name": "product_id",
           "type": "uuid",
@@ -390,18 +384,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "total_order_price": {
-          "name": "total_order_price",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "total_products_price": {
-          "name": "total_products_price",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true
-        },
         "shipping_price_at_order_time": {
           "name": "shipping_price_at_order_time",
           "type": "real",
@@ -415,15 +397,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "total_weight_in_kg": {
-          "name": "total_weight_in_kg",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "shipping_details_id": {
-          "name": "shipping_details_id",
-          "type": "uuid",
+        "shipping_details": {
+          "name": "shipping_details",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },
@@ -433,6 +409,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {
@@ -495,19 +477,6 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
-        },
-        "order_shipping_details_id_shipping_details_id_fk": {
-          "name": "order_shipping_details_id_shipping_details_id_fk",
-          "tableFrom": "order",
-          "tableTo": "shipping_details",
-          "columnsFrom": [
-            "shipping_details_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -517,13 +486,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "tracking_number"
-          ]
-        },
-        "order_shipping_details_id_unique": {
-          "name": "order_shipping_details_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "shipping_details_id"
           ]
         }
       },
@@ -562,6 +524,18 @@
         },
         "unit_price_at_order_time": {
           "name": "unit_price_at_order_time",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_discount_price_at_order_time": {
+          "name": "unit_discount_price_at_order_time",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weight_at_order_time": {
+          "name": "weight_at_order_time",
           "type": "real",
           "primaryKey": false,
           "notNull": true
@@ -608,10 +582,83 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.outbox": {
+      "name": "outbox",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "outbox_event_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "outbox_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "scheduled_at": {
+          "name": "scheduled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "processed_at": {
+          "name": "processed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -632,6 +679,12 @@
         "name": {
           "name": "name",
           "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(300)",
           "primaryKey": false,
           "notNull": true
         },
@@ -658,13 +711,6 @@
           "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
-        },
-        "average_rating": {
-          "name": "average_rating",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 4
         },
         "price": {
           "name": "price",
@@ -707,6 +753,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "product_slug_idx": {
+          "name": "product_slug_idx",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -725,7 +786,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "product_slug_unique": {
+          "name": "product_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -974,93 +1043,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.shipping_details": {
-      "name": "shipping_details",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "full_name": {
-          "name": "full_name",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "first_phone": {
-          "name": "first_phone",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "second_phone": {
-          "name": "second_phone",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "code_wilaya": {
-          "name": "code_wilaya",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "commune": {
-          "name": "commune",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "code_postal": {
-          "name": "code_postal",
-          "type": "varchar(10)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "address": {
-          "name": "address",
-          "type": "varchar(300)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gps_link": {
-          "name": "gps_link",
-          "type": "varchar(2048)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "client_note": {
-          "name": "client_note",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "delivery_type": {
-          "name": "delivery_type",
-          "type": "delivery_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fragile": {
-          "name": "fragile",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.user": {
       "name": "user",
       "schema": "",
@@ -1213,12 +1195,6 @@
         },
         "reserved_qty": {
           "name": "reserved_qty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "available_qty": {
-          "name": "available_qty",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -1446,6 +1422,26 @@
         "RETURNED",
         "CANCELLED",
         "SUSPENDED"
+      ]
+    },
+    "public.outbox_event_type": {
+      "name": "outbox_event_type",
+      "schema": "public",
+      "values": [
+        "order.confirmed",
+        "order.cancelled",
+        "order.shipped",
+        "user.welcome_email"
+      ]
+    },
+    "public.outbox_status": {
+      "name": "outbox_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "processing",
+        "completed",
+        "failed"
       ]
     },
     "public.role": {

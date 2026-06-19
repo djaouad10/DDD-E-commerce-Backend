@@ -1,43 +1,37 @@
-import { betterAuth } from 'better-auth'
-import { tanstackStartCookies } from 'better-auth/tanstack-start'
-import { drizzleAdapter } from '@better-auth/drizzle-adapter'
-import { admin, customSession } from 'better-auth/plugins'
-import { env } from './env.js'
-import { db } from './database.js'
-import { getUserById } from '../databases/utils.js'
-
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { admin, customSession } from "better-auth/plugins";
+import { env } from "./env.js";
+import { db } from "./database.js";
+import { getUserById } from "../databases/utils.js";
 
 const customSessionPlugin = customSession(async ({ user: myUser }) => {
-  const dbUser = await getUserById(myUser.id)
+  const dbUser = await getUserById(myUser.id);
 
   return {
     user: {
       ...myUser,
-      role: dbUser ? dbUser.role : 'CLIENT',
+      role: dbUser ? dbUser.role : "CLIENT",
     },
-  }
-})
+  };
+});
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: 'pg',
+    provider: "pg",
   }),
   socialProviders: {
     google: {
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
-      prompt: 'select_account',
+      prompt: "select_account",
     },
   },
 
   // tanstackStartCookies must be the last plugin in the array
-  plugins: [
-    admin({ defaultRole: 'CLIENT' }),
-    customSessionPlugin,
-    tanstackStartCookies(),
-  ],
+  plugins: [admin({ defaultRole: "CLIENT" }), customSessionPlugin],
   rateLimit: {
-    enabled: env.NODE_ENV === 'production',
+    enabled: env.NODE_ENV === "production",
     window: 10, // time window in seconds
     max: 100, // max requests in the window
   },
@@ -45,9 +39,6 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-})
+});
 
-
-export type Auth = typeof auth
-
-
+export type Auth = typeof auth;
