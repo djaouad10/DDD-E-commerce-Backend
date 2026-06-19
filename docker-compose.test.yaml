@@ -1,0 +1,37 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: ecommerce-ddd-test-db
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: ecommerce_ddd_test
+    ports:
+      - "5433:5432"
+    # Use tmpfs for in-memory database (fast but data lost on stop)
+    # Or remove tmpfs for persistent test data during debugging
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    command: >
+      postgres 
+      -c max_connections=200
+      -c shared_buffers=256MB
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: ecommerce-ddd-test-redis
+    ports:
+      - "6380:6379"
+    command: redis-server --save "" --appendonly no
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
