@@ -33,6 +33,7 @@ type ShippingDetails = {
 };
 
 export const roleEnum = pgEnum("role", ["CLIENT", "ADMIN"]);
+
 export const orderStatusEnum = pgEnum("order_status", [
   "PENDING",
   "CONFIRMED",
@@ -44,6 +45,7 @@ export const orderStatusEnum = pgEnum("order_status", [
   "SUSPENDED",
 ]);
 export const deliveryTypeEnum = pgEnum("delivery_type", ["TO_DESK", "TO_HOME"]);
+
 export const sizeEnum = pgEnum("size", [
   "XS",
   "S",
@@ -61,6 +63,7 @@ export const sizeEnum = pgEnum("size", [
   "EU_42",
   "EU_43",
 ]);
+
 export const colorEnum = pgEnum("color", [
   "BLACK",
   "WHITE",
@@ -78,21 +81,22 @@ export const colorEnum = pgEnum("color", [
   "MAROON",
   "TEAL",
 ]);
+
 export const shippingProviderEnum = pgEnum("shipping_provider", [
   "WORLD_EXPRESS",
 ]);
+
 export const outboxEventTypeEnum = pgEnum("outbox_event_type", [
-  "order.confirmed",
-  "order.cancelled",
-  "order.shipped",
-  "user.welcome_email",
+  "create_order_in_shipping_api",
+  "delete_order_from_shipping_api",
+  "create_shipment_in_shipping_api",
 ]);
 
 export const outboxStatusEnum = pgEnum("outbox_status", [
-  "pending",
-  "processing",
-  "completed",
-  "failed",
+  "PENDING",
+  "PROCESSING",
+  "COMPLETED",
+  "FAILED",
 ]);
 
 export const user = pgTable(
@@ -374,7 +378,7 @@ export const outbox = pgTable("outbox", {
   id: serial("id").primaryKey(),
   event_type: outboxEventTypeEnum("event_type").notNull(),
   payload: jsonb("payload").notNull(),
-  status: outboxStatusEnum("status").notNull().default("pending"),
+  status: outboxStatusEnum("status").notNull().default("PENDING"),
   attempts: integer("attempts").notNull().default(0),
   scheduledAt: timestamp("scheduled_at", { withTimezone: true })
     .notNull()
