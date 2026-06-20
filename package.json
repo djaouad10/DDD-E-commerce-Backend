@@ -21,15 +21,16 @@
     "test:run": "npm run test:db:up && npm run test:db:migrate && dotenv -e .env.test -- vitest run",
     "test:coverage": "npm run test:db:up && npm run test:db:migrate && dotenv -e .env.test -- vitest run --coverage",
     "db:generate": "dotenv -e .env.dev -- drizzle-kit generate --config=./src/infrastructure/config/drizzle.config.ts",
-    "db:studio:dev": "dotenv -e .env.dev -- drizzle-kit studio --config=./src/infrastructure/config/drizzle.config.ts",
-    "db:seed:dev": "dotenv -e .env.dev -- tsx src/infrastructure/databases/seed.ts",
+    "dev:db:studio": "dotenv -e .env.dev -- drizzle-kit studio --config=./src/infrastructure/config/drizzle.config.ts",
+    "dev:db:seed": "dotenv -e .env.dev -- tsx src/infrastructure/databases/seed.ts",
     "test:db:up": "docker compose -f docker-compose.test.yaml up -d --wait",
     "dev:db:up": "docker compose -f docker-compose.dev.yaml up -d --wait",
     "test:db:down": "docker compose -f docker-compose.test.yaml down -v",
     "dev:db:down": "docker compose -f docker-compose.dev.yaml down",
     "test:db:migrate": "dotenv -e .env.test -- drizzle-kit migrate --config=./src/infrastructure/config/drizzle.config.ts",
     "dev:db:migrate": "dotenv -e .env.dev -- drizzle-kit migrate --config=./src/infrastructure/config/drizzle.config.ts",
-    "test:db:reset": "npm run test:db:down && npm run test:db:up && sleep 3 && npm run test:db:migrate"
+    "test:db:reset": "npm run test:db:down && npm run test:db:up && npm run test:db:migrate",
+    "dev:db:reset": "npm run dev:db:down -v && npm run dev:db:up && npm run dev:db:migrate"
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.11",

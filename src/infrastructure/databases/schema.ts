@@ -3,10 +3,12 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
   real,
+  serial,
   smallint,
   text,
   timestamp,
@@ -15,7 +17,23 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
+type ShippingDetails = {
+  delivery_type: "TO_DESK" | "TO_HOME";
+  id: string;
+  full_name: string;
+  first_phone: string;
+  second_phone: string | null;
+  code_wilaya: number;
+  commune: string;
+  code_postal: string;
+  address: string;
+  gps_link: string | null;
+  client_note: string | null;
+  fragile: boolean;
+};
+
 export const roleEnum = pgEnum("role", ["CLIENT", "ADMIN"]);
+
 export const orderStatusEnum = pgEnum("order_status", [
   "PENDING",
   "CONFIRMED",
@@ -27,6 +45,7 @@ export const orderStatusEnum = pgEnum("order_status", [
   "SUSPENDED",
 ]);
 export const deliveryTypeEnum = pgEnum("delivery_type", ["TO_DESK", "TO_HOME"]);
+
 export const sizeEnum = pgEnum("size", [
   "XS",
   "S",
@@ -44,6 +63,7 @@ export const sizeEnum = pgEnum("size", [
   "EU_42",
   "EU_43",
 ]);
+
 export const colorEnum = pgEnum("color", [
   "BLACK",
   "WHITE",
@@ -61,8 +81,22 @@ export const colorEnum = pgEnum("color", [
   "MAROON",
   "TEAL",
 ]);
+
 export const shippingProviderEnum = pgEnum("shipping_provider", [
   "WORLD_EXPRESS",
+]);
+
+export const outboxEventTypeEnum = pgEnum("outbox_event_type", [
+  "create_order_in_shipping_api",
+  "delete_order_from_shipping_api",
+  "create_shipment_in_shipping_api",
+]);
+
+export const outboxStatusEnum = pgEnum("outbox_status", [
+  "PENDING",
+  "PROCESSING",
+  "COMPLETED",
+  "FAILED",
 ]);
 
 export const user = pgTable(
@@ -156,7 +190,6 @@ export const file = pgTable(
     key: text("key").notNull().primaryKey(),
     name: varchar("name", { length: 100 }).notNull(),
     public_url: varchar("public_url", { length: 2048 }).notNull(),
-    color: varchar("color", { length: 100 }),
     product_id: uuid("product_id")
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
@@ -173,21 +206,24 @@ export const product = pgTable(
       .primaryKey()
       .default(sql`gen_random_uuid()`),
     name: varchar("name", { length: 200 }).notNull(),
+    slug: varchar("slug", { length: 300 }).notNull().unique(),
     description: varchar("description", { length: 5000 }),
     categoryId: uuid("category_id").references(() => category.id, {
       onDelete: "set null",
     }),
     brand: varchar("brand", { length: 100 }).notNull(),
     material: varchar("material", { length: 100 }).notNull(),
-    average_rating: real("average_rating").notNull().default(4),
     price: real("price").notNull(),
     discount_price: real("discount_price"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at")
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at")
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (t) => [index("product_category_id_idx").on(t.categoryId)],
+  (t) => [
+    index("product_category_id_idx").on(t.categoryId),
+    index("product_slug_idx").on(t.slug),
+  ],
 );
 
 export const variation = pgTable(
@@ -204,10 +240,9 @@ export const variation = pgTable(
     color: colorEnum("color").notNull(),
     total_qty: integer("total_qty").notNull(),
     reserved_qty: integer("reserved_qty").notNull(),
-    available_qty: integer("available_qty").notNull(),
     weight_in_grams: integer("weight_in_grams").notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at")
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at")
       .notNull()
       .$onUpdate(() => new Date()),
   },
@@ -230,44 +265,26 @@ export const cartItem = pgTable(
       .notNull()
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    userId: text("user_id")
+    user_id: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     variation_id: uuid("variation_id")
       .notNull()
       .references(() => variation.id, { onDelete: "cascade" }),
     selected_qty: smallint("selected_qty").notNull(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at")
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at")
       .notNull()
       .$onUpdate(() => new Date()),
   },
   (t) => [
     uniqueIndex("cart_item_user_id_variation_id_idx").on(
-      t.userId,
+      t.user_id,
       t.variation_id,
     ),
-    index("cart_item_user_id_idx").on(t.userId),
+    index("cart_item_user_id_idx").on(t.user_id),
   ],
 );
-
-export const shippingDetails = pgTable("shipping_details", {
-  id: uuid("id")
-    .notNull()
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  full_name: varchar("full_name", { length: 100 }).notNull(),
-  first_phone: varchar("first_phone", { length: 20 }).notNull(),
-  second_phone: varchar("second_phone", { length: 20 }),
-  code_wilaya: smallint("code_wilaya").notNull(),
-  commune: varchar("commune", { length: 100 }).notNull(),
-  code_postal: varchar("code_postal", { length: 10 }).notNull(),
-  address: varchar("address", { length: 300 }).notNull(),
-  gps_link: varchar("gps_link", { length: 2048 }),
-  client_note: varchar("client_note", { length: 500 }),
-  delivery_type: deliveryTypeEnum("delivery_type").notNull(),
-  fragile: boolean("fragile").notNull(),
-});
 
 export const order = pgTable(
   "order",
@@ -276,31 +293,39 @@ export const order = pgTable(
       .notNull()
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+
+    // Lifecycle
     tracking_number: varchar("tracking_number", { length: 32 }).unique(),
     status: orderStatusEnum("status").notNull().default("PENDING"),
     shipping_status: varchar("shipping_status", { length: 50 }),
-    userId: text("user_id")
+
+    // Ownership
+    user_id: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    total_order_price: real("total_order_price").notNull(),
-    total_products_price: real("total_products_price").notNull(),
+
+    // Shipping price snapshot (external rate)
     shipping_price_at_order_time: real(
       "shipping_price_at_order_time",
     ).notNull(),
+
     selected_shipping_provider: shippingProviderEnum(
       "selected_shipping_provider",
     ).notNull(),
-    total_weight_in_kg: real("total_weight_in_kg").notNull(),
-    shipping_details_id: uuid("shipping_details_id")
+
+    // Address snapshot
+    shipping_details: jsonb("shipping_details")
+      .$type<ShippingDetails>()
+      .notNull(),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at")
       .notNull()
-      .references(() => shippingDetails.id, { onDelete: "cascade" })
-      .unique(),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+      .$onUpdate(() => new Date()),
   },
   (t) => [
-    index("order_user_id_idx").on(t.userId),
+    index("order_user_id_idx").on(t.user_id),
     index("order_status_idx").on(t.status),
-    index("order_created_at_idx").on(t.createdAt),
+    index("order_created_at_idx").on(t.created_at),
   ],
 );
 
@@ -316,9 +341,13 @@ export const orderItem = pgTable(
       .references(() => order.id, { onDelete: "cascade" }),
     variation_id: uuid("variation_id")
       .notNull()
-      .references(() => variation.id, { onDelete: "cascade" }),
+      .references(() => variation.id, { onDelete: "restrict" }),
     qty: smallint("qty").notNull(),
     unit_price_at_order_time: real("unit_price_at_order_time").notNull(),
+    unit_discount_price_at_order_time: real(
+      "unit_discount_price_at_order_time",
+    ),
+    weight_at_order_time: real("weight_at_order_time").notNull(),
   },
   (t) => [index("order_item_order_id_idx").on(t.orderId)],
 );
@@ -326,7 +355,7 @@ export const orderItem = pgTable(
 export const rating = pgTable(
   "rating",
   {
-    userId: text("user_id")
+    user_id: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     product_id: uuid("product_id")
@@ -334,16 +363,32 @@ export const rating = pgTable(
       .references(() => product.id, { onDelete: "cascade" }),
     rating: smallint("rating").notNull(),
     comment: varchar("comment", { length: 1000 }),
-    isApproved: boolean("is_approved").notNull().default(false),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    is_approved: boolean("is_approved").notNull().default(false),
+    created_at: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [
-    primaryKey({ columns: [t.userId, t.product_id] }),
+    primaryKey({ columns: [t.user_id, t.product_id] }),
     index("rating_product_id_idx").on(t.product_id),
-    index("rating_user_id_idx").on(t.userId),
-    index("rating_is_approved_idx").on(t.isApproved),
+    index("rating_user_id_idx").on(t.user_id),
+    index("rating_is_approved_idx").on(t.is_approved),
   ],
 );
+
+export const outbox = pgTable("outbox", {
+  id: serial("id").primaryKey(),
+  event_type: outboxEventTypeEnum("event_type").notNull(),
+  payload: jsonb("payload").notNull(),
+  status: outboxStatusEnum("status").notNull().default("PENDING"),
+  attempts: integer("attempts").notNull().default(0),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  processed_at: timestamp("processed_at", { withTimezone: true }),
+  error_message: text("error_message"),
+  created_at: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 // Relations
 
@@ -394,27 +439,17 @@ export const variationRelations = relations(variation, ({ one, many }) => ({
 }));
 
 export const cartItemRelations = relations(cartItem, ({ one }) => ({
-  user: one(user, { fields: [cartItem.userId], references: [user.id] }),
+  user: one(user, { fields: [cartItem.user_id], references: [user.id] }),
   variation: one(variation, {
     fields: [cartItem.variation_id],
     references: [variation.id],
   }),
 }));
 
-export const shippingDetailsRelations = relations(
-  shippingDetails,
-  ({ one }) => ({
-    order: one(order),
-  }),
-);
-
 export const orderRelations = relations(order, ({ one, many }) => ({
   order_items: many(orderItem),
-  shipping_details: one(shippingDetails, {
-    fields: [order.shipping_details_id],
-    references: [shippingDetails.id],
-  }),
-  user: one(user, { fields: [order.userId], references: [user.id] }),
+
+  user: one(user, { fields: [order.user_id], references: [user.id] }),
 }));
 
 export const orderItemRelations = relations(orderItem, ({ one }) => ({
@@ -426,7 +461,7 @@ export const orderItemRelations = relations(orderItem, ({ one }) => ({
 }));
 
 export const ratingRelations = relations(rating, ({ one }) => ({
-  user: one(user, { fields: [rating.userId], references: [user.id] }),
+  user: one(user, { fields: [rating.user_id], references: [user.id] }),
   product: one(product, {
     fields: [rating.product_id],
     references: [product.id],
