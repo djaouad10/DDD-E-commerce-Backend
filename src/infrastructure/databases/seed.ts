@@ -513,7 +513,6 @@ async function seed() {
 
   let ordersInserted = 0;
   let orderItemsInserted = 0;
-  let outboxEventsInserted = 0;
 
   for (let i = 0; i < createdClients.length; i++) {
     const client = createdClients[i]!;
@@ -567,20 +566,9 @@ async function seed() {
     }));
     await db.insert(orderItem).values(orderItemRows);
     orderItemsInserted += orderItemRows.length;
-
-    // Optional: drop a matching outbox event for confirmed orders so the
-    // worker/consumer has something pending to process out of the box.
-    if (status === "CONFIRMED") {
-      await db.insert(outbox).values({
-        event_type: "order.confirmed",
-        payload: { orderId, user_id: client.id },
-        status: "pending",
-      });
-      outboxEventsInserted++;
-    }
   }
   console.log(
-    `  ✓ ${ordersInserted} orders, ${orderItemsInserted} order items, and ${outboxEventsInserted} outbox events inserted`,
+    `  ✓ ${ordersInserted} orders and ${orderItemsInserted} order items inserted`,
   );
 
   /* --------------------------- Ratings ----------------------------------- */
