@@ -177,10 +177,9 @@ export const verification = pgTable(
 );
 
 export const category = pgTable("category", {
-  id: uuid("id")
+  id: varchar("id", { length: 40 })
     .notNull()
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+    .primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
 });
 
@@ -190,7 +189,7 @@ export const file = pgTable(
     key: text("key").notNull().primaryKey(),
     name: varchar("name", { length: 100 }).notNull(),
     public_url: varchar("public_url", { length: 2048 }).notNull(),
-    product_id: uuid("product_id")
+    product_id: varchar("product_id", { length: 40 })
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
     is_main: boolean("is_main").notNull(),
@@ -201,14 +200,13 @@ export const file = pgTable(
 export const product = pgTable(
   "product",
   {
-    id: uuid("id")
-      .notNull()
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    id: varchar("id", { length: 40 })
+    .notNull()
+    .primaryKey(),
     name: varchar("name", { length: 200 }).notNull(),
     slug: varchar("slug", { length: 300 }).notNull().unique(),
     description: varchar("description", { length: 5000 }),
-    categoryId: uuid("category_id").references(() => category.id, {
+    categoryId: varchar("category_id", { length: 40 }).references(() => category.id, {
       onDelete: "set null",
     }),
     brand: varchar("brand", { length: 100 }).notNull(),
@@ -229,11 +227,10 @@ export const product = pgTable(
 export const variation = pgTable(
   "variation",
   {
-    id: uuid("id")
-      .notNull()
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    product_id: uuid("product_id")
+    id: varchar("id", { length: 40 })
+    .notNull()
+    .primaryKey(),
+    product_id: varchar("product_id", { length: 40 })
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
     size: sizeEnum("size").notNull(),
@@ -261,14 +258,13 @@ export const variation = pgTable(
 export const cartItem = pgTable(
   "cart_item",
   {
-    id: uuid("id")
-      .notNull()
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    id: varchar("id", { length: 40 })
+    .notNull()
+    .primaryKey(),
     user_id: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    variation_id: uuid("variation_id")
+    variation_id: varchar("variation_id", { length: 40 })
       .notNull()
       .references(() => variation.id, { onDelete: "cascade" }),
     selected_qty: smallint("selected_qty").notNull(),
@@ -289,10 +285,9 @@ export const cartItem = pgTable(
 export const order = pgTable(
   "order",
   {
-    id: uuid("id")
-      .notNull()
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    id: varchar("id", { length: 40 })
+    .notNull()
+    .primaryKey(),
 
     // Lifecycle
     tracking_number: varchar("tracking_number", { length: 32 }).unique(),
@@ -332,14 +327,13 @@ export const order = pgTable(
 export const orderItem = pgTable(
   "order_item",
   {
-    id: uuid("id")
-      .notNull()
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    orderId: uuid("order_id")
+    id: varchar("id", { length: 40 })
+    .notNull()
+    .primaryKey(),
+    orderId: varchar("order_id", { length: 40 })
       .notNull()
       .references(() => order.id, { onDelete: "cascade" }),
-    variation_id: uuid("variation_id")
+    variation_id: varchar("variation_id", {length: 40})
       .notNull()
       .references(() => variation.id, { onDelete: "restrict" }),
     qty: smallint("qty").notNull(),
@@ -355,10 +349,10 @@ export const orderItem = pgTable(
 export const rating = pgTable(
   "rating",
   {
-    user_id: text("user_id")
+    user_id: varchar("user_id", {length: 40})
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    product_id: uuid("product_id")
+    product_id: varchar("product_id", {length: 40})
       .notNull()
       .references(() => product.id, { onDelete: "cascade" }),
     rating: smallint("rating").notNull(),
@@ -375,7 +369,9 @@ export const rating = pgTable(
 );
 
 export const outbox = pgTable("outbox", {
-  id: serial("id").primaryKey(),
+  id: varchar("id", { length: 40 })
+    .notNull()
+    .primaryKey(),
   event_type: outboxEventTypeEnum("event_type").notNull(),
   payload: jsonb("payload").notNull(),
   status: outboxStatusEnum("status").notNull().default("PENDING"),
