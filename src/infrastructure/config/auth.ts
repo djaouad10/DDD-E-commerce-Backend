@@ -27,8 +27,6 @@ export const auth = betterAuth({
       prompt: "select_account",
     },
   },
-
-  // tanstackStartCookies must be the last plugin in the array
   plugins: [admin({ defaultRole: "CLIENT" }), customSessionPlugin],
   rateLimit: {
     enabled: env.NODE_ENV === "production",
@@ -38,6 +36,22 @@ export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: true,
+  },
+
+  advanced: {
+    database: {
+      generateId: ({ model }) => {
+        const uuid = crypto.randomUUID();
+
+        const cleanUuid = uuid.replace(/-/g, "");
+
+        if (model === "user") {
+          return `usr_${cleanUuid}`;
+        }
+
+        return cleanUuid;
+      },
+    },
   },
 });
 
