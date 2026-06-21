@@ -4,6 +4,7 @@ import { admin, customSession } from "better-auth/plugins";
 import { env } from "./env.js";
 import { db } from "./database.js";
 import { getUserById } from "../databases/utils.js";
+import { UserRole } from "#/domain/entities/user.js";
 
 const customSessionPlugin = customSession(async ({ user: myUser }) => {
   const dbUser = await getUserById(myUser.id);
@@ -11,7 +12,7 @@ const customSessionPlugin = customSession(async ({ user: myUser }) => {
   return {
     user: {
       ...myUser,
-      role: dbUser ? dbUser.role : "CLIENT",
+      role: dbUser ? dbUser.role : UserRole.CLIENT,
     },
   };
 });
@@ -27,7 +28,7 @@ export const auth = betterAuth({
       prompt: "select_account",
     },
   },
-  plugins: [admin({ defaultRole: "CLIENT" }), customSessionPlugin],
+  plugins: [admin({ defaultRole: UserRole.CLIENT }), customSessionPlugin],
   rateLimit: {
     enabled: env.NODE_ENV === "production",
     window: 10, // time window in seconds

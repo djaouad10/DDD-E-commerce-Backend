@@ -2,7 +2,12 @@ import type { MoneyDTO } from "#/application/dto/money.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // add more currencies here in the future
-export type Currency = "DZD";
+
+export const Currency = {
+  DZD: "DZD",
+} as const;
+
+export type Currency = (typeof Currency)[keyof typeof Currency];
 
 export class Money {
   private constructor(
@@ -14,15 +19,21 @@ export class Money {
     if (amount < 0)
       throw new ValidationError("amount", "Money can not be negative");
 
-    return new Money(amount, "DZD");
+    return new Money(amount, Currency.DZD);
   }
 
   add(other: Money): Money {
-    return new Money(this.amount + other.amount, "DZD");
+    if (this.currency !== other.currency)
+      throw new ValidationError(
+        "currency",
+        "Money must be in the same currency",
+      );
+
+    return new Money(this.amount + other.amount, this.currency);
   }
 
   multiply(qty: number): Money {
-    return new Money(this.amount * qty, "DZD");
+    return new Money(this.amount * qty, this.currency);
   }
 
   toDTO(): MoneyDTO {
