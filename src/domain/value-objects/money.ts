@@ -18,7 +18,7 @@ export class Money {
   static of(amount: number, currency: Currency): Money {
     if (amount < 0)
       throw new ValidationError("amount", "Money can not be negative");
-
+    
     return new Money(amount, currency);
   }
 
