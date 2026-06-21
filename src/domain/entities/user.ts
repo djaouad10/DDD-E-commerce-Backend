@@ -1,9 +1,11 @@
 import type { UserDTO } from "#/application/dto/user.dto.js";
+import type { DomainEvent } from "../events/domain-event.js";
 import { UserId } from "../value-objects/user-id.js";
 
 export type UserRole = "ADMIN" | "CLIENT";
 
 export class User {
+  private _events: DomainEvent[] = []
   private constructor(
     readonly id: UserId,
     private _name: string,
@@ -15,7 +17,8 @@ export class User {
     private _banned: boolean,
     private _banReason: string | null,
     private _banExpires: Date | null,
-  ) {}
+  ) {
+  }
 
   // factories
   static create(
@@ -120,9 +123,15 @@ export class User {
   }
 
   // event methods
-  pullEvents() {}
+  pullEvents(): DomainEvent[] {
+    const events = [...this._events]
+    this._events = []
+    return events
+  }
 
-  peekEvents() {}
+  peekEvents(): readonly DomainEvent[] {
+    return [...this._events]
+  }
 
   // private utils
 }
