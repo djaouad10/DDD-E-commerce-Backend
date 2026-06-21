@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -8,24 +8,21 @@ import {
   pgTable,
   primaryKey,
   real,
-  serial,
   smallint,
   text,
   timestamp,
   uniqueIndex,
-  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 
 type ShippingDetails = {
   delivery_type: "TO_DESK" | "TO_HOME";
-  id: string;
   full_name: string;
   first_phone: string;
   second_phone: string | null;
-  code_wilaya: number;
+  wilaya_code: number;
   commune: string;
-  code_postal: string;
+  postal_code: string;
   address: string;
   gps_link: string | null;
   client_note: string | null;

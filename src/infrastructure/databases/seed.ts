@@ -519,13 +519,12 @@ async function seed() {
     const wilaya = randomFrom(WILAYAS);
 
     const shippingDetailsPayload = {
-      id: uuid(),
       full_name: client.name,
       first_phone: `0550${randomInt(100000, 999999)}`,
       second_phone: null,
-      code_wilaya: wilaya.code,
+      wilaya_code: wilaya.code,
       commune: wilaya.commune,
-      code_postal: `${wilaya.code}000`,
+      postal_code: `${wilaya.code}000`,
       address: `${randomInt(1, 200)} Rue de l'Indépendance`,
       gps_link: null,
       client_note: i === 0 ? "Please call before delivery." : null,
