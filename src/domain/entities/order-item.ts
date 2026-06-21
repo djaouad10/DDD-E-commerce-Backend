@@ -1,5 +1,5 @@
 import type { OrderItemDTO } from "#/application/dto/order-item.dto.js";
-import { Money } from "../value-objects/money.js";
+import { Currency, Money } from "../value-objects/money.js";
 import { OrderItemId } from "../value-objects/order-item-id.js";
 import type { VariationId } from "../value-objects/variation-id.js";
 import type { Weight } from "../value-objects/weight.js";
@@ -62,7 +62,7 @@ export class OrderItem {
       return difference.multiply(this.qty);
     }
 
-    return Money.of(0);
+    return Money.of(0, Currency.DZD);
   }
 
   hasDiscount(): boolean {

@@ -1,7 +1,7 @@
 import type { OrderDTO } from "#/application/dto/order.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
-import { Money } from "../value-objects/money.js";
+import { Currency, Money } from "../value-objects/money.js";
 import { OrderId } from "../value-objects/order-id.js";
 import type { ShippingDetails } from "../value-objects/shipping-details.js";
 import type { UserId } from "../value-objects/user-id.js";
@@ -181,7 +181,7 @@ export class Order {
   }
 
   getTotalItemsPrice(): Money {
-    let total = Money.of(0);
+    let total = Money.of(0, Currency.DZD);
 
     for (const item of this._orderItems) {
       total = total.add(item.lineTotal());
@@ -203,7 +203,7 @@ export class Order {
   }
 
   getTotalDiscount(): Money {
-    let total = Money.of(0);
+    let total = Money.of(0, Currency.DZD);
 
     for (const item of this._orderItems) {
       if (item.hasDiscount()) {
@@ -213,7 +213,6 @@ export class Order {
 
     return total;
   }
-
 
   getTotalWeightInGrams(): Weight {
     let total = Weight.of(0, "g");
