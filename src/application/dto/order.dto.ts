@@ -21,6 +21,7 @@ export type OrderDTO = {
   totalItemsPrice: MoneyDTO;
   totalDiscount: MoneyDTO;
   totalWeightInGrams: WeightDTO;
+  totalWeightInKg: WeightDTO;
   createdAt: string;
   updatedAt: string;
 };
