@@ -10,6 +10,6 @@ export type OrderItemDTO = {
   weightAtOrderTime: WeightDTO;
   lineTotal: MoneyDTO;
   discountAmount: MoneyDTO | null;
-  totalWeight: WeightDTO;
+  totalWeightInGrams: WeightDTO;
   hasDiscount: boolean;
 };
