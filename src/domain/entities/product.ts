@@ -1,0 +1,33 @@
+export type Size =
+  | "XS"
+  | "S"
+  | "M"
+  | "L"
+  | "XL"
+  | "XXL"
+  | "XXXL"
+  | "EU_36"
+  | "EU_37"
+  | "EU_38"
+  | "EU_39"
+  | "EU_40"
+  | "EU_41"
+  | "EU_42"
+  | "EU_43";
+
+export type Color =
+  | "BLACK"
+  | "WHITE"
+  | "GRAY"
+  | "RED"
+  | "BLUE"
+  | "GREEN"
+  | "YELLOW"
+  | "ORANGE"
+  | "PURPLE"
+  | "PINK"
+  | "BROWN"
+  | "BEIGE"
+  | "NAVY"
+  | "MAROON"
+  | "TEAL";
