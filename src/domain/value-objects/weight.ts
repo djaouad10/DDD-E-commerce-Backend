@@ -28,6 +28,11 @@ export class Weight {
     return new Weight(this.weight * qty, this.unit);
   }
 
+  toKg(): Weight {
+    const weightInKg = Math.round((this.weight / 1000) * 100) / 100;
+    return new Weight(weightInKg, "kg");
+  }
+
   toDTO(): WeightDTO {
     return { weight: this.weight, unit: this.unit };
   }
