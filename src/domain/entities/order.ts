@@ -11,7 +11,5 @@ export type OrderStatus =
 export type ShippingProviderType = "WORLD_EXPRESS";
 
 export class Order {
-  test() {
-    console.log("test");
-  }
+  private constructor(){}
 }
