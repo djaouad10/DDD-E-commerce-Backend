@@ -1,6 +1,11 @@
 import type { ShippingDetailsDTO } from "#/application/dto/shipping-details.dto.js";
 
-export type DeliveryType = "TO_DESK" | "TO_HOME";
+export const DeliveryType = {
+  TO_DESK: "TO_DESK",
+  TO_HOME: "TO_HOME",
+} as const;
+
+export type DeliveryType = (typeof DeliveryType)[keyof typeof DeliveryType];
 
 export class ShippingDetails {
   // it has no unique id
