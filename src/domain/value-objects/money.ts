@@ -21,6 +21,13 @@ export class Money {
     return new Money(this.amount + other.amount, "DZD");
   }
 
+  subtract(other: Money): Money {
+    if (this.amount < other.amount)
+      throw new ValidationError("amount", "Money can not be negative");
+
+    return new Money(this.amount - other.amount, "DZD");
+  }
+
   multiply(qty: number): Money {
     return new Money(this.amount * qty, "DZD");
   }
