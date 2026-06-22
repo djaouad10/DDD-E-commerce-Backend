@@ -37,3 +37,7 @@ export const Color = {
 } as const;
 
 export type Color = (typeof Color)[keyof typeof Color];
+
+export class Product {
+  private constructor() {}
+}
