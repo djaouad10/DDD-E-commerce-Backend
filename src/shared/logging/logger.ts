@@ -90,7 +90,40 @@ export class Logger {
     }
   }
 
-  private prettyPrint(entry: LogEntry): void {}
+  private prettyPrint(entry: LogEntry): void {
+    const colors: Record<LogLevel, string> = {
+      fatal: "\x1b[35m", // Magenta
+      error: "\x1b[31m", // Red
+      warn: "\x1b[33m", // Yellow
+      info: "\x1b[36m", // Cyan
+      debug: "\x1b[90m", // Gray
+      trace: "\x1b[90m", // Gray
+    };
+
+    const reset = "\x1b[0m";
+    const color = colors[entry.level];
+    const levelStr = entry.level.toUpperCase().padEnd(5);
+    const reqId = entry.requestId.slice(0, 8);
+    const duration = entry.durationMs ? ` +${entry.durationMs}ms` : "";
+
+    console.log(
+      `${color}[${levelStr}]${reset} ` +
+        `[${entry.timestamp.split("T")[1]!.split(".")[0]}] ` +
+        `[${reqId}]${duration} ` +
+        `${entry.message}`,
+    );
+
+    if (entry.metadata) {
+      console.log(
+        `  ${color}↳${reset}`,
+        JSON.stringify(entry.metadata, null, 2),
+      );
+    }
+
+    if (entry.error?.stack) {
+      console.log(`  ${color}Stack:${reset}\n${entry.error.stack}`);
+    }
+  }
 
   fatal() {}
   error() {}
