@@ -16,9 +16,17 @@ type LogEntry = {
     code?: string;
     stack?: string;
   };
-}
+};
 
-class PerformanceTimer {}
+class PerformanceTimer {
+  constructor(private _startTime: number) {
+    this._startTime = performance.now();
+  }
+
+  elapsed(): number {
+    return Math.round(performance.now() - this._startTime);
+  }
+}
 
 export class Logger {}
 
