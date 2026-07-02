@@ -29,6 +29,8 @@ export class Weight {
   }
 
   toKg(): Weight {
+    if (this.unit === "kg")
+      throw new ValidationError("units", "weight is already in kg");
     const weightInKg = Math.round((this.weight / 1000) * 100) / 100;
     return new Weight(weightInKg, "kg");
   }
