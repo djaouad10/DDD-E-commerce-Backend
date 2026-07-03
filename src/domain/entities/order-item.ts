@@ -48,7 +48,7 @@ export class OrderItem {
     unitDiscountPriceAtOrderTime: Money | null,
     weightAtOrderTime: Weight,
   ): OrderItem {
-    if (qty <= 0) throw new Error("qty must be greater than 0");
+    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
 
     if (weightAtOrderTime.unit !== "g")
       throw new ValidationError(
