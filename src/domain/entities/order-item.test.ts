@@ -13,7 +13,6 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 // DONE 4. totalWeightInGrams()
 // DONE 5. hasDiscount()
 // DONE 6. discountAmount()
-// 7. totalWeightInGrams()
 
 describe("OrderItem Entity", () => {
   const validVariationId = VariationId.generate();
