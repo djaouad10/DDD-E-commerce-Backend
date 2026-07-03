@@ -1,7 +1,7 @@
 // What to test:
 // DONE 1. of()
 // DONE 2. add()
-// 3. subtract()
+// DOEN 3. subtract()
 // 4. multiply()
 
 import { ValidationError } from "better-auth";
@@ -86,7 +86,37 @@ describe("Money Value Object", () => {
       // Act & Assert
       expect(() => money1.subtract(money2)).toThrow(ValidationError);
     });
+  });
 
-    
+  describe("Money.multiply()", () => {
+    test("when provided with a negative qty, it should throw a ValidationError", () => {
+      // Arrange
+      const money1 = Money.of(100, "DZD");
+
+      // Act & Assert
+      expect(() => money1.multiply(-1)).toThrow(ValidationError);
+    });
+
+    test("when provided with a 0 qty, it should return zero Money with the same currency", () => {
+      // Arrange
+      const money1 = Money.of(100, "DZD");
+
+      // Act
+      const result = money1.multiply(0);
+
+      // Assert
+      expect(result).toStrictEqual(Money.of(0, "DZD"));
+    });
+
+    test("when provided with a positive qty, it should return amount * qty Money with the same currency", () => {
+      // Arrange
+      const money1 = Money.of(100, "DZD");
+
+      // Act
+      const result = money1.multiply(2);
+
+      // Assert
+      expect(result).toStrictEqual(Money.of(200, "DZD"));
+    });
   });
 });
