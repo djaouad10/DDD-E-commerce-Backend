@@ -12,7 +12,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 // DONE 3. lineTotal()
 // DONE 4. totalWeightInGrams()
 // DONE 5. hasDiscount()
-// 6. discountAmount()
+// DONE 6. discountAmount()
 // 7. totalWeightInGrams()
 
 describe("OrderItem Entity", () => {
@@ -275,5 +275,41 @@ describe("OrderItem Entity", () => {
     });
   });
 
+  describe("OrderItem.discountAmount()", () => {
+    test("when no discount, it should return 0 Money", () => {
+      // Arrange & Act
+      const orderItem = OrderItem.reconstitute(
+        OrderItemId.generate(),
+        validVariationId,
+        3,
+        validUnitPrice,
+        null,
+        validWeight,
+      );
 
+      // Assert
+      expect(orderItem.discountAmount()).toStrictEqual(Money.of(0, "DZD"));
+    });
+
+    test("when item has discount, it should return the total discount amount", () => {
+      // Arrange
+      const price = Money.of(3000, "DZD");
+      const discount = Money.of(2000, "DZD");
+      // Act
+      const orderItem = OrderItem.reconstitute(
+        OrderItemId.generate(),
+        validVariationId,
+        3,
+        price,
+        discount,
+        validWeight,
+      );
+
+      // Assert
+      // discount_amount = (price - discount) * qty
+      expect(orderItem.discountAmount()).toStrictEqual(
+        price.subtract(discount).multiply(3),
+      );
+    });
+  });
 });
