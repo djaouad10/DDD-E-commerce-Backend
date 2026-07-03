@@ -7,7 +7,7 @@ import { OrderItemId } from "../value-objects/order-item-id.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // What to test:
-// 1. creat()
+// DONE 1. creat()
 // 2. reconstitute()
 // 3. lineTotal()
 // 4. totalWeightInGrams()
@@ -97,6 +97,90 @@ describe("OrderItem Entity", () => {
           validUnitDiscountPrice,
         );
       }).toThrow(ValidationError);
+    });
+  });
+
+  describe("OrderItem.reconstitute()", () => {
+    test("when arguments are valid, it should return a OrderItem instance", () => {
+      // Arrange & Act
+      const orderItem = OrderItem.reconstitute(
+        OrderItemId.generate(),
+        validVariationId,
+        validQty,
+        validUnitPrice,
+        validUnitDiscountPrice,
+        validWeight,
+      );
+
+      // Assert
+      expect(orderItem).toBeInstanceOf(OrderItem);
+    });
+
+    test("when item quantity is 0, it should throw a Validation error", () => {
+      // Arrange
+      const qty = 0;
+
+      // Act & Assert
+      expect(() => {
+        OrderItem.reconstitute(
+          OrderItemId.generate(),
+          validVariationId,
+          qty,
+          validUnitPrice,
+          validUnitDiscountPrice,
+          validWeight,
+        );
+      }).toThrow(ValidationError);
+    });
+
+    test("when item quantity is less than 0, it should throw a Validation error", () => {
+      // Arrange
+      const qty = -1;
+
+      // Act & Assert
+      expect(() => {
+        OrderItem.reconstitute(
+          OrderItemId.generate(),
+          validVariationId,
+          qty,
+          validUnitPrice,
+          validUnitDiscountPrice,
+          validWeight,
+        );
+      }).toThrow(ValidationError);
+    });
+
+    test("when weight is not in grams, it should throw a Validation error", () => {
+      // Arrange
+      const weight = Weight.of(100, "kg");
+
+      // Act & Assert
+      expect(() => {
+        OrderItem.reconstitute(
+          OrderItemId.generate(),
+          validVariationId,
+          validQty,
+          validUnitPrice,
+          validUnitDiscountPrice,
+          weight,
+        );
+      }).toThrow(ValidationError);
+    });
+
+    test("when arguments are valid, it should use the provided orderItemId", () => {
+      // Arrange & Act
+      const orderItemId = OrderItemId.generate();
+      const orderItem = OrderItem.reconstitute(
+        orderItemId,
+        validVariationId,
+        validQty,
+        validUnitPrice,
+        validUnitDiscountPrice,
+        validWeight,
+      );
+
+      // Assert
+      expect(orderItem.id).toBe(orderItemId);
     });
   });
 });
