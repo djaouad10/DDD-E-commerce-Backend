@@ -10,8 +10,8 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 // DONE 1. creat()
 // DONE 2. reconstitute()
 // DONE 3. lineTotal()
-// 4. totalWeightInGrams()
-// 5. hasDiscount()
+// DONE 4. totalWeightInGrams()
+// DONE 5. hasDiscount()
 // 6. discountAmount()
 // 7. totalWeightInGrams()
 
@@ -242,4 +242,38 @@ describe("OrderItem Entity", () => {
       expect(orderItem.totalWeightInGrams()).toStrictEqual(weight.multiply(3));
     });
   });
+
+  describe("OrderItem.hasDiscount()", () => {
+    test("when no discount, it should return false", () => {
+      // Arrange
+      const orderItem = OrderItem.reconstitute(
+        OrderItemId.generate(),
+        validVariationId,
+        3,
+        validUnitPrice,
+        null,
+        validWeight,
+      );
+
+      // Assert
+      expect(orderItem.hasDiscount()).toBe(false);
+    });
+
+    test("when item has discount, it should return true", () => {
+      // Arrange
+      const orderItem = OrderItem.reconstitute(
+        OrderItemId.generate(),
+        validVariationId,
+        3,
+        validUnitPrice,
+        validUnitDiscountPrice,
+        validWeight,
+      );
+
+      // Assert
+      expect(orderItem.hasDiscount()).toBe(true);
+    });
+  });
+
+
 });
