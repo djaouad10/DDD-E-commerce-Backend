@@ -111,7 +111,7 @@ describe("Order Aggregate", () => {
   };
 
   describe("Order.create()", () => {
-    test("when creating a new order with an empty orderItems list, it throws a ValidationError", () => {
+    test("when creating a new order with an empty orderItems list, it should throw a ValidationError", () => {
       // Arrang
       const emptyOrderItems: OrderItem[] = [];
       const [
@@ -134,7 +134,7 @@ describe("Order Aggregate", () => {
       expect(() => Order.create(...factoryArguments)).toThrow(ValidationError);
     });
 
-    test("when creating a new order with valid arguments, it generates a new OrderId", () => {
+    test("when creating a new order with valid arguments, it should generate a new OrderId", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -145,7 +145,7 @@ describe("Order Aggregate", () => {
       expect(order.id).toBeInstanceOf(OrderId);
     });
 
-    test("when creating a new order with valid arguments, it sets tracking number to null", () => {
+    test("when creating a new order with valid arguments, it should set tracking number to null", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -155,7 +155,7 @@ describe("Order Aggregate", () => {
       expect(order.getTrackingNumber()).toBeNull();
     });
 
-    test("when creating a new order with valid arguments, it sets status to PENDING", () => {
+    test("when creating a new order with valid arguments, it should set status to PENDING", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -165,7 +165,7 @@ describe("Order Aggregate", () => {
       expect(order.getStatus()).toBe(OrderStatus.PENDING);
     });
 
-    test("when creating a new order with valid arguments, it sets shipping status to null", () => {
+    test("when creating a new order with valid arguments, it should set shipping status to null", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -175,7 +175,7 @@ describe("Order Aggregate", () => {
       expect(order.getShippingStatus()).toBeNull();
     });
 
-    test("when creating a new order with valid arguments, it sets createdAt to now", () => {
+    test("when creating a new order with valid arguments, it should set createdAt to now", () => {
       // Arrange & Act
       const validArguments = makeValidCreateArguments();
 
@@ -188,7 +188,7 @@ describe("Order Aggregate", () => {
       expect(order.getCreatedAt().getTime()).toBeLessThanOrEqual(after);
     });
 
-    test("when creating a new order with valid arguments, it sets updatedAt to now", () => {
+    test("when creating a new order with valid arguments, it should set updatedAt to now", () => {
       // Arrange & Act
       const validArguments = makeValidCreateArguments();
 
@@ -200,7 +200,7 @@ describe("Order Aggregate", () => {
       expect(order.getUpdatedAt().getTime()).toBeLessThanOrEqual(after);
     });
 
-    test("when creating a new order with valid arguments, it preserves the userId", () => {
+    test("when creating a new order with valid arguments, it should preserve the userId", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -210,7 +210,7 @@ describe("Order Aggregate", () => {
       expect(order.userId).toBe(validArguments[0]);
     });
 
-    test("when creating a new order with valid arguments, it preserves the shippingDetails", () => {
+    test("when creating a new order with valid arguments, it should preserve the shippingDetails", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -220,7 +220,7 @@ describe("Order Aggregate", () => {
       expect(order.getShippingDetails()).toBe(validArguments[1]);
     });
 
-    test("when creating a new order with valid arguments, it preserves the orderItems", () => {
+    test("when creating a new order with valid arguments, it should preserve the orderItems", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -232,7 +232,7 @@ describe("Order Aggregate", () => {
       expect(order.getOrderItems()).toBe(validArguments[2]); // if same reference
     });
 
-    test("when creating a new order with valid arguments, it preserves the shippingPriceAtOrderTime", () => {
+    test("when creating a new order with valid arguments, it should preserve the shippingPriceAtOrderTime", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -244,7 +244,7 @@ describe("Order Aggregate", () => {
       );
     });
 
-    test("when creating a new order with valid arguments, it preserves the selectedShippingProvider", () => {
+    test("when creating a new order with valid arguments, it should preserve the selectedShippingProvider", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
 
@@ -259,7 +259,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.reconstitute()", () => {
-    test("when reconstructing an order using valid arguments, it reconstructs order successfully", () => {
+    test("when reconstructing an order using valid arguments, it should reconstruct order successfully", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -270,7 +270,7 @@ describe("Order Aggregate", () => {
       expect(order).toBeInstanceOf(Order);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the id", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the id", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -281,7 +281,7 @@ describe("Order Aggregate", () => {
       expect(order.id).toBe(validArguments[0]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the userId", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the userId", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -292,7 +292,7 @@ describe("Order Aggregate", () => {
       expect(order.userId).toBe(validArguments[1]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the trackingNumber", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the trackingNumber", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -303,7 +303,7 @@ describe("Order Aggregate", () => {
       expect(order.getTrackingNumber()).toBe(validArguments[2]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the status", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the status", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -314,7 +314,7 @@ describe("Order Aggregate", () => {
       expect(order.getStatus()).toBe(validArguments[3]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the shippingStatus", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the shippingStatus", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -325,7 +325,7 @@ describe("Order Aggregate", () => {
       expect(order.getShippingStatus()).toBe(validArguments[4]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the shippingPriceAtOrderTime", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the shippingPriceAtOrderTime", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -336,7 +336,7 @@ describe("Order Aggregate", () => {
       expect(order.getShippingPriceAtOrderTime()).toBe(validArguments[5]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the selectedShippingProvider", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the selectedShippingProvider", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -347,7 +347,7 @@ describe("Order Aggregate", () => {
       expect(order.getSelectedShippingProvider()).toBe(validArguments[6]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the shippingDetails", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the shippingDetails", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -358,7 +358,7 @@ describe("Order Aggregate", () => {
       expect(order.getShippingDetails()).toBe(validArguments[7]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the orderItems", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the orderItems", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -369,7 +369,7 @@ describe("Order Aggregate", () => {
       expect(order.getOrderItems()).toBe(validArguments[8]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the createdAt", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the createdAt", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -380,7 +380,7 @@ describe("Order Aggregate", () => {
       expect(order.getCreatedAt()).toBe(validArguments[9]);
     });
 
-    test("when reconstructing an order using valid arguments, it preserves the updatedAt", () => {
+    test("when reconstructing an order using valid arguments, it should preserve the updatedAt", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments();
 
@@ -393,7 +393,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.confirm()", () => {
-    test("when confirming a pending order, it sets the status to confirmed and updates updatedAt", () => {
+    test("when confirming a pending order, it should set the status to confirmed and updates updatedAt", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
       const order = Order.create(...validArguments);
@@ -407,7 +407,7 @@ describe("Order Aggregate", () => {
       expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
     });
 
-    test("when confirming a confirmed order, it throws a ValidationError", () => {
+    test("when confirming a confirmed order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.CONFIRMED,
@@ -419,7 +419,7 @@ describe("Order Aggregate", () => {
       );
     });
 
-    test("when confirming a cancelled order, it throws a ValidationError", () => {
+    test("when confirming a cancelled order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.CANCELLED,
@@ -431,7 +431,7 @@ describe("Order Aggregate", () => {
       );
     });
 
-    test("when confirming a pre-transit order, it throws a ValidationError", () => {
+    test("when confirming a pre-transit order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.PRE_TRANSIT,
@@ -443,7 +443,7 @@ describe("Order Aggregate", () => {
       );
     });
 
-    test("when confirming a shipping order, it throws a ValidationError", () => {
+    test("when confirming a shipping order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.SHIPPING,
@@ -455,7 +455,7 @@ describe("Order Aggregate", () => {
       );
     });
 
-    test("when confirming a delivered order, it throws a ValidationError", () => {
+    test("when confirming a delivered order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.DELIVERED,
@@ -467,7 +467,7 @@ describe("Order Aggregate", () => {
       );
     });
 
-    test("when confirming a returned order, it throws a ValidationError", () => {
+    test("when confirming a returned order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.RETURNED,
@@ -479,7 +479,7 @@ describe("Order Aggregate", () => {
       );
     });
 
-    test("when confirming a suspended order, it throws a ValidationError", () => {
+    test("when confirming a suspended order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.SUSPENDED,
@@ -493,7 +493,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.cancel()", () => {
-    test("when cancelling a pending order, it sets the status to cancelled and updates updatedAt", () => {
+    test("when cancelling a pending order, it should set the status to cancelled and updates updatedAt", () => {
       // Arrange
       const validArguments = makeValidCreateArguments();
       const order = Order.create(...validArguments);
@@ -507,7 +507,7 @@ describe("Order Aggregate", () => {
       expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
     });
 
-    test("when cancelling a confirmed order, it sets the status to cancelled and updates updatedAt", () => {
+    test("when cancelling a confirmed order, it should set the status to cancelled and updates updatedAt", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.CONFIRMED,
@@ -523,7 +523,7 @@ describe("Order Aggregate", () => {
       expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
     });
 
-    test("when cancelling a pre-transit order, it throws a ValidationError", () => {
+    test("when cancelling a pre-transit order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.PRE_TRANSIT,
@@ -535,7 +535,7 @@ describe("Order Aggregate", () => {
       expect(() => order.cancel()).toThrow(ValidationError);
     });
 
-    test("when cancelling a shipping order, it throws a ValidationError", () => {
+    test("when cancelling a shipping order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.SHIPPING,
@@ -547,7 +547,7 @@ describe("Order Aggregate", () => {
       expect(() => order.cancel()).toThrow(ValidationError);
     });
 
-    test("when cancelling a delivered order, it throws a ValidationError", () => {
+    test("when cancelling a delivered order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.DELIVERED,
@@ -559,7 +559,7 @@ describe("Order Aggregate", () => {
       expect(() => order.cancel()).toThrow(ValidationError);
     });
 
-    test("when cancelling a returned order, it throws a ValidationError", () => {
+    test("when cancelling a returned order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.RETURNED,
@@ -571,7 +571,7 @@ describe("Order Aggregate", () => {
       expect(() => order.cancel()).toThrow(ValidationError);
     });
 
-    test("when cancelling a suspended order, it throws a ValidationError", () => {
+    test("when cancelling a suspended order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.SUSPENDED,
@@ -583,7 +583,7 @@ describe("Order Aggregate", () => {
       expect(() => order.cancel()).toThrow(ValidationError);
     });
 
-    test("when cancelling a cancelled order, it throws a ValidationError", () => {
+    test("when cancelling a cancelled order, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.CANCELLED,
@@ -597,7 +597,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.markAsPreTransit()", () => {
-    test("when marking a confirmed order as pre-transit, it sets the status to pre-transit and updates updatedAt", () => {
+    test("when marking a confirmed order as pre-transit, it should set the status to pre-transit and updates updatedAt", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.CONFIRMED,
@@ -614,7 +614,7 @@ describe("Order Aggregate", () => {
       expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
     });
 
-    test("when marking a pending order as pre-transit, it throws a ValidationError", () => {
+    test("when marking a pending order as pre-transit, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.PENDING,
@@ -626,7 +626,7 @@ describe("Order Aggregate", () => {
       expect(() => order.markAsPreTransit()).toThrow(ValidationError);
     });
 
-    test("when marking a pre-transit order as pre-transit, it throws a ValidationError", () => {
+    test("when marking a pre-transit order as pre-transit, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.PRE_TRANSIT,
@@ -638,7 +638,7 @@ describe("Order Aggregate", () => {
       expect(() => order.markAsPreTransit()).toThrow(ValidationError);
     });
 
-    test("when marking a shipping order as pre-transit, it throws a ValidationError", () => {
+    test("when marking a shipping order as pre-transit, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.SHIPPING,
@@ -650,7 +650,7 @@ describe("Order Aggregate", () => {
       expect(() => order.markAsPreTransit()).toThrow(ValidationError);
     });
 
-    test("when marking a delivered order as pre-transit, it throws a ValidationError", () => {
+    test("when marking a delivered order as pre-transit, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.DELIVERED,
@@ -662,7 +662,7 @@ describe("Order Aggregate", () => {
       expect(() => order.markAsPreTransit()).toThrow(ValidationError);
     });
 
-    test("when marking a returned order as pre-transit, it throws a ValidationError", () => {
+    test("when marking a returned order as pre-transit, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.RETURNED,
@@ -674,7 +674,7 @@ describe("Order Aggregate", () => {
       expect(() => order.markAsPreTransit()).toThrow(ValidationError);
     });
 
-    test("when marking a suspended order as pre-transit, it throws a ValidationError", () => {
+    test("when marking a suspended order as pre-transit, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.SUSPENDED,
@@ -686,7 +686,7 @@ describe("Order Aggregate", () => {
       expect(() => order.markAsPreTransit()).toThrow(ValidationError);
     });
 
-    test("when marking a cancelled order as pre-transit, it throws a ValidationError", () => {
+    test("when marking a cancelled order as pre-transit, it should throw a ValidationError", () => {
       // Arrange
       const validArguments = makeValidReconstitueArguments({
         status: OrderStatus.CANCELLED,
@@ -700,7 +700,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.getTotalItemsPrice()", () => {
-    test("when items have no discount, it returns the sum of the items prices", () => {
+    test("when items have no discount, it should return the sum of the items prices", () => {
       // Arrange
       const items = [
         OrderItem.create(
@@ -731,7 +731,7 @@ describe("Order Aggregate", () => {
       expect(order.getTotalItemsPrice()).toStrictEqual(Money.of(5000, "DZD"));
     });
 
-    test("when items have discount, it returns the sum of the items discount price if exists, else the sum of the items prices", () => {
+    test("when items have discount, it should return the sum of the items discount price if exists, else the sum of the items prices", () => {
       // Arrange
       const items = [
         OrderItem.create(
@@ -763,7 +763,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.getTotalOrderPrice()", () => {
-    test("when order has valid arguments, it returns the sum of the items prices and the shipping price", () => {
+    test("when order has valid arguments, it should return the sum of the items prices and the shipping price", () => {
       // Arrange
       const items = [
         OrderItem.create(
@@ -796,7 +796,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.getTotalDiscount()", () => {
-    test("when order items has no discount price, it returns 0", () => {
+    test("when order items has no discount price, it should return 0", () => {
       // Arrange
       const items = [
         OrderItem.create(
@@ -825,7 +825,7 @@ describe("Order Aggregate", () => {
       expect(order.getTotalDiscount()).toStrictEqual(Money.of(0, "DZD"));
     });
 
-    test("when order items has discount price, it returns the sum of the discount prices", () => {
+    test("when order items has discount price, it should return the sum of the discount prices", () => {
       // Arrange
       const items = [
         OrderItem.create(
@@ -857,7 +857,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.getTotalWeightInGrams()", () => {
-    test("when order has valid arguments, it returns the sum of the items weights in grams", () => {
+    test("when order has valid arguments, it should return the sum of the items weights in grams", () => {
       // Arrange
       const items = [
         OrderItem.create(
@@ -889,7 +889,7 @@ describe("Order Aggregate", () => {
   });
 
   describe("Order.getTotalWeightInKg()", () => {
-    test("when order has valid arguments, it returns the sum of the items weights in kg rounded to 2 decimals", () => {
+    test("when order has valid arguments, it should return the sum of the items weights in kg rounded to 2 decimals", () => {
       // Arrange
       const items = [
         OrderItem.create(

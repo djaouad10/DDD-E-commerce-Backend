@@ -1,0 +1,102 @@
+import { faker } from "@faker-js/faker";
+import { VariationId } from "../value-objects/variation-id.js";
+import { OrderItem } from "./order-item.js";
+import { Money } from "../value-objects/money.js";
+import { Weight } from "../value-objects/weight.js";
+import { OrderItemId } from "../value-objects/order-item-id.js";
+import { ValidationError } from "#/shared/errors/domain-error.js";
+
+// What to test:
+// 1. creat()
+// 2. reconstitute()
+// 3. lineTotal()
+// 4. totalWeightInGrams()
+// 5. hasDiscount()
+// 6. discountAmount()
+// 7. totalWeightInGrams()
+
+describe("OrderItem Entity", () => {
+  const validVariationId = VariationId.generate();
+  const validQty = faker.number.int({ min: 1, max: 50 });
+  const validUnitPrice = Money.of(3000, "DZD");
+  const validWeight = Weight.of(100, "g");
+  const validUnitDiscountPrice = Money.of(2900, "DZD");
+
+  describe("OrderItem.create()", () => {
+    test("when arguments are valid, it should return a OrderItem instance", () => {
+      // Arrange & Act
+      const orderItem = OrderItem.create(
+        validVariationId,
+        validQty,
+        validUnitPrice,
+        validWeight,
+        validUnitDiscountPrice,
+      );
+
+      // Assert
+      expect(orderItem).toBeInstanceOf(OrderItem);
+    });
+
+    test("when arguments are valid, it should generate an orderItemId", () => {
+      // Arrange & Act
+      const orderItem = OrderItem.create(
+        validVariationId,
+        validQty,
+        validUnitPrice,
+        validWeight,
+        validUnitDiscountPrice,
+      );
+
+      // Assert
+      expect(orderItem.id).toBeInstanceOf(OrderItemId);
+    });
+
+    test("when item quantity is 0, it should throw a Validation error", () => {
+      // Arrange
+      const qty = 0;
+
+      // Act & Assert
+      expect(() => {
+        OrderItem.create(
+          validVariationId,
+          qty,
+          validUnitPrice,
+          validWeight,
+          validUnitDiscountPrice,
+        );
+      }).toThrow(ValidationError);
+    });
+
+    test("when item quantity is less than 0, it should throw a Validation error", () => {
+      // Arrange
+      const qty = -1;
+
+      // Act & Assert
+      expect(() => {
+        OrderItem.create(
+          validVariationId,
+          qty,
+          validUnitPrice,
+          validWeight,
+          validUnitDiscountPrice,
+        );
+      }).toThrow(ValidationError);
+    });
+
+    test("when weight is not in grams, it should throw a Validation error", () => {
+      // Arrange
+      const weight = Weight.of(100, "kg");
+
+      // Act & Assert
+      expect(() => {
+        OrderItem.create(
+          validVariationId,
+          validQty,
+          validUnitPrice,
+          weight,
+          validUnitDiscountPrice,
+        );
+      }).toThrow(ValidationError);
+    });
+  });
+});
