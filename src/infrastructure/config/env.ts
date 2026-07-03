@@ -14,6 +14,7 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.url(),
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
+    LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]),
   },
 
   /*
