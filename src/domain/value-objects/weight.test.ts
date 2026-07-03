@@ -34,4 +34,29 @@ describe("Weight Value Object", () => {
       expect(() => Weight.of(-100, "g")).toThrow(ValidationError);
     });
   });
+
+  describe("Weight.add()", () => {
+    test("when units are the same, it should return a sum Weight instance with the same unit", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+      const weight2 = Weight.of(100, "g");
+
+      // Act
+      const sum = weight1.add(weight2);
+
+      // Assert
+      expect(sum).toStrictEqual(Weight.of(200, "g"));
+    });
+
+    test("when units are different, it should throw a Validation error", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+      const weight2 = Weight.of(100, "kg");
+
+      // Act & Assert
+      expect(() => weight1.add(weight2)).toThrow(ValidationError);
+    });
+
+    
+  });
 });
