@@ -1,6 +1,6 @@
 // What to test:
 // DONE 1. of()
-// 2. add()
+// DONE 2. add()
 // 3. multiply()
 // 4. toKg()
 
@@ -56,7 +56,37 @@ describe("Weight Value Object", () => {
       // Act & Assert
       expect(() => weight1.add(weight2)).toThrow(ValidationError);
     });
+  });
 
-    
+  describe("Weight.multiply()", () => {
+    test("when provided with a negative qty, it should throw a Validation error", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+
+      // Act & Assert
+      expect(() => weight1.multiply(-1)).toThrow(ValidationError);
+    });
+
+    test("when provided with a 0 qty, it should return zero Weight with the same unit", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+
+      // Act
+      const result = weight1.multiply(0);
+
+      // Assert
+      expect(result).toStrictEqual(Weight.of(0, "g"));
+    });
+
+    test("when provided with a positive qty, it should return amount * qty Weight with the same unit", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+
+      // Act
+      const result = weight1.multiply(2);
+
+      // Assert
+      expect(result).toStrictEqual(Weight.of(200, "g"));
+    });
   });
 });
