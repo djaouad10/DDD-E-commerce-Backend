@@ -25,6 +25,7 @@ export class Weight {
   }
 
   multiply(qty: number): Weight {
+    if (qty < 0) throw new ValidationError("qty", "qty can not be negative");
     return new Weight(this.weight * qty, this.unit);
   }
 
