@@ -36,7 +36,10 @@ export const orderStateMachine: OrderStateMachine = {
   SUSPENDED: ["SHIPPING", "RETURNED"],
 };
 
-export type ShippingProviderType = "WORLD_EXPRESS";
+export const ShippingProvider = { WORLD_EXPRESS: "WORLD_EXPRESS" } as const;
+
+export type ShippingProvider =
+  (typeof ShippingProvider)[keyof typeof ShippingProvider];
 
 export class Order {
   private _events: DomainEvent[] = [];
@@ -48,7 +51,7 @@ export class Order {
     private _status: OrderStatus,
     private _shippingStatus: string | null,
     private readonly _shippingPriceAtOrderTime: Money,
-    private readonly _selectedShippingProvider: ShippingProviderType,
+    private readonly _selectedShippingProvider: ShippingProvider,
     private _shippingDetails: ShippingDetails,
     private _orderItems: OrderItem[],
     private readonly _createdAt: Date,
@@ -60,7 +63,7 @@ export class Order {
     shippingDetails: ShippingDetails,
     orderItems: OrderItem[],
     shippingPriceAtOrderTime: Money,
-    selectedShippingProvider: ShippingProviderType,
+    selectedShippingProvider: ShippingProvider,
   ) {
     // validation then:
 
@@ -94,7 +97,7 @@ export class Order {
     status: OrderStatus,
     shippingStatus: string | null,
     shippingPriceAtOrderTime: Money,
-    selectedShippingProvider: ShippingProviderType,
+    selectedShippingProvider: ShippingProvider,
     shippingDetails: ShippingDetails,
     orderItems: OrderItem[],
     createdAt: Date,
@@ -178,7 +181,7 @@ export class Order {
     return this._shippingPriceAtOrderTime;
   }
 
-  getSelectedShippingProvider(): ShippingProviderType {
+  getSelectedShippingProvider(): ShippingProvider {
     return this._selectedShippingProvider;
   }
 
