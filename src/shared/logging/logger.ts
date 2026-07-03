@@ -22,7 +22,8 @@ type LogEntry = {
 };
 
 class PerformanceTimer {
-  constructor(private _startTime: number) {
+  private _startTime: number;
+  constructor() {
     this._startTime = performance.now();
   }
 
@@ -155,6 +156,37 @@ export class Logger {
 
   trace(message: string, metadata?: Record<string, unknown>): void {
     this.log("trace", message, metadata);
+  }
+
+  measure<T>(operation: string, fn: () => T): T;
+  measure<T>(operation: string, fn: () => Promise<T>): Promise<T>;
+  measure<T>(operation: string, fn: () => T | Promise<T>): T | Promise<T> {
+    const timer = new PerformanceTimer();
+    this.trace(`${operation} started`);
+
+    try {
+      const result = fn();
+
+      if (result instanceof Promise) {
+        return result
+          .then((value) => {
+            this.info(`${operation} completed`, {
+              durationMs: timer.elapsed(),
+            });
+            return value;
+          })
+          .catch((error) => {
+            this.warn(`${operation} failed`, { durationMs: timer.elapsed() });
+            throw error;
+          });
+      }
+
+      this.info(`${operation} completed`, { durationMs: timer.elapsed() });
+      return result;
+    } catch (error) {
+      this.warn(`${operation} failed`, { durationMs: timer.elapsed() });
+      throw error;
+    }
   }
 }
 
