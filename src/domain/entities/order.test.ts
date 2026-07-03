@@ -35,7 +35,7 @@ type MakeValidReconstituteArgumentsParams = {
   shippingStatus?: string | null;
 };
 
-describe("Order Entity", () => {
+describe("Order Aggregate", () => {
   const makeValidShippingDetails = (): ShippingDetails => {
     const validAlgerianPhoneNumber = "0678876545";
 
