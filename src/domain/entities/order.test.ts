@@ -16,8 +16,8 @@ import { faker } from "@faker-js/faker";
 // DONE 4. cancel
 // DONE 5. markAsPreTransit
 // DONE 6. getTotalItemsPrice
-// DOEN 7. getTotalOrderPrice
-// 8. getTotalDiscount
+// DONE 7. getTotalOrderPrice
+// DONE 8. getTotalDiscount
 // 9. getTotalWeightInGrams
 // 10. getTotalWeightInKg
 
@@ -792,6 +792,67 @@ describe("Order Entity", () => {
 
       // Assert
       expect(order.getTotalOrderPrice()).toStrictEqual(Money.of(5400, "DZD"));
+    });
+  });
+
+  describe("Order.getTotalDiscount()", () => {
+    test("when order items has no discount price, it returns 0", () => {
+      // Arrange
+      const items = [
+        OrderItem.create(
+          VariationId.generate(),
+          1,
+          Money.of(1000, "DZD"),
+          Weight.of(100, "g"),
+          null,
+        ),
+        OrderItem.create(
+          VariationId.generate(),
+          2,
+          Money.of(2000, "DZD"),
+          Weight.of(200, "g"),
+          null,
+        ),
+      ];
+      const validArguments = makeValidReconstitueArguments({
+        orderItems: items,
+      });
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getTotalDiscount()).toStrictEqual(Money.of(0, "DZD"));
+    });
+
+    test("when order items has discount price, it returns the sum of the discount prices", () => {
+      // Arrange
+      const items = [
+        OrderItem.create(
+          VariationId.generate(),
+          1,
+          Money.of(1000, "DZD"),
+          Weight.of(100, "g"),
+          null,
+        ),
+        OrderItem.create(
+          VariationId.generate(),
+          2,
+          Money.of(2000, "DZD"),
+          Weight.of(200, "g"),
+          Money.of(1000, "DZD"),
+        ),
+      ];
+
+      const validArguments = makeValidReconstitueArguments({
+        orderItems: items,
+      });
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getTotalDiscount()).toStrictEqual(Money.of(2000, "DZD"));
     });
   });
 });
