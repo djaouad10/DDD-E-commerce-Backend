@@ -1,7 +1,7 @@
 // What to test:
 // DONE 1. of()
 // DONE 2. add()
-// 3. multiply()
+// DONE 3. multiply()
 // 4. toKg()
 
 import { ValidationError } from "#/shared/errors/domain-error.js";
@@ -87,6 +87,27 @@ describe("Weight Value Object", () => {
 
       // Assert
       expect(result).toStrictEqual(Weight.of(200, "g"));
+    });
+  });
+
+  describe("Weight.toKg()", () => {
+    test("when unit is kg, it should throw a Validation error", () => {
+      // Arrange
+      const weight1 = Weight.of(4, "kg");
+
+      // Act & Assert
+      expect(() => weight1.toKg()).toThrow(ValidationError);
+    });
+
+    test("when unit is not kg, it should return weight in kg rounded to 2 decimals", () => {
+      // Arrange
+      const weight1 = Weight.of(643, "g");
+
+      // Act
+      const result = weight1.toKg();
+
+      // Assert
+      expect(result).toStrictEqual(Weight.of(0.64, "kg"));
     });
   });
 });
