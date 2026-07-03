@@ -204,6 +204,14 @@ export class Order {
     return this._orderItems;
   }
 
+  getCreatedAt(): Date {
+    return this._createdAt;
+  }
+
+  getUpdatedAt(): Date {
+    return this._updatedAt;
+  }
+
   getTotalOrderPrice(): Money {
     return this.getTotalItemsPrice().add(this._shippingPriceAtOrderTime);
   }
