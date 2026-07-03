@@ -18,7 +18,7 @@ import { faker } from "@faker-js/faker";
 // DONE 6. getTotalItemsPrice
 // DONE 7. getTotalOrderPrice
 // DONE 8. getTotalDiscount
-// 9. getTotalWeightInGrams
+// DONE 9. getTotalWeightInGrams
 // 10. getTotalWeightInKg
 
 type MakeValidReconstituteArgumentsParams = {
@@ -853,6 +853,38 @@ describe("Order Entity", () => {
 
       // Assert
       expect(order.getTotalDiscount()).toStrictEqual(Money.of(2000, "DZD"));
+    });
+  });
+
+  describe("Order.getTotalWeightInGrams()", () => {
+    test("when order has valid arguments, it returns the sum of the items weights in grams", () => {
+      // Arrange
+      const items = [
+        OrderItem.create(
+          VariationId.generate(),
+          1,
+          Money.of(1000, "DZD"),
+          Weight.of(100, "g"),
+          Money.of(900, "DZD"),
+        ),
+        OrderItem.create(
+          VariationId.generate(),
+          2,
+          Money.of(2000, "DZD"),
+          Weight.of(200, "g"),
+          null,
+        ),
+      ];
+
+      const validArguments = makeValidReconstitueArguments({
+        orderItems: items,
+      });
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getTotalWeightInGrams()).toStrictEqual(Weight.of(500, "g"));
     });
   });
 });
