@@ -1,8 +1,8 @@
 // What to test:
 // DONE 1. of()
 // DONE 2. add()
-// DOEN 3. subtract()
-// 4. multiply()
+// DONE 3. subtract()
+// DONE 4. multiply()
 
 import { ValidationError } from "better-auth";
 import { Money } from "./money.js";
