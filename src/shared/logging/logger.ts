@@ -188,6 +188,22 @@ export class Logger {
       throw error;
     }
   }
+
+  startTimer(operation: string): {
+    end: (metadata?: Record<string, unknown>) => void;
+  } {
+    const timer = new PerformanceTimer();
+    this.trace(`${operation} started`);
+
+    return {
+      end: (metadata?: Record<string, unknown>) => {
+        this.info(`${operation} completed`, {
+          ...metadata,
+          durationMs: timer.elapsed(),
+        });
+      },
+    };
+  }
 }
 
 export function createLogger() {}
