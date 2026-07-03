@@ -16,7 +16,7 @@ import { faker } from "@faker-js/faker";
 // DONE 4. cancel
 // DONE 5. markAsPreTransit
 // DONE 6. getTotalItemsPrice
-// 7. getTotalOrderPrice
+// DOEN 7. getTotalOrderPrice
 // 8. getTotalDiscount
 // 9. getTotalWeightInGrams
 // 10. getTotalWeightInKg
@@ -759,6 +759,39 @@ describe("Order Entity", () => {
 
       // Assert
       expect(order.getTotalItemsPrice()).toStrictEqual(Money.of(3000, "DZD"));
+    });
+  });
+
+  describe("Order.getTotalOrderPrice()", () => {
+    test("when order has valid arguments, it returns the sum of the items prices and the shipping price", () => {
+      // Arrange
+      const items = [
+        OrderItem.create(
+          VariationId.generate(),
+          1,
+          Money.of(1000, "DZD"),
+          Weight.of(100, "g"),
+          Money.of(900, "DZD"),
+        ),
+        OrderItem.create(
+          VariationId.generate(),
+          2,
+          Money.of(2000, "DZD"),
+          Weight.of(200, "g"),
+          null,
+        ),
+      ];
+
+      const validArguments = makeValidReconstitueArguments({
+        orderItems: items,
+        shippingPriceAtOrderTime: Money.of(500, "DZD"),
+      });
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getTotalOrderPrice()).toStrictEqual(Money.of(5400, "DZD"));
     });
   });
 });
