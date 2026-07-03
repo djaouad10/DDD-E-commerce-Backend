@@ -21,7 +21,7 @@ type LogEntry = {
   };
 };
 
-class PerformanceTimer {
+export class PerformanceTimer {
   private _startTime: number;
   constructor() {
     this._startTime = performance.now();
