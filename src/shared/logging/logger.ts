@@ -125,12 +125,37 @@ export class Logger {
     }
   }
 
-  fatal() {}
-  error() {}
-  warn() {}
-  info() {}
-  debug() {}
-  trace() {}
+  fatal(message: string, error: Error): never {
+    this.log("fatal", message, {}, error);
+    process.exit(1);
+  }
+
+  error(
+    message: string,
+    error: Error,
+    metadata?: Record<string, unknown>,
+  ): void {
+    this.log("error", message, metadata, error);
+  }
+  warn(
+    message: string,
+    metadata?: Record<string, unknown>,
+    error?: Error,
+  ): void {
+    this.log("warn", message, metadata, error);
+  }
+
+  info(message: string, metadata?: Record<string, unknown>): void {
+    this.log("info", message, metadata);
+  }
+
+  debug(message: string, metadata?: Record<string, unknown>): void {
+    this.log("debug", message, metadata);
+  }
+
+  trace(message: string, metadata?: Record<string, unknown>): void {
+    this.log("trace", message, metadata);
+  }
 }
 
 export function createLogger() {}
