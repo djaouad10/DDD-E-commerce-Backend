@@ -206,4 +206,6 @@ export class Logger {
   }
 }
 
-export function createLogger() {}
+export function createLogger(component: string) {
+  return new Logger("e-commerce-api", component);
+}
