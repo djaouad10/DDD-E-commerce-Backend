@@ -64,6 +64,12 @@ export class Order {
   ) {
     // validation then:
 
+    if (orderItems.length === 0)
+      throw new ValidationError(
+        "orderItems",
+        "can't pass an empty orderItems list to Order.create()",
+      );
+
     const now = new Date();
 
     return new Order(
