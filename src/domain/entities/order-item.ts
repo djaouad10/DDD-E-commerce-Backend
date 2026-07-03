@@ -24,10 +24,40 @@ export class OrderItem {
   ): OrderItem {
     if (qty <= 0) throw new Error("qty must be greater than 0");
 
-    if(weightAtOrderTime.unit !== "g") throw new ValidationError("weightAtOrderTime","weight must be in grams at creation");
+    if (weightAtOrderTime.unit !== "g")
+      throw new ValidationError(
+        "weightAtOrderTime",
+        "weight must be in grams at creation",
+      );
 
     return new OrderItem(
       OrderItemId.generate(),
+      variationId,
+      qty,
+      unitPriceAtOrderTime,
+      unitDiscountPriceAtOrderTime,
+      weightAtOrderTime,
+    );
+  }
+
+  static reconstitute(
+    id: OrderItemId,
+    variationId: VariationId,
+    qty: number,
+    unitPriceAtOrderTime: Money,
+    unitDiscountPriceAtOrderTime: Money | null,
+    weightAtOrderTime: Weight,
+  ): OrderItem {
+    if (qty <= 0) throw new Error("qty must be greater than 0");
+
+    if (weightAtOrderTime.unit !== "g")
+      throw new ValidationError(
+        "weightAtOrderTime",
+        "weight must be in grams at reconstitution",
+      );
+
+    return new OrderItem(
+      id,
       variationId,
       qty,
       unitPriceAtOrderTime,
