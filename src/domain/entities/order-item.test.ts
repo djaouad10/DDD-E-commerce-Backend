@@ -8,7 +8,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // What to test:
 // DONE 1. creat()
-// 2. reconstitute()
+// DONE 2. reconstitute()
 // 3. lineTotal()
 // 4. totalWeightInGrams()
 // 5. hasDiscount()
@@ -181,6 +181,45 @@ describe("OrderItem Entity", () => {
 
       // Assert
       expect(orderItem.id).toBe(orderItemId);
+    });
+  });
+
+  describe("OrderItem.lineTotal()", () => {
+    test("when no discount, it should return the line total using the unit price", () => {
+      // Arrange
+      const price = Money.of(3000, "DZD");
+
+      // Act
+      const orderItem = OrderItem.reconstitute(
+        OrderItemId.generate(),
+        validVariationId,
+        3,
+        price,
+        null,
+        validWeight,
+      );
+
+      // Assert
+      expect(orderItem.lineTotal()).toStrictEqual(price.multiply(3));
+    });
+
+    test("when item has discount, it should return the line total using the discount price", () => {
+      // Arrange
+      const price = Money.of(3000, "DZD");
+      const discountPrice = Money.of(2000, "DZD");
+
+      // Act
+      const orderItem = OrderItem.reconstitute(
+        OrderItemId.generate(),
+        validVariationId,
+        3,
+        price,
+        discountPrice,
+        validWeight,
+      );
+
+      // Assert
+      expect(orderItem.lineTotal()).toStrictEqual(discountPrice.multiply(3));
     });
   });
 });
