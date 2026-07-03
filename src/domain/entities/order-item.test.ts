@@ -9,7 +9,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 // What to test:
 // DONE 1. creat()
 // DONE 2. reconstitute()
-// 3. lineTotal()
+// DONE 3. lineTotal()
 // 4. totalWeightInGrams()
 // 5. hasDiscount()
 // 6. discountAmount()
@@ -220,6 +220,26 @@ describe("OrderItem Entity", () => {
 
       // Assert
       expect(orderItem.lineTotal()).toStrictEqual(discountPrice.multiply(3));
+    });
+  });
+
+  describe("OrderItem.totalWeightInGrams()", () => {
+    test("when arguments are valid, it should return the weight in grams * qty", () => {
+      // Arrange
+      const weight = Weight.of(100, "g");
+
+      // Act
+      const orderItem = OrderItem.reconstitute(
+        OrderItemId.generate(),
+        validVariationId,
+        3,
+        validUnitPrice,
+        validUnitDiscountPrice,
+        weight,
+      );
+
+      // Assert
+      expect(orderItem.totalWeightInGrams()).toStrictEqual(weight.multiply(3));
     });
   });
 });
