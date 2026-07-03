@@ -6,20 +6,34 @@ import { UserId } from "../value-objects/user-id.js";
 import { VariationId } from "../value-objects/variation-id.js";
 import { Weight } from "../value-objects/weight.js";
 import { OrderItem } from "./order-item.js";
-import { Order, OrderStatus } from "./order.js";
+import { Order, OrderStatus, ShippingProvider } from "./order.js";
 import { faker } from "@faker-js/faker";
 
 // what to test:
-// 1. factory
-// 2. reconstiute
-// 3. confirm
-// 4. cancel
-// 5. markAsPreTransit
-// 6. getTotalItemsPrice
+// DONE 1. factory
+// DONE 2. reconstiute
+// DONE 3. confirm
+// DONE 4. cancel
+// DONE 5. markAsPreTransit
+// DONE 6. getTotalItemsPrice
 // 7. getTotalOrderPrice
 // 8. getTotalDiscount
 // 9. getTotalWeightInGrams
 // 10. getTotalWeightInKg
+
+type MakeValidReconstituteArgumentsParams = {
+  orderId?: OrderId;
+  userId?: UserId;
+  shippingDetails?: ShippingDetails;
+  orderItems?: OrderItem[];
+  shippingPriceAtOrderTime?: Money;
+  selectedShippingProvider?: ShippingProvider;
+  createdAt?: Date;
+  updatedAt?: Date;
+  trackingNumber?: string | null;
+  status?: OrderStatus;
+  shippingStatus?: string | null;
+};
 
 describe("Order Entity", () => {
   const makeValidShippingDetails = (): ShippingDetails => {
@@ -59,13 +73,40 @@ describe("Order Entity", () => {
     ];
   };
 
-  const makeValidArguments = (): Parameters<typeof Order.create> => {
+  const makeValidCreateArguments = (): Parameters<typeof Order.create> => {
     return [
       UserId.generate(),
       makeValidShippingDetails(),
       makeValidOrderItems(),
       Money.of(400, "DZD"),
-      "WORLD_EXPRESS",
+      ShippingProvider.WORLD_EXPRESS,
+    ];
+  };
+
+  const makeValidReconstitueArguments = (
+    options?: MakeValidReconstituteArgumentsParams,
+  ): Parameters<typeof Order.reconstitute> => {
+    const trackingNumber = options?.trackingNumber ?? "ECO_AZDS274JD83";
+    const status = options?.status ?? OrderStatus.CONFIRMED;
+    const shippingStatus = options?.shippingStatus ?? null;
+    const shippingPrice =
+      options?.shippingPriceAtOrderTime ?? Money.of(400, "DZD");
+    const shippingProvider: ShippingProvider =
+      options?.selectedShippingProvider ?? ShippingProvider.WORLD_EXPRESS;
+    const date = new Date();
+
+    return [
+      options?.orderId ?? OrderId.generate(),
+      options?.userId ?? UserId.generate(),
+      trackingNumber,
+      status,
+      shippingStatus,
+      shippingPrice,
+      shippingProvider,
+      options?.shippingDetails ?? makeValidShippingDetails(),
+      options?.orderItems ?? makeValidOrderItems(),
+      date,
+      date,
     ];
   };
 
@@ -79,7 +120,7 @@ describe("Order Entity", () => {
         _,
         shippingPriceAtOrderTime,
         selectedShippingProvider,
-      ] = makeValidArguments();
+      ] = makeValidCreateArguments();
 
       const factoryArguments: Parameters<typeof Order.create> = [
         userId,
@@ -95,7 +136,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it generates a new OrderId", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
@@ -106,7 +147,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it sets tracking number to null", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
@@ -116,7 +157,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it sets status to PENDING", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
@@ -126,7 +167,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it sets shipping status to null", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
@@ -136,7 +177,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it sets createdAt to now", () => {
       // Arrange & Act
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       const before = Date.now();
       const order = Order.create(...validArguments);
@@ -149,7 +190,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it sets updatedAt to now", () => {
       // Arrange & Act
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       const before = Date.now();
       const order = Order.create(...validArguments);
@@ -161,7 +202,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it preserves the userId", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
@@ -171,7 +212,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it preserves the shippingDetails", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
@@ -181,7 +222,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it preserves the orderItems", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
@@ -193,7 +234,7 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it preserves the shippingPriceAtOrderTime", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
@@ -205,13 +246,519 @@ describe("Order Entity", () => {
 
     test("when creating a new order with valid arguments, it preserves the selectedShippingProvider", () => {
       // Arrange
-      const validArguments = makeValidArguments();
+      const validArguments = makeValidCreateArguments();
 
       // Act
       const order = Order.create(...validArguments);
 
       // Assert
-      expect(order.getSelectedShippingProvider()).toBe("WORLD_EXPRESS");
+      expect(order.getSelectedShippingProvider()).toBe(
+        ShippingProvider.WORLD_EXPRESS,
+      );
+    });
+  });
+
+  describe("Order.reconstitute()", () => {
+    test("when reconstructing an order using valid arguments, it reconstructs order successfully", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order).toBeInstanceOf(Order);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the id", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.id).toBe(validArguments[0]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the userId", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.userId).toBe(validArguments[1]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the trackingNumber", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getTrackingNumber()).toBe(validArguments[2]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the status", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getStatus()).toBe(validArguments[3]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the shippingStatus", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getShippingStatus()).toBe(validArguments[4]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the shippingPriceAtOrderTime", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getShippingPriceAtOrderTime()).toBe(validArguments[5]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the selectedShippingProvider", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getSelectedShippingProvider()).toBe(validArguments[6]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the shippingDetails", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getShippingDetails()).toBe(validArguments[7]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the orderItems", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getOrderItems()).toBe(validArguments[8]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the createdAt", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getCreatedAt()).toBe(validArguments[9]);
+    });
+
+    test("when reconstructing an order using valid arguments, it preserves the updatedAt", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments();
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getUpdatedAt()).toBe(validArguments[10]);
+    });
+  });
+
+  describe("Order.confirm()", () => {
+    test("when confirming a pending order, it sets the status to confirmed and updates updatedAt", () => {
+      // Arrange
+      const validArguments = makeValidCreateArguments();
+      const order = Order.create(...validArguments);
+      const originalUpdatedAt = order.getUpdatedAt();
+
+      // Act
+      order.confirm();
+
+      // Assert
+      expect(order.getStatus()).toBe(OrderStatus.CONFIRMED);
+      expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
+    });
+
+    test("when confirming a confirmed order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.CONFIRMED,
+      });
+
+      // Act & Assert
+      expect(() => Order.reconstitute(...validArguments).confirm()).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when confirming a cancelled order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.CANCELLED,
+      });
+
+      // Act & Assert
+      expect(() => Order.reconstitute(...validArguments).confirm()).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when confirming a pre-transit order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.PRE_TRANSIT,
+      });
+
+      // Act & Assert
+      expect(() => Order.reconstitute(...validArguments).confirm()).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when confirming a shipping order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.SHIPPING,
+      });
+
+      // Act & Assert
+      expect(() => Order.reconstitute(...validArguments).confirm()).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when confirming a delivered order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.DELIVERED,
+      });
+
+      // Act & Assert
+      expect(() => Order.reconstitute(...validArguments).confirm()).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when confirming a returned order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.RETURNED,
+      });
+
+      // Act & Assert
+      expect(() => Order.reconstitute(...validArguments).confirm()).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when confirming a suspended order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.SUSPENDED,
+      });
+
+      // Act & Assert
+      expect(() => Order.reconstitute(...validArguments).confirm()).toThrow(
+        ValidationError,
+      );
+    });
+  });
+
+  describe("Order.cancel()", () => {
+    test("when cancelling a pending order, it sets the status to cancelled and updates updatedAt", () => {
+      // Arrange
+      const validArguments = makeValidCreateArguments();
+      const order = Order.create(...validArguments);
+      const originalUpdatedAt = order.getUpdatedAt();
+
+      // Act
+      order.cancel();
+
+      // Assert
+      expect(order.getStatus()).toBe(OrderStatus.CANCELLED);
+      expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
+    });
+
+    test("when cancelling a confirmed order, it sets the status to cancelled and updates updatedAt", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.CONFIRMED,
+      });
+      const order = Order.reconstitute(...validArguments);
+      const originalUpdatedAt = order.getUpdatedAt();
+
+      // Act
+      order.cancel();
+
+      // Assert
+      expect(order.getStatus()).toBe(OrderStatus.CANCELLED);
+      expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
+    });
+
+    test("when cancelling a pre-transit order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.PRE_TRANSIT,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.cancel()).toThrow(ValidationError);
+    });
+
+    test("when cancelling a shipping order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.SHIPPING,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.cancel()).toThrow(ValidationError);
+    });
+
+    test("when cancelling a delivered order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.DELIVERED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.cancel()).toThrow(ValidationError);
+    });
+
+    test("when cancelling a returned order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.RETURNED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.cancel()).toThrow(ValidationError);
+    });
+
+    test("when cancelling a suspended order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.SUSPENDED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.cancel()).toThrow(ValidationError);
+    });
+
+    test("when cancelling a cancelled order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.CANCELLED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.cancel()).toThrow(ValidationError);
+    });
+  });
+
+  describe("Order.markAsPreTransit()", () => {
+    test("when marking a confirmed order as pre-transit, it sets the status to pre-transit and updates updatedAt", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.CONFIRMED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+      const originalUpdatedAt = order.getUpdatedAt();
+
+      // Act
+      order.markAsPreTransit();
+
+      // Assert
+      expect(order.getStatus()).toBe(OrderStatus.PRE_TRANSIT);
+      expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
+    });
+
+    test("when marking a pending order as pre-transit, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.PENDING,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+    });
+
+    test("when marking a pre-transit order as pre-transit, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.PRE_TRANSIT,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+    });
+
+    test("when marking a shipping order as pre-transit, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.SHIPPING,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+    });
+
+    test("when marking a delivered order as pre-transit, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.DELIVERED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+    });
+
+    test("when marking a returned order as pre-transit, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.RETURNED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+    });
+
+    test("when marking a suspended order as pre-transit, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.SUSPENDED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+    });
+
+    test("when marking a cancelled order as pre-transit, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstitueArguments({
+        status: OrderStatus.CANCELLED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+    });
+  });
+
+  describe("Order.getTotalItemsPrice()", () => {
+    test("when items have no discount, it returns the sum of the items prices", () => {
+      // Arrange
+      const items = [
+        OrderItem.create(
+          VariationId.generate(),
+          1,
+          Money.of(1000, "DZD"),
+          Weight.of(100, "g"),
+          null,
+        ),
+
+        OrderItem.create(
+          VariationId.generate(),
+          2,
+          Money.of(2000, "DZD"),
+          Weight.of(200, "g"),
+          null,
+        ),
+      ];
+
+      const validArguments = makeValidReconstitueArguments({
+        orderItems: items,
+      });
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getTotalItemsPrice()).toStrictEqual(Money.of(5000, "DZD"));
+    });
+
+    test("when items have discount, it returns the sum of the items discount price if exists, else the sum of the items prices", () => {
+      // Arrange
+      const items = [
+        OrderItem.create(
+          VariationId.generate(),
+          1,
+          Money.of(1000, "DZD"),
+          Weight.of(100, "g"),
+          null,
+        ),
+        OrderItem.create(
+          VariationId.generate(),
+          2,
+          Money.of(2000, "DZD"),
+          Weight.of(200, "g"),
+          Money.of(1000, "DZD"),
+        ),
+      ];
+
+      const validArguments = makeValidReconstitueArguments({
+        orderItems: items,
+      });
+
+      // Act
+      const order = Order.reconstitute(...validArguments);
+
+      // Assert
+      expect(order.getTotalItemsPrice()).toStrictEqual(Money.of(3000, "DZD"));
     });
   });
 });
