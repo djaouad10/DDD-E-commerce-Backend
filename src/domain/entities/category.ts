@@ -1,4 +1,5 @@
 import type { CategoryDTO } from "#/application/dto/category.dto.js";
+import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { CategoryId } from "../value-objects/category-id.js";
 
@@ -15,6 +16,14 @@ export class Category {
 
   //   factories
   static create(name: string): Category {
+    // validation
+    if (name.length < 3) {
+      throw new ValidationError(
+        "name",
+        "Category name must be at least 3 characters long",
+      );
+    }
+
     const now = new Date();
     return new Category(CategoryId.generate(), name, now, now);
   }
@@ -25,11 +34,27 @@ export class Category {
     createdAt: Date,
     updatedAt: Date,
   ): Category {
+    // validation
+    if (name.length < 3) {
+      throw new ValidationError(
+        "name",
+        "Category name must be at least 3 characters long",
+      );
+    }
+
     return new Category(id, name, createdAt, updatedAt);
   }
 
   // command methods
   updateName(name: string): void {
+    // validation
+    if (name.length < 3) {
+      throw new ValidationError(
+        "name",
+        "Category name must be at least 3 characters long",
+      );
+    }
+
     this._name = name;
     this._updatedAt = new Date();
   }
