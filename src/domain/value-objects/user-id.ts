@@ -8,7 +8,7 @@ export class UserId {
   }
 
   static of(value: string): UserId {
-    if (!value.startsWith("usr_")) {
+    if (!value.match(/^usr_[a-zA-Z0-9]{32}$/)) {
       throw new ValidationError("user ID", "must start with usr_");
     }
 
