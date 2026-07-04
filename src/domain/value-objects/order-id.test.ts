@@ -1,10 +1,10 @@
-// what to test
-// DONE 1. generate()
-// 2. of()
-// 3. equals()
-
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import { OrderId } from "./order-id.js";
+
+// what to test
+// DONE 1. generate()
+// DONE 2. of()
+// DONE 3. equals()
 
 describe("OrderId Value Object", () => {
   describe("OrderId.generate()", () => {
@@ -32,6 +32,26 @@ describe("OrderId Value Object", () => {
       expect(() => OrderId.of("usr_12345678901234567890123456789012")).toThrow(
         ValidationError,
       );
+    });
+  });
+
+  describe("OrderId.equals()", () => {
+    test("when provided with the same OrderId, it should return true", () => {
+      // Arrange
+      const orderId1 = OrderId.of("ord_12345678901234567890123456789012");
+      const orderId2 = OrderId.of("ord_12345678901234567890123456789012");
+
+      // Act & Assert
+      expect(orderId1.equals(orderId2)).toBe(true);
+    });
+
+    test("when provided with a different OrderId, it should return false", () => {
+      // Arrange
+      const orderId1 = OrderId.of("ord_12345678901234567890123456789012");
+      const orderId2 = OrderId.of("ord_98765432109876543210987654321098");
+
+      // Act & Assert
+      expect(orderId1.equals(orderId2)).toBe(false);
     });
   });
 });
