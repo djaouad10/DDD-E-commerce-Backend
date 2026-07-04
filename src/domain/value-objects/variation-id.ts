@@ -8,7 +8,7 @@ export class VariationId {
   }
 
   static of(value: string): VariationId {
-    if (!value.startsWith("var_")) {
+    if (!value.match(/^var_[a-zA-Z0-9]{32}$/)) {
       throw new ValidationError("variation ID", "must start with var_");
     }
 

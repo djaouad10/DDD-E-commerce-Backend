@@ -1,8 +1,9 @@
 import type { OrderItemDTO } from "#/application/dto/order-item.dto.js";
+import { ValidationError } from "#/shared/errors/domain-error.js";
 import { Currency, Money } from "../value-objects/money.js";
 import { OrderItemId } from "../value-objects/order-item-id.js";
 import type { VariationId } from "../value-objects/variation-id.js";
-import type { Weight } from "../value-objects/weight.js";
+import { Weight } from "../value-objects/weight.js";
 
 export class OrderItem {
   private constructor(
@@ -21,7 +22,13 @@ export class OrderItem {
     weightAtOrderTime: Weight,
     unitDiscountPriceAtOrderTime: Money | null,
   ): OrderItem {
-    if (qty <= 0) throw new Error("qty must be greater than 0");
+    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+
+    if (weightAtOrderTime.unit !== "g")
+      throw new ValidationError(
+        "weightAtOrderTime",
+        "weight must be in grams at creation",
+      );
 
     return new OrderItem(
       OrderItemId.generate(),
@@ -32,7 +39,32 @@ export class OrderItem {
       weightAtOrderTime,
     );
   }
-  // everything is immutable and readonly we don't need a static factory method
+
+  static reconstitute(
+    id: OrderItemId,
+    variationId: VariationId,
+    qty: number,
+    unitPriceAtOrderTime: Money,
+    unitDiscountPriceAtOrderTime: Money | null,
+    weightAtOrderTime: Weight,
+  ): OrderItem {
+    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+
+    if (weightAtOrderTime.unit !== "g")
+      throw new ValidationError(
+        "weightAtOrderTime",
+        "weight must be in grams at reconstitution",
+      );
+
+    return new OrderItem(
+      id,
+      variationId,
+      qty,
+      unitPriceAtOrderTime,
+      unitDiscountPriceAtOrderTime,
+      weightAtOrderTime,
+    );
+  }
 
   // query methods
   getVariationId(): VariationId {

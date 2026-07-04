@@ -1,0 +1,113 @@
+// What to test:
+// DONE 1. of()
+// DONE 2. add()
+// DONE 3. multiply()
+// 4. toKg()
+
+import { ValidationError } from "#/shared/errors/domain-error.js";
+import { Weight } from "./weight.js";
+
+describe("Weight Value Object", () => {
+  describe("Weight.of()", () => {
+    test("when weight is positive, it should return a Weight instance", () => {
+      // Arrange & Act
+      const weight = Weight.of(100, "g");
+
+      // Assert
+      expect(weight).toBeInstanceOf(Weight);
+      expect(weight.weight).toBe(100);
+      expect(weight.unit).toBe("g");
+    });
+
+    test("when weight is zero, it should return a Weight instance", () => {
+      // Arrange & Act
+      const weight = Weight.of(0, "g");
+
+      // Assert
+      expect(weight).toBeInstanceOf(Weight);
+      expect(weight.weight).toBe(0);
+      expect(weight.unit).toBe("g");
+    });
+
+    test("when weight is negative, it should throw a Validation error", () => {
+      // Act & Assert
+      expect(() => Weight.of(-100, "g")).toThrow(ValidationError);
+    });
+  });
+
+  describe("Weight.add()", () => {
+    test("when units are the same, it should return a sum Weight instance with the same unit", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+      const weight2 = Weight.of(100, "g");
+
+      // Act
+      const sum = weight1.add(weight2);
+
+      // Assert
+      expect(sum).toStrictEqual(Weight.of(200, "g"));
+    });
+
+    test("when units are different, it should throw a Validation error", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+      const weight2 = Weight.of(100, "kg");
+
+      // Act & Assert
+      expect(() => weight1.add(weight2)).toThrow(ValidationError);
+    });
+  });
+
+  describe("Weight.multiply()", () => {
+    test("when provided with a negative qty, it should throw a Validation error", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+
+      // Act & Assert
+      expect(() => weight1.multiply(-1)).toThrow(ValidationError);
+    });
+
+    test("when provided with a 0 qty, it should return zero Weight with the same unit", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+
+      // Act
+      const result = weight1.multiply(0);
+
+      // Assert
+      expect(result).toStrictEqual(Weight.of(0, "g"));
+    });
+
+    test("when provided with a positive qty, it should return amount * qty Weight with the same unit", () => {
+      // Arrange
+      const weight1 = Weight.of(100, "g");
+
+      // Act
+      const result = weight1.multiply(2);
+
+      // Assert
+      expect(result).toStrictEqual(Weight.of(200, "g"));
+    });
+  });
+
+  describe("Weight.toKg()", () => {
+    test("when unit is kg, it should throw a Validation error", () => {
+      // Arrange
+      const weight1 = Weight.of(4, "kg");
+
+      // Act & Assert
+      expect(() => weight1.toKg()).toThrow(ValidationError);
+    });
+
+    test("when unit is not kg, it should return weight in kg rounded to 2 decimals", () => {
+      // Arrange
+      const weight1 = Weight.of(643, "g");
+
+      // Act
+      const result = weight1.toKg();
+
+      // Assert
+      expect(result).toStrictEqual(Weight.of(0.64, "kg"));
+    });
+  });
+});

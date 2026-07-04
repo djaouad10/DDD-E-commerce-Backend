@@ -8,7 +8,7 @@ export class OrderItemId {
   }
 
   static of(value: string): OrderItemId {
-    if (!value.startsWith("orditm_")) {
+    if (!value.match(/^orditm_[a-zA-Z0-9]{32}$/)) {
       throw new ValidationError("order item ID", "must start with orditm_");
     }
 

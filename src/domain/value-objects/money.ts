@@ -46,6 +46,8 @@ export class Money {
   }
 
   multiply(qty: number): Money {
+    if (qty < 0) throw new ValidationError("qty", "qty can not be negative");
+    
     return new Money(this.amount * qty, this.currency);
   }
 
