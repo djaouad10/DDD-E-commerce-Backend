@@ -5,34 +5,34 @@ import { Weight } from "../value-objects/weight.js";
 import type { Color, Size } from "./product.js";
 
 export class Variation {
-  private available_qty: number;
-  private is_in_stock: boolean;
+  private _availableQty: number;
+  private _isInStock: boolean;
   private constructor(
     readonly id: VariationId,
     readonly productId: ProductId,
-    private size: Size,
-    private color: Color,
-    private total_qty: number,
-    private reserved_qty: number,
-    private weight_in_grams: Weight,
+    private _size: Size,
+    private _color: Color,
+    private _totalQty: number,
+    private _reservedQty: number,
+    private _weightInGrams: Weight,
     private _createdAt: Date,
     private _updatedAt: Date,
   ) {
-    this.available_qty = total_qty - reserved_qty;
-    this.is_in_stock = this.available_qty > 0;
+    this._availableQty = this._totalQty - this._reservedQty;
+    this._isInStock = this._availableQty > 0;
   }
 
   //   factory
   static(
     productId: ProductId,
-    size: Size,
-    color: Color,
-    total_qty: number,
-    reserved_qty: number,
-    weight_in_grams: Weight,
+    _size: Size,
+    _color: Color,
+    _totalQty: number,
+    _reservedQty: number,
+    _weightInGrams: Weight,
   ): Variation {
-    if (weight_in_grams.unit !== "g")
-      throw new ValidationError("weight_in_grams.unit", "must be grams");
+    if (_weightInGrams.unit !== "g")
+      throw new ValidationError("_weightInGrams.unit", "must be grams");
 
     // validation here then:
     const now = new Date();
@@ -40,11 +40,11 @@ export class Variation {
     return new Variation(
       VariationId.generate(),
       productId,
-      size,
-      color,
-      total_qty,
-      reserved_qty,
-      weight_in_grams,
+      _size,
+      _color,
+      _totalQty,
+      _reservedQty,
+      _weightInGrams,
       now,
       now,
     );
@@ -54,59 +54,81 @@ export class Variation {
   reconstitute(
     id: VariationId,
     productId: ProductId,
-    size: Size,
-    color: Color,
-    total_qty: number,
-    reserved_qty: number,
-    weight_in_grams: Weight,
+    _size: Size,
+    _color: Color,
+    _totalQty: number,
+    _reservedQty: number,
+    _weightInGrams: Weight,
     createdAt: Date,
     updatedAt: Date,
   ): Variation {
-    if (weight_in_grams.unit !== "g")
-      throw new ValidationError("weight_in_grams.unit", "must be grams");
+    if (_weightInGrams.unit !== "g")
+      throw new ValidationError("_weightInGrams.unit", "must be grams");
 
     return new Variation(
       id,
       productId,
-      size,
-      color,
-      total_qty,
-      reserved_qty,
-      weight_in_grams,
+      _size,
+      _color,
+      _totalQty,
+      _reservedQty,
+      _weightInGrams,
       createdAt,
       updatedAt,
     );
   }
 
   // command methods
+  updateTotalQty(newTotalQty: number): void {
+    if (newTotalQty < this._reservedQty) {
+      throw new ValidationError(
+        "newTotalQty",
+        "must be equal or greater than existing reserved qty",
+      );
+    }
+
+    this._totalQty = newTotalQty;
+    this._availableQty = this._totalQty - this._reservedQty;
+    this._isInStock = this._availableQty > 0;
+
+    this._updatedAt = new Date();
+  }
+
+  updateWeight(newWeight: Weight) {
+    if (newWeight.unit !== "g")
+      throw new ValidationError("newWeight.unit", "must be grams");
+
+    this._weightInGrams = newWeight;
+    this._updatedAt = new Date();
+  }
 
   // query methods
   getSize(): Size {
-    return this.size;
+    return this._size;
   }
 
   getColor(): Color {
-    return this.color;
+    return this._color;
   }
 
   getWeight(): Weight {
-    return this.weight_in_grams;
+    return this._weightInGrams;
   }
 
   getTotalQty(): number {
-    return this.total_qty;
+    return this._totalQty;
   }
 
   getReservedQty(): number {
-    return this.reserved_qty;
+    return this._reservedQty;
   }
 
   getAvailableQty(): number {
-    return this.available_qty;
+    return this._availableQty;
   }
 
   isInStock(): boolean {
-    return this.is_in_stock;
+    return this._isInStock;
   }
 
   getCreatedAt(): Date {
