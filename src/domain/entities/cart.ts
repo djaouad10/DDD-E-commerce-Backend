@@ -18,6 +18,12 @@ export class Cart {
 
   // factory
   static create(userId: UserId, items: CartItem[]): Cart {
+    if (new Set(items.map((item) => item.id.value)).size !== items.length)
+      throw new ValidationError(
+        "items",
+        "can't create a cart with duplicate items",
+      );
+
     return new Cart(CartId.generate(), userId, items, new Date());
   }
 
@@ -28,6 +34,12 @@ export class Cart {
     items: CartItem[],
     updatedAt: Date,
   ): Cart {
+    if (new Set(items.map((item) => item.id.value)).size !== items.length)
+      throw new ValidationError(
+        "items",
+        "can't reconstitute a cart with duplicate items",
+      );
+
     return new Cart(id, userId, items, updatedAt);
   }
 
