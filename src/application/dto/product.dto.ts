@@ -15,6 +15,8 @@ export interface ProductDTO {
   discountedPrice: MoneyDTO | null;
   category: string | null;
   averageRating: number | null;
+  discountAmount: MoneyDTO;
+  discountPercentage: number;
   createdAt: string;
   updatedAt: string;
 }

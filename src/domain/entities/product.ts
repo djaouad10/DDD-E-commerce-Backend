@@ -3,7 +3,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import type { CategoryId } from "../value-objects/category-id.js";
 import type { FileId } from "../value-objects/file-id.js";
-import type { Money } from "../value-objects/money.js";
+import { Currency, Money } from "../value-objects/money.js";
 import { ProductId } from "../value-objects/product-id.js";
 import { Slug } from "../value-objects/slug.js";
 import type { VariationId } from "../value-objects/variation-id.js";
@@ -366,6 +366,22 @@ export class Product {
     return this._updatedAt;
   }
 
+  getDisplayPrice(): Money {
+    return this._discountedPrice ?? this._price;
+  }
+
+  hasDiscount(): boolean {
+    return !!this._discountedPrice;
+  }
+
+  getDiscountAmount(): Money {
+    if (!this.hasDiscount()) {
+      return Money.of(0, Currency.DZD);
+    }
+
+    return this._price.subtract(this._discountedPrice!);
+  }
+
   // event methods
   pullEvents(): DomainEvent[] {
     const events = [...this._events];
@@ -392,10 +408,15 @@ export class Product {
       discountedPrice: this._discountedPrice?.toDTO() ?? null,
       category: this._categoryId?.toString() ?? null,
       averageRating: this._averageRating,
+      discountAmount: this.getDiscountAmount().toDTO(),
+      discountPercentage: this.calculateDiscountPercentage(),
       createdAt: this._createdAt.toISOString(),
       updatedAt: this._updatedAt.toISOString(),
     };
   }
 
   // utils
+  calculateDiscountPercentage(): number {
+    return Math.round(this.getDiscountAmount().amount / this._price.amount);
+  }
 }
