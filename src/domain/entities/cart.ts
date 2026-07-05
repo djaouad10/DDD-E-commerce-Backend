@@ -1,0 +1,101 @@
+import type { CartDTO } from "#/application/dto/cart.dto.js";
+import { ValidationError } from "#/shared/errors/domain-error.js";
+import type { DomainEvent } from "../events/domain-event.js";
+import { CartId } from "../value-objects/cart-id.js";
+import type { CartItemId } from "../value-objects/cart-item-id.js";
+import type { UserId } from "../value-objects/user-id.js";
+import type { CartItem } from "./cart-item.js";
+
+export class Cart {
+  private _events: DomainEvent[] = [];
+
+  private constructor(
+    readonly id: CartId,
+    readonly userId: UserId,
+    private _items: CartItem[],
+    private _updatedAt: Date,
+  ) {}
+
+  // factory
+  static create(userId: UserId, items: CartItem[]): Cart {
+    return new Cart(CartId.generate(), userId, items, new Date());
+  }
+
+  // reconstitute
+  reconstitute(
+    id: CartId,
+    userId: UserId,
+    items: CartItem[],
+    updatedAt: Date,
+  ): Cart {
+    return new Cart(id, userId, items, updatedAt);
+  }
+
+  // command methods
+  addItem(item: CartItem): void {
+    if (this._items.find((i) => i.variationId.equals(item.variationId)))
+      throw new ValidationError("variationId", "variation already in cart");
+
+    if (this._items.length >= 50)
+      throw new ValidationError(
+        "cart",
+        "cart is full, cannot add more than 50 items",
+      );
+
+    this._items.push(item);
+    this._updatedAt = new Date();
+  }
+
+  removeItem(item: CartItem): void {
+    if (!this._items.find((i) => i.id.equals(item.id)))
+      throw new ValidationError("item", "item not found");
+
+    this._items = this._items.filter((i) => !i.id.equals(item.id));
+    this._updatedAt = new Date();
+  }
+
+  updateItemQty(itemId: CartItemId, newQty: number): void {
+    const targetItem = this._items.find((i) => i.id.equals(itemId));
+
+    if (!targetItem) throw new ValidationError("itemId", "item not found");
+
+    targetItem.updateQty(newQty);
+    this._updatedAt = new Date();
+  }
+
+  clear(): void {
+    this._items = [];
+    this._updatedAt = new Date();
+  }
+
+  // query methods
+  getItems(): CartItem[] {
+    return this._items;
+  }
+
+  getUpdatedAt(): Date {
+    return this._updatedAt;
+  }
+
+  // event methods
+  pullEvents(): DomainEvent[] {
+    const events = [...this._events];
+    this._events = [];
+    return events;
+  }
+
+  peekEvents(): readonly DomainEvent[] {
+    return [...this._events];
+  }
+
+  // mappers
+
+  toDTO(): CartDTO {
+    return {
+      id: this.id.value,
+      userId: this.userId.value,
+      items: this._items.map((i) => i.toDTO()),
+      updatedAt: this._updatedAt.toISOString(),
+    };
+  }
+}
