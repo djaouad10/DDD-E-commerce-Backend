@@ -6,9 +6,9 @@ import { Color, Size } from "./product.js";
 import { Variation } from "./variation.js";
 
 // what to test:
-// 1. create
-// 2. reconstitute
-// 3. updateTotalQty
+// DONE 1. create
+// DONE 2. reconstitute
+// DONE 3. updateTotalQty
 // 4. updateTotalQty
 
 describe("Variation Entity", () => {
@@ -172,6 +172,85 @@ describe("Variation Entity", () => {
 
       // Assert
       expect(variation.isInStock()).toBe(false);
+    });
+  });
+
+  describe("Variation.updateTotalQty()", () => {
+    test("when called with valid arguments, it should update the total quantity", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set current total qty
+      args[4] = 100;
+      const variation = Variation.reconstitute(...args);
+
+      // Act
+      variation.updateTotalQty(200);
+
+      // Assert
+      expect(variation.getTotalQty()).toBe(200);
+    });
+
+    test("when called with valid arguments, it should update the available quantity and inStock status", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set current total qty
+      args[4] = 100;
+      // set current reserved qty
+      args[5] = 100;
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act
+      variation.updateTotalQty(200);
+
+      // Assert
+      expect(variation.getAvailableQty()).toBe(100);
+      expect(variation.isInStock()).toBe(true);
+    });
+
+    test("when called with valid arguments, it should update the updatedAt field", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set current total qty
+      args[4] = 100;
+      // set current reserved qty
+      args[5] = 50;
+      // set current updatedAt
+      args[8] = new Date("2026-06-01");
+
+      const variation = Variation.reconstitute(...args);
+
+      const oldUpdatedAt = variation.getUpdatedAt();
+
+      // Act
+      variation.updateTotalQty(200);
+
+      // Assert
+      expect(variation.getUpdatedAt().getTime()).toBeGreaterThan(
+        oldUpdatedAt.getTime(),
+      );
+    });
+
+    test("when called with negative quantity, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.updateTotalQty(-1)).toThrow(ValidationError);
+    });
+
+    test("when called with quantity less than reserved quantity, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set current total qty
+      args[4] = 200;
+      // set current reserved qty
+      args[5] = 100;
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.updateTotalQty(99)).toThrow(ValidationError);
     });
   });
 });
