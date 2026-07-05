@@ -81,6 +81,41 @@ export class Variation {
   // command methods
 
   // query methods
+  getSize(): Size {
+    return this.size;
+  }
+
+  getColor(): Color {
+    return this.color;
+  }
+
+  getWeight(): Weight {
+    return this.weight_in_grams;
+  }
+
+  getTotalQty(): number {
+    return this.total_qty;
+  }
+
+  getReservedQty(): number {
+    return this.reserved_qty;
+  }
+
+  getAvailableQty(): number {
+    return this.available_qty;
+  }
+
+  isInStock(): boolean {
+    return this.is_in_stock;
+  }
+
+  getCreatedAt(): Date {
+    return this._createdAt;
+  }
+
+  getUpdatedAt(): Date {
+    return this._updatedAt;
+  }
 
   // event methods
 
