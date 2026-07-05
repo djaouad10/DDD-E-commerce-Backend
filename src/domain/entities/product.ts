@@ -199,6 +199,10 @@ export class Product {
 
   // command methods
   updateName(newName: string): void {
+    // validation
+    if (newName.length === 0)
+      throw new ValidationError("name", "name is empty");
+
     this._name = newName;
     this.slug = Slug.generate(newName);
     this._updatedAt = new Date();
