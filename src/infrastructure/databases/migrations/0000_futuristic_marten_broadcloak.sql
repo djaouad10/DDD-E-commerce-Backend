@@ -38,11 +38,13 @@ CREATE TABLE "category" (
 );
 --> statement-breakpoint
 CREATE TABLE "file" (
-	"key" text PRIMARY KEY NOT NULL,
+	"id" varchar(40) PRIMARY KEY NOT NULL,
+	"key" text NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"public_url" varchar(2048) NOT NULL,
 	"product_id" varchar(40) NOT NULL,
-	"is_main" boolean NOT NULL
+	"is_main" boolean NOT NULL,
+	CONSTRAINT "file_key_unique" UNIQUE("key")
 );
 --> statement-breakpoint
 CREATE TABLE "order" (

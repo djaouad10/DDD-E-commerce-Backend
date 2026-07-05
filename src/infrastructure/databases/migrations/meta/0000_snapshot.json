@@ -1,5 +1,5 @@
 {
-  "id": "7f82e8d4-178a-4d9d-a36c-480ccf51aa2a",
+  "id": "82c3aac0-b5a6-4b66-b714-d3214280184c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -276,10 +276,16 @@
       "name": "file",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(40)",
+          "primaryKey": true,
+          "notNull": true
+        },
         "key": {
           "name": "key",
           "type": "text",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "name": {
@@ -340,7 +346,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "file_key_unique": {
+          "name": "file_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "key"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
