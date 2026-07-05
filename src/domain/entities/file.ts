@@ -10,7 +10,7 @@ export class File {
     private readonly _key: string,
     private readonly _name: string,
     readonly publicUrl: string,
-    private readonly isMain: boolean,
+    private readonly _isMain: boolean,
   ) {}
 
   // factory
@@ -43,7 +43,7 @@ export class File {
   }
 
   getIsMain(): boolean {
-    return this.isMain;
+    return this._isMain;
   }
 
   // event methods
@@ -63,7 +63,7 @@ export class File {
       id: this.id.value,
       name: this._name,
       publicUrl: this.publicUrl,
-      isMain: this.isMain,
+      isMain: this._isMain,
     };
   }
 
