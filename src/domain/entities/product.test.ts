@@ -18,7 +18,7 @@ import { VariationId } from "../value-objects/variation-id.js";
 // DONE 5. updateDiscountedPrice
 // DONE 6. addVariation
 // DONE 7. removeVariation
-// 8. addImage
+// DONE 8. addImage
 // 9. updateMainImage
 // 10. removeImage
 // 11. isInStock
@@ -612,6 +612,116 @@ describe("Product", () => {
 
       // Assert
       expect(myAddedImage!.isMain()).toBe(false);
+    });
+  });
+
+  describe("Product.updateMainImage()", () => {
+    test("when called with a new main image, it should add it to the images", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      const product = Product.reconstitute(...args);
+
+      const newMainImage = File.create(
+        faker.string.uuid(),
+        faker.system.fileName(),
+        faker.image.url(),
+        true,
+      );
+
+      // Act
+      product.updateMainImage(newMainImage);
+
+      // Assert
+      expect(product.getImages()).toContainEqual(newMainImage);
+    });
+
+    test("when called with a new main image, it should delete the old main image", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      // set old images
+      const images = [
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          true,
+        ),
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          false,
+        ),
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          false,
+        ),
+      ];
+
+      args[4] = images;
+
+      const product = Product.reconstitute(...args);
+
+      const newMainImage = File.create(
+        faker.string.uuid(),
+        faker.system.fileName(),
+        faker.image.url(),
+        true,
+      );
+
+      // Act
+      product.updateMainImage(newMainImage);
+
+      // Assert
+      expect(product.getImages()).not.toContainEqual(images[0]);
+    });
+
+    test("when called with a new main image, there should be only one main image", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      // set old images
+      const images = [
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          true,
+        ),
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          false,
+        ),
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          false,
+        ),
+      ];
+
+      args[4] = images;
+
+      const product = Product.reconstitute(...args);
+
+      const newMainImage = File.create(
+        faker.string.uuid(),
+        faker.system.fileName(),
+        faker.image.url(),
+        true,
+      );
+
+      // Act
+      product.updateMainImage(newMainImage);
+
+      // Assert
+      expect(product.getImages().filter((i) => i.isMain())).toHaveLength(1);
     });
   });
 });
