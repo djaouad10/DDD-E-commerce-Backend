@@ -309,6 +309,61 @@ export class Product {
   }
 
   // query methods
+  getName(): string {
+    return this._name;
+  }
+
+  getSlug(): Slug {
+    return this.slug;
+  }
+
+  getDescription(): string | null {
+    return this._description;
+  }
+
+  getImages(): File[] {
+    return this._images;
+  }
+
+  getVariations(): Variation[] {
+    return this._variations;
+  }
+
+  getBrand(): string {
+    return this._brand;
+  }
+
+  getMaterial(): string {
+    return this._material;
+  }
+
+  getPrice(): Money {
+    return this._price;
+  }
+
+  getDiscountedPrice(): Money | null {
+    return this._discountedPrice;
+  }
+
+  getCategoryId(): CategoryId | null {
+    return this._categoryId;
+  }
+
+  isInStock(): boolean {
+    return this._variations.some((v) => v.isInStock());
+  }
+
+  getAverageRating(): number | null {
+    return this._averageRating;
+  }
+
+  getCreatedAt(): Date {
+    return this._createdAt;
+  }
+
+  getUpdatedAt(): Date {
+    return this._updatedAt;
+  }
 
   // event methods
 
