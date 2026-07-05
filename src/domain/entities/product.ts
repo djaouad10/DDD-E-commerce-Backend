@@ -240,7 +240,22 @@ export class Product {
   }
 
   updateDiscountedPrice(newDiscountedPrice: Money | null): void {
-    if (newDiscountedPrice && newDiscountedPrice >= this._price)
+    if (
+      newDiscountedPrice &&
+      newDiscountedPrice.currency !== this._price.currency
+    )
+      throw new ValidationError(
+        "currency",
+        "discounted price must have the same currency as existing price",
+      );
+
+    if (newDiscountedPrice && newDiscountedPrice.amount < 0)
+      throw new ValidationError(
+        "amount",
+        "discounted price can not be negative",
+      );
+
+    if (newDiscountedPrice && newDiscountedPrice.amount >= this._price.amount)
       throw new ValidationError(
         "newDiscountedPrice",
         "discounted price must be less than existing price",
