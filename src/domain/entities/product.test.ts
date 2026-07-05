@@ -21,7 +21,7 @@ import { FileId } from "../value-objects/file-id.js";
 // DONE 7. removeVariation
 // DONE 8. addImage
 // DONE 9. updateMainImage
-// 10. removeImage
+// DONE 10. removeImage
 // 11. isInStock
 // 12. getDisplayPrice
 // 13. hasDiscount
@@ -813,7 +813,43 @@ describe("Product", () => {
       // Act & Assert
       expect(() => product.removeImage(imageId)).toThrowError(ValidationError);
     });
-    
-    
+  });
+
+  describe("Product.isInStock()", () => {
+    test("if at least one variation is in stock, it should return true", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // old variations
+      const variations = [
+        Variation.create(Size.M, Color.RED, 50, 50, Weight.of(100, "g")), // out of stock
+        Variation.create(Size.M, Color.BLUE, 50, 50, Weight.of(100, "g")), // out of stock
+        Variation.create(Size.M, Color.GREEN, 60, 50, Weight.of(100, "g")), // in stock
+      ];
+
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.isInStock()).toBe(true);
+    });
+
+    test("if all variations are out of stock, it should return false", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // old variations
+      const variations = [
+        Variation.create(Size.M, Color.RED, 50, 50, Weight.of(100, "g")), // out of stock
+        Variation.create(Size.M, Color.BLUE, 50, 50, Weight.of(100, "g")), // out of stock
+        Variation.create(Size.M, Color.GREEN, 50, 50, Weight.of(100, "g")), // out of stock
+      ];
+
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.isInStock()).toBe(false);
+    });
   });
 });
