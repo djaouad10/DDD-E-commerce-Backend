@@ -28,7 +28,7 @@ export class Cart {
   }
 
   // reconstitute
-  reconstitute(
+ static reconstitute(
     id: CartId,
     userId: UserId,
     items: CartItem[],
