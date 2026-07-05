@@ -10,11 +10,13 @@ export class CartItem {
     readonly id: CartItemId,
     readonly variationId: VariationId,
     private _qty: number,
-    private _updatedAt: Date ,
+    private _updatedAt: Date,
   ) {}
 
   // factory
   static create(variationId: VariationId, qty: number): CartItem {
+    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+
     return new CartItem(CartItemId.generate(), variationId, qty, new Date());
   }
 
@@ -23,18 +25,17 @@ export class CartItem {
     id: CartItemId,
     variationId: VariationId,
     qty: number,
-    updatedAt: Date
+    updatedAt: Date,
   ): CartItem {
+    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+
     return new CartItem(id, variationId, qty, updatedAt);
   }
 
   // command methods
   updateQty(newQty: number): void {
-    if (newQty < 0)
-      throw new ValidationError("newQty", "newQty can not be negative");
-
-    if (newQty === 0)
-      throw new ValidationError("newQty", "newQty can not be 0");
+    if (newQty <= 0)
+      throw new ValidationError("newQty", "must be greater than 0");
 
     this._qty = newQty;
     this._updatedAt = new Date();
