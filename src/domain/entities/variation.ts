@@ -1,7 +1,6 @@
 import type { VariationDTO } from "#/application/dto/variation.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
-import { ProductId } from "../value-objects/product-id.js";
 import { VariationId } from "../value-objects/variation-id.js";
 import { Weight } from "../value-objects/weight.js";
 import type { Color, Size } from "./product.js";
@@ -14,7 +13,6 @@ export class Variation {
 
   private constructor(
     readonly id: VariationId,
-    readonly productId: ProductId,
     private _size: Size,
     private _color: Color,
     private _totalQty: number,
@@ -29,7 +27,6 @@ export class Variation {
 
   //   factory
   static create(
-    productId: ProductId,
     _size: Size,
     _color: Color,
     _totalQty: number,
@@ -44,7 +41,6 @@ export class Variation {
 
     return new Variation(
       VariationId.generate(),
-      productId,
       _size,
       _color,
       _totalQty,
@@ -58,7 +54,6 @@ export class Variation {
   // reconstitute
   static reconstitute(
     id: VariationId,
-    productId: ProductId,
     _size: Size,
     _color: Color,
     _totalQty: number,
@@ -72,7 +67,6 @@ export class Variation {
 
     return new Variation(
       id,
-      productId,
       _size,
       _color,
       _totalQty,
@@ -162,7 +156,6 @@ export class Variation {
   toDTO(): VariationDTO {
     return {
       id: this.id.value,
-      productId: this.productId.value,
       size: this._size,
       color: this._color,
       totalQty: this._totalQty,
