@@ -1,8 +1,11 @@
+import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import type { CategoryId } from "../value-objects/category-id.js";
+import type { FileId } from "../value-objects/file-id.js";
 import type { Money } from "../value-objects/money.js";
 import { ProductId } from "../value-objects/product-id.js";
-import type { Slug } from "../value-objects/slug.js";
+import { Slug } from "../value-objects/slug.js";
+import type { VariationId } from "../value-objects/variation-id.js";
 import type { File } from "./file.js";
 import type { Variation } from "./variation.js";
 
@@ -60,7 +63,7 @@ export class Product {
     private _material: string,
     private _price: Money,
     private _discountedPrice: Money | null,
-    private _averageRating: number | null,
+    private readonly _averageRating: number | null,
     private _createdAt: Date,
     private _updatedAt: Date,
   ) {}
@@ -79,7 +82,31 @@ export class Product {
     discountedPrice: Money | null,
     averageRating: number | null,
   ): Product {
-    // validation then
+    // validation
+    if (images.length === 0)
+      throw new ValidationError(
+        "images",
+        "product must have at least one image",
+      );
+
+    if (variations.length === 0)
+      throw new ValidationError(
+        "variations",
+        "product must have at least one variation",
+      );
+
+    const numberOfMainImages = images.filter((i) => i.isMain()).length;
+    if (numberOfMainImages > 1)
+      throw new ValidationError(
+        "images",
+        "product can have only one main image",
+      );
+
+    if (averageRating !== null && (averageRating < 0 || averageRating > 5))
+      throw new ValidationError(
+        "averageRating",
+        "average rating must be between 0 and 5",
+      );
 
     const now = new Date();
 
@@ -102,42 +129,184 @@ export class Product {
   }
 
   // reconstitute
-static reconstitute(
-  id: ProductId,
-  name: string,
-  slug: Slug,
-  categoryId: CategoryId | null,
-  images: File[],
-  variations: Variation[],
-  description: string | null,
-  brand: string,
-  material: string,
-  price: Money,
-  discountedPrice: Money | null,
-  averageRating: number | null,
-  createdAt: Date,
-  updatedAt: Date,
-): Product {
-  // reconstitute from DB, reuse the same ID
-  return new Product(
-    id,
-    name,
-    slug,
-    categoryId,
-    images,
-    variations,
-    description,
-    brand,
-    material,
-    price,
-    discountedPrice,
-    averageRating,
-    createdAt,
-    updatedAt,
-  );
-}
+  static reconstitute(
+    id: ProductId,
+    name: string,
+    slug: Slug,
+    categoryId: CategoryId | null,
+    images: File[],
+    variations: Variation[],
+    description: string | null,
+    brand: string,
+    material: string,
+    price: Money,
+    discountedPrice: Money | null,
+    averageRating: number | null,
+    createdAt: Date,
+    updatedAt: Date,
+  ): Product {
+    // validation
+    if (images.length === 0)
+      throw new ValidationError(
+        "images",
+        "product must have at least one image",
+      );
+
+    if (variations.length === 0)
+      throw new ValidationError(
+        "variations",
+        "product must have at least one variation",
+      );
+
+    const numberOfMainImages = images.filter((i) => i.isMain()).length;
+    if (numberOfMainImages > 1)
+      throw new ValidationError(
+        "images",
+        "product can have only one main image",
+      );
+
+    if (averageRating !== null && (averageRating < 0 || averageRating > 5))
+      throw new ValidationError(
+        "averageRating",
+        "average rating must be between 0 and 5",
+      );
+
+    // reconstitute from DB, reuse the same ID
+    return new Product(
+      id,
+      name,
+      slug,
+      categoryId,
+      images,
+      variations,
+      description,
+      brand,
+      material,
+      price,
+      discountedPrice,
+      averageRating,
+      createdAt,
+      updatedAt,
+    );
+  }
 
   // command methods
+  updateName(newName: string): void {
+    this._name = newName;
+    this.slug = Slug.generate(newName);
+    this._updatedAt = new Date();
+  }
+
+  updateCategory(newCategoryId: CategoryId | null): void {
+    this._categoryId = newCategoryId;
+    this._updatedAt = new Date();
+  }
+
+  updateDescription(newDescription: string | null): void {
+    this._description = newDescription;
+    this._updatedAt = new Date();
+  }
+
+  updateBrand(newBrand: string): void {
+    this._brand = newBrand;
+    this._updatedAt = new Date();
+  }
+
+  updateMaterial(newMaterial: string): void {
+    this._material = newMaterial;
+    this._updatedAt = new Date();
+  }
+
+  updatePrice(newPrice: Money): void {
+    if (this._discountedPrice && newPrice <= this._discountedPrice)
+      throw new ValidationError(
+        "newPrice",
+        "price must be greater than existing discounted price",
+      );
+
+    this._price = newPrice;
+    this._updatedAt = new Date();
+  }
+
+  updateDiscountedPrice(newDiscountedPrice: Money | null): void {
+    if (newDiscountedPrice && newDiscountedPrice >= this._price)
+      throw new ValidationError(
+        "newDiscountedPrice",
+        "discounted price must be less than existing price",
+      );
+
+    this._discountedPrice = newDiscountedPrice;
+    this._updatedAt = new Date();
+  }
+
+  addVariation(newVariation: Variation): void {
+    // make sure the color + size combo doesn't exist already
+    const existingVariation = this._variations.find((v) => {
+      return (
+        v.getColor() === newVariation.getColor() &&
+        v.getSize() === newVariation.getSize()
+      );
+    });
+
+    if (existingVariation)
+      throw new ValidationError(
+        "newVariation",
+        "variation with same color and size already exists",
+      );
+
+    this._variations.push(newVariation);
+    this._updatedAt = new Date();
+  }
+
+  removeVariation(variationId: VariationId): void {
+    this._variations = this._variations.filter(
+      (v) => !v.id.equals(variationId),
+    );
+    this._updatedAt = new Date();
+  }
+
+  addImage(newImage: File): void {
+    // make sure there is only one main image
+    newImage.setIsMain(false);
+
+    this._images.push(newImage);
+    this._updatedAt = new Date();
+  }
+
+  updateMainImage(newMainImage: File): void {
+    // find the old main image
+    const oldMainImage = this._images.find((i) => i.isMain());
+
+    // set all exiting images to not main
+    this._images.forEach((i) => i.setIsMain(false));
+
+    // update the new image to be a main image
+    newMainImage.setIsMain(true);
+
+    // add the new main image to product images list
+    this._images.push(newMainImage);
+
+    // remove the old main image
+    if (oldMainImage)
+      this._images = this._images.filter((i) => !i.id.equals(oldMainImage.id));
+
+    this._updatedAt = new Date();
+  }
+
+  removeImage(imageId: FileId): void {
+    const targetImage = this._images.find((i) => i.id.equals(imageId));
+
+    if (!targetImage) throw new ValidationError("imageId", "image not found");
+
+    if (targetImage.isMain())
+      throw new ValidationError("imageId", "cannot remove main image");
+
+    if (this._images.length === 1)
+      throw new ValidationError("imageId", "cannot remove the last image");
+
+    this._images = this._images.filter((i) => !i.id.equals(imageId));
+    this._updatedAt = new Date();
+  }
 
   // query methods
 
