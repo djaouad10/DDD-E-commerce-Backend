@@ -1,3 +1,4 @@
+import type { ProductDTO } from "#/application/dto/product.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import type { CategoryId } from "../value-objects/category-id.js";
@@ -379,20 +380,20 @@ export class Product {
   // mappers
   toDTO(): ProductDTO {
     return {
-      id: this.id,
+      id: this.id.toString(),
       name: this._name,
-      slug: this.slug,
+      slug: this.slug.value,
       description: this._description,
       images: this._images.map((i) => i.toDTO()),
       variations: this._variations.map((v) => v.toDTO()),
       brand: this._brand,
       material: this._material,
-      price: this._price,
-      discountedPrice: this._discountedPrice,
-      category: this._categoryId,
+      price: this._price.toDTO(),
+      discountedPrice: this._discountedPrice?.toDTO() ?? null,
+      category: this._categoryId?.toString() ?? null,
       averageRating: this._averageRating,
-      createdAt: this._createdAt,
-      updatedAt: this._updatedAt,
+      createdAt: this._createdAt.toISOString(),
+      updatedAt: this._updatedAt.toISOString(),
     };
   }
 
