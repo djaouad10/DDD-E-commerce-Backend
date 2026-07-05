@@ -24,7 +24,7 @@ export class Rating {
     rating: number,
     comment: string | null,
   ) {
-    if (rating < 1 || rating > 5)
+    if (rating < 0 || rating > 5)
       throw new ValidationError("rating", "rating must be between 1 and 5");
 
     const now = new Date();
@@ -41,7 +41,7 @@ export class Rating {
     createdAt: Date,
     updatedAt: Date,
   ) {
-    if (rating < 1 || rating > 5)
+    if (rating < 0 || rating > 5)
       throw new ValidationError("rating", "rating must be between 1 and 5");
 
     return new Rating(

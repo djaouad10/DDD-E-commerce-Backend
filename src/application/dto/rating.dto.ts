@@ -1,13 +1,9 @@
-
-
-
-
 export type RatingDTO = {
-    userId: string;
-    productId: string;
-    rating: number;
-    comment: string | null;
-    isApproved: boolean;
-    createdAt: string;
-    updatedAt: string;
+  userId: string;
+  productId: string;
+  rating: number;
+  comment: string | null;
+  isApproved: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
