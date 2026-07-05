@@ -3,7 +3,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import type { CategoryId } from "../value-objects/category-id.js";
 import type { FileId } from "../value-objects/file-id.js";
-import { Currency, Money } from "../value-objects/money.js";
+import { Money } from "../value-objects/money.js";
 import { ProductId } from "../value-objects/product-id.js";
 import { Slug } from "../value-objects/slug.js";
 import type { VariationId } from "../value-objects/variation-id.js";
