@@ -1,5 +1,4 @@
 import { ValidationError } from "#/shared/errors/domain-error.js";
-import { ProductId } from "../value-objects/product-id.js";
 import { VariationId } from "../value-objects/variation-id.js";
 import { Weight } from "../value-objects/weight.js";
 import { Color, Size } from "./product.js";
@@ -15,14 +14,7 @@ describe("Variation Entity", () => {
   const makeValidVariationCreateArgs = (): Parameters<
     typeof Variation.create
   > => {
-    return [
-      ProductId.generate(),
-      Size.M,
-      Color.RED,
-      100,
-      50,
-      Weight.of(100, "g"),
-    ];
+    return [Size.M, Color.RED, 100, 50, Weight.of(100, "g")];
   };
 
   const makeValidVariationReconstituteArgs = (): Parameters<
@@ -30,7 +22,6 @@ describe("Variation Entity", () => {
   > => {
     return [
       VariationId.generate(),
-      ProductId.generate(),
       Size.M,
       Color.RED,
       100,
@@ -56,7 +47,7 @@ describe("Variation Entity", () => {
     test("when called with a non-gram weight, it should throw a ValidationError", () => {
       // Arrange
       const args = makeValidVariationCreateArgs();
-      args[5] = Weight.of(100, "kg");
+      args[4] = Weight.of(100, "kg");
 
       // Act & Assert
       expect(() => Variation.create(...args)).toThrow(ValidationError);
@@ -66,9 +57,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationCreateArgs();
       // set total qty
-      args[3] = 100;
+      args[2] = 100;
       // set reserved qty
-      args[4] = 40;
+      args[3] = 40;
 
       // Act
       const variation = Variation.create(...args);
@@ -81,9 +72,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationCreateArgs();
       // set total qty
-      args[3] = 100;
+      args[2] = 100;
       // set reserved qty
-      args[4] = 40;
+      args[3] = 40;
 
       // Act
       const variation = Variation.create(...args);
@@ -96,9 +87,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationCreateArgs();
       // set total qty
-      args[3] = 100;
+      args[2] = 100;
       // set reserved qty
-      args[4] = 100;
+      args[3] = 100;
 
       // Act
       const variation = Variation.create(...args);
@@ -123,7 +114,7 @@ describe("Variation Entity", () => {
     test("when called with a non-gram weight, it should throw a ValidationError", () => {
       // Arrange
       const args = makeValidVariationReconstituteArgs();
-      args[6] = Weight.of(100, "kg");
+      args[5] = Weight.of(100, "kg");
 
       // Act & Assert
       expect(() => Variation.reconstitute(...args)).toThrow(ValidationError);
@@ -133,9 +124,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationReconstituteArgs();
       // set total qty
-      args[4] = 100;
+      args[3] = 100;
       // set reserved qty
-      args[5] = 40;
+      args[4] = 40;
 
       // Act
       const variation = Variation.reconstitute(...args);
@@ -148,9 +139,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationReconstituteArgs();
       // set total qty
-      args[4] = 100;
+      args[3] = 100;
       // set reserved qty
-      args[5] = 40;
+      args[4] = 40;
 
       // Act
       const variation = Variation.reconstitute(...args);
@@ -163,9 +154,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationReconstituteArgs();
       // set total qty
-      args[4] = 100;
+      args[3] = 100;
       // set reserved qty
-      args[5] = 100;
+      args[4] = 100;
 
       // Act
       const variation = Variation.reconstitute(...args);
@@ -194,9 +185,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationReconstituteArgs();
       // set current total qty
-      args[4] = 100;
+      args[3] = 100;
       // set current reserved qty
-      args[5] = 100;
+      args[4] = 100;
 
       const variation = Variation.reconstitute(...args);
 
@@ -214,9 +205,9 @@ describe("Variation Entity", () => {
       // set current total qty
       args[4] = 100;
       // set current reserved qty
-      args[5] = 50;
+      args[4] = 50;
       // set current updatedAt
-      args[8] = new Date("2026-06-01");
+      args[7] = new Date("2026-06-01");
 
       const variation = Variation.reconstitute(...args);
 
@@ -244,9 +235,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationReconstituteArgs();
       // set current total qty
-      args[4] = 200;
+      args[3] = 200;
       // set current reserved qty
-      args[5] = 100;
+      args[4] = 100;
       const variation = Variation.reconstitute(...args);
 
       // Act & Assert
@@ -259,7 +250,7 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationReconstituteArgs();
       // set current weight
-      args[6] = Weight.of(50, "g");
+      args[5] = Weight.of(50, "g");
 
       const variation = Variation.reconstitute(...args);
 
@@ -274,9 +265,9 @@ describe("Variation Entity", () => {
       // Arrange
       const args = makeValidVariationReconstituteArgs();
       // set current weight
-      args[6] = Weight.of(50, "g");
+      args[5] = Weight.of(50, "g");
       // set current updatedAt
-      args[8] = new Date("2026-06-01");
+      args[7] = new Date("2026-06-01");
 
       const variation = Variation.reconstitute(...args);
 
