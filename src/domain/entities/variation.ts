@@ -28,7 +28,7 @@ export class Variation {
   }
 
   //   factory
-  static(
+ static create(
     productId: ProductId,
     _size: Size,
     _color: Color,
@@ -56,7 +56,7 @@ export class Variation {
   }
 
   // reconstitute
-  reconstitute(
+  static reconstitute(
     id: VariationId,
     productId: ProductId,
     _size: Size,
