@@ -17,7 +17,7 @@ import { VariationId } from "../value-objects/variation-id.js";
 // DONE 4. updatePrice
 // DONE 5. updateDiscountedPrice
 // DONE 6. addVariation
-// 7. removeVariation
+// DONE 7. removeVariation
 // 8. addImage
 // 9. updateMainImage
 // 10. removeImage
@@ -566,6 +566,52 @@ describe("Product", () => {
       expect(() => product.removeVariation(VariationId.generate())).toThrow(
         ValidationError,
       );
+    });
+  });
+
+  describe("Product.addImage()", () => {
+    test("when called with a new image, it should add it to the images", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      const product = Product.reconstitute(...args);
+
+      const newImage = File.create(
+        faker.string.uuid(),
+        faker.system.fileName(),
+        faker.image.url(),
+        false,
+      );
+
+      // Act
+      product.addImage(newImage);
+
+      // Assert
+      expect(product.getImages()).toContainEqual(newImage);
+    });
+
+    test("when called with an image that has isMain set to true,  it should set it to false and add the image to the images", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      const product = Product.reconstitute(...args);
+
+      const newImage = File.create(
+        faker.string.uuid(),
+        faker.system.fileName(),
+        faker.image.url(),
+        true,
+      );
+
+      // Act
+      product.addImage(newImage);
+
+      const myAddedImage = product
+        .getImages()
+        .find((i) => i.id.equals(newImage.id));
+
+      // Assert
+      expect(myAddedImage!.isMain()).toBe(false);
     });
   });
 });
