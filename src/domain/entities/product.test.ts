@@ -15,7 +15,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 // DONE 3. updateName()
 // DONE 4. updatePrice
 // DONE 5. updateDiscountedPrice
-// 6. addVariation
+// DONE 6. addVariation
 // 7. removeVariation
 // 8. addImage
 // 9. updateMainImage
@@ -521,5 +521,31 @@ describe("Product", () => {
       // Act & Assert
       expect(() => product.addVariation(newVariation)).toThrow(ValidationError);
     });
+  });
+
+  describe("Product.removeVariation()", () => {
+    test("when called with a variation id, it should remove it from the variations", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      // set existing variations
+      const variations = [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.M, Color.BLUE, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.S, Color.GREEN, 100, 50, Weight.of(100, "g")),
+      ];
+
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      // Act
+      product.removeVariation(variations[1]!.id);
+
+      // Assert
+      expect(product.getVariations()).not.toContainEqual(variations[1]);
+    });
+
+    
   });
 });

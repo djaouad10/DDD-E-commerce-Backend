@@ -312,9 +312,18 @@ export class Product {
   }
 
   removeVariation(variationId: VariationId): void {
+    // find the variation to remove
+    const variationToRemove = this._variations.find((v) =>
+      v.id.equals(variationId),
+    );
+
+    if (!variationToRemove)
+      throw new ValidationError("variationId", "variation not found");
+
     this._variations = this._variations.filter(
       (v) => !v.id.equals(variationId),
     );
+
     this._updatedAt = new Date();
   }
 
