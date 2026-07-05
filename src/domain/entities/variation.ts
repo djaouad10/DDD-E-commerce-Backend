@@ -1,4 +1,6 @@
+import type { VariationDTO } from "#/application/dto/variation.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
+import type { DomainEvent } from "../events/domain-event.js";
 import { ProductId } from "../value-objects/product-id.js";
 import { VariationId } from "../value-objects/variation-id.js";
 import { Weight } from "../value-objects/weight.js";
@@ -7,6 +9,9 @@ import type { Color, Size } from "./product.js";
 export class Variation {
   private _availableQty: number;
   private _isInStock: boolean;
+
+  private _events: DomainEvent[] = [];
+
   private constructor(
     readonly id: VariationId,
     readonly productId: ProductId,
@@ -140,8 +145,32 @@ export class Variation {
   }
 
   // event methods
+  pullEvents(): DomainEvent[] {
+    const events = [...this._events];
+    this._events = [];
+    return events;
+  }
+
+  peekEvents(): readonly DomainEvent[] {
+    return [...this._events];
+  }
 
   // mappers
+  toDTO(): VariationDTO {
+    return {
+      id: this.id.value,
+      productId: this.productId.value,
+      size: this._size,
+      color: this._color,
+      totalQty: this._totalQty,
+      reservedQty: this._reservedQty,
+      availableQty: this._availableQty,
+      isInStock: this._isInStock,
+      weightInGrams: this._weightInGrams.toDTO(),
+      createdAt: this._createdAt.toISOString(),
+      updatedAt: this._updatedAt.toISOString(),
+    };
+  }
 
   // private helpers
 }
