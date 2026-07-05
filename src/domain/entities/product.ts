@@ -112,6 +112,12 @@ export class Product {
         "average rating must be between 0 and 5",
       );
 
+    if (discountedPrice && discountedPrice.amount > price.amount)
+      throw new ValidationError(
+        "discountedPrice",
+        "discounted price must be less than the price",
+      );
+
     const now = new Date();
 
     return new Product(
@@ -178,6 +184,12 @@ export class Product {
         "average rating must be between 0 and 5",
       );
 
+    if (discountedPrice && discountedPrice.amount > price.amount)
+      throw new ValidationError(
+        "discountedPrice",
+        "discounted price must be less than the price",
+      );
+
     // reconstitute from DB, reuse the same ID
     return new Product(
       id,
@@ -229,7 +241,16 @@ export class Product {
   }
 
   updatePrice(newPrice: Money): void {
-    if (this._discountedPrice && newPrice <= this._discountedPrice)
+    if (newPrice.currency !== this._price.currency)
+      throw new ValidationError(
+        "currency",
+        "price must have the same currency as existing price",
+      );
+
+    if (
+      this._discountedPrice &&
+      newPrice.amount <= this._discountedPrice.amount
+    )
       throw new ValidationError(
         "newPrice",
         "price must be greater than existing discounted price",
@@ -239,7 +260,7 @@ export class Product {
     this._updatedAt = new Date();
   }
 
-  updateDiscountedPrice(newDiscountedPrice: Money | null): void {
+  updateDiscountPrice(newDiscountedPrice: Money | null): void {
     if (
       newDiscountedPrice &&
       newDiscountedPrice.currency !== this._price.currency
@@ -247,12 +268,6 @@ export class Product {
       throw new ValidationError(
         "currency",
         "discounted price must have the same currency as existing price",
-      );
-
-    if (newDiscountedPrice && newDiscountedPrice.amount < 0)
-      throw new ValidationError(
-        "amount",
-        "discounted price can not be negative",
       );
 
     if (newDiscountedPrice && newDiscountedPrice.amount >= this._price.amount)
