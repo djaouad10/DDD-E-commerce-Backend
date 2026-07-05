@@ -9,6 +9,7 @@ import { Money } from "../value-objects/money.js";
 import { ProductId } from "../value-objects/product-id.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import { VariationId } from "../value-objects/variation-id.js";
+import { FileId } from "../value-objects/file-id.js";
 
 // What to test:
 // DONE 1. create()
@@ -19,7 +20,7 @@ import { VariationId } from "../value-objects/variation-id.js";
 // DONE 6. addVariation
 // DONE 7. removeVariation
 // DONE 8. addImage
-// 9. updateMainImage
+// DONE 9. updateMainImage
 // 10. removeImage
 // 11. isInStock
 // 12. getDisplayPrice
@@ -723,5 +724,96 @@ describe("Product", () => {
       // Assert
       expect(product.getImages().filter((i) => i.isMain())).toHaveLength(1);
     });
+  });
+
+  describe("Product.removeImage()", () => {
+    test("when called with a valid image id, it should remove the image from the images", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      // set old images
+      const images = [
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          true,
+        ),
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          false,
+        ),
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          false,
+        ),
+      ];
+      args[4] = images;
+
+      const product = Product.reconstitute(...args);
+
+      // use an id of a non-main image
+      const imageId = images[1]!.id;
+
+      // Act
+      product.removeImage(imageId);
+
+      // Assert
+      expect(product.getImages()).not.toContainEqual(images[1]);
+    });
+
+    test("when call with a non-existing image id, it should throw an error", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => product.removeImage(FileId.generate())).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when called with a main image id, it should throw an error", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      // set old images
+      const images = [
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          true,
+        ),
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          false,
+        ),
+        File.create(
+          faker.string.uuid(),
+          faker.system.fileName(),
+          faker.image.url(),
+          false,
+        ),
+      ];
+      args[4] = images;
+
+      const product = Product.reconstitute(...args);
+
+      // use an id of a main image
+      const imageId = images[0]!.id;
+
+      // Act & Assert
+      expect(() => product.removeImage(imageId)).toThrowError(ValidationError);
+    });
+    
+    
   });
 });
