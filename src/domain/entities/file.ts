@@ -1,3 +1,4 @@
+import type { FileDTO } from "#/application/dto/file.dto.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { FileId } from "../value-objects/file-id.js";
 
@@ -23,7 +24,6 @@ export class File {
   }
 
   // reconstitute
-
   static reconstitute(
     id: FileId,
     key: string,
@@ -33,14 +33,39 @@ export class File {
   ): File {
     return new File(id, key, name, publicUrl, isMain);
   }
-
-  // command methods
-
   // query methods
+  getKey(): string {
+    return this._key;
+  }
+
+  getName(): string {
+    return this._name;
+  }
+
+  getIsMain(): boolean {
+    return this.isMain;
+  }
 
   // event methods
+  pullEvents(): DomainEvent[] {
+    const events = [...this._events];
+    this._events = [];
+    return events;
+  }
+
+  peekEvents(): readonly DomainEvent[] {
+    return [...this._events];
+  }
 
   // mappers
+  toDTO(): FileDTO {
+    return {
+      id: this.id.value,
+      name: this._name,
+      publicUrl: this.publicUrl,
+      isMain: this.isMain,
+    };
+  }
 
   // private utils
 }
