@@ -58,11 +58,11 @@ export class Cart {
     this._updatedAt = new Date();
   }
 
-  removeItem(item: CartItem): void {
-    if (!this._items.find((i) => i.id.equals(item.id)))
+  removeItem(itemId: CartItemId): void {
+    if (!this._items.find((i) => i.id.equals(itemId)))
       throw new ValidationError("item", "item not found");
 
-    this._items = this._items.filter((i) => !i.id.equals(item.id));
+    this._items = this._items.filter((i) => !i.id.equals(itemId));
     this._updatedAt = new Date();
   }
 
