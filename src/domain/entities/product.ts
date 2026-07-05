@@ -90,6 +90,9 @@ export class Product {
         "product must have at least one image",
       );
 
+    if (!images.find((i) => i.isMain()))
+      throw new ValidationError("images", "product must have a main image");
+
     if (variations.length === 0)
       throw new ValidationError(
         "variations",
@@ -152,6 +155,9 @@ export class Product {
         "images",
         "product must have at least one image",
       );
+
+    if (!images.find((i) => i.isMain()))
+      throw new ValidationError("images", "product must have a main image");
 
     if (variations.length === 0)
       throw new ValidationError(
