@@ -28,7 +28,7 @@ export class Variation {
   }
 
   //   factory
- static create(
+  static create(
     productId: ProductId,
     _size: Size,
     _color: Color,
@@ -85,6 +85,9 @@ export class Variation {
 
   // command methods
   updateTotalQty(newTotalQty: number): void {
+    if (newTotalQty < 0)
+      throw new ValidationError("newTotalQty", "can not be negative");
+
     if (newTotalQty < this._reservedQty) {
       throw new ValidationError(
         "newTotalQty",
