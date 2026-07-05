@@ -363,9 +363,6 @@ export class Product {
     if (targetImage.isMain())
       throw new ValidationError("imageId", "cannot remove main image");
 
-    if (this._images.length === 1)
-      throw new ValidationError("imageId", "cannot remove the last image");
-
     this._images = this._images.filter((i) => !i.id.equals(imageId));
     this._updatedAt = new Date();
   }
