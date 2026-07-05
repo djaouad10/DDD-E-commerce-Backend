@@ -366,8 +366,35 @@ export class Product {
   }
 
   // event methods
+  pullEvents(): DomainEvent[] {
+    const events = [...this._events];
+    this._events = [];
+    return events;
+  }
+
+  peekEvents(): readonly DomainEvent[] {
+    return [...this._events];
+  }
 
   // mappers
+  toDTO(): ProductDTO {
+    return {
+      id: this.id,
+      name: this._name,
+      slug: this.slug,
+      description: this._description,
+      images: this._images.map((i) => i.toDTO()),
+      variations: this._variations.map((v) => v.toDTO()),
+      brand: this._brand,
+      material: this._material,
+      price: this._price,
+      discountedPrice: this._discountedPrice,
+      category: this._categoryId,
+      averageRating: this._averageRating,
+      createdAt: this._createdAt,
+      updatedAt: this._updatedAt,
+    };
+  }
 
   // utils
 }
