@@ -9,7 +9,7 @@ import { Variation } from "./variation.js";
 // DONE 1. create
 // DONE 2. reconstitute
 // DONE 3. updateTotalQty
-// 4. updateTotalQty
+// 4. updateWeight
 
 describe("Variation Entity", () => {
   const makeValidVariationCreateArgs = (): Parameters<
@@ -251,6 +251,56 @@ describe("Variation Entity", () => {
 
       // Act & Assert
       expect(() => variation.updateTotalQty(99)).toThrow(ValidationError);
+    });
+  });
+
+  describe("Variation.updateWeight()", () => {
+    test("when called with valid arguments, it should update the weight", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set current weight
+      args[6] = Weight.of(50, "g");
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act
+      variation.updateWeight(Weight.of(100, "g"));
+
+      // Assert
+      expect(variation.getWeight()).toStrictEqual(Weight.of(100, "g"));
+    });
+
+    test("when called with valid arguments, it should update the updatedAt field", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set current weight
+      args[6] = Weight.of(50, "g");
+      // set current updatedAt
+      args[8] = new Date("2026-06-01");
+
+      const variation = Variation.reconstitute(...args);
+
+      const oldUpdatedAt = variation.getUpdatedAt();
+
+      // Act
+      variation.updateWeight(Weight.of(100, "g"));
+
+      // Assert
+      expect(variation.getUpdatedAt().getTime()).toBeGreaterThan(
+        oldUpdatedAt.getTime(),
+      );
+    });
+
+    test("when called with non-gram weight, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.updateWeight(Weight.of(2, "kg"))).toThrow(
+        ValidationError,
+      );
     });
   });
 });
