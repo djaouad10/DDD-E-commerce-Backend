@@ -22,11 +22,11 @@ import { FileId } from "../value-objects/file-id.js";
 // DONE 8. addImage
 // DONE 9. updateMainImage
 // DONE 10. removeImage
-// 11. isInStock
-// 12. getDisplayPrice
-// 13. hasDiscount
-// 14. getDiscountAmount
-// 15. calculateDiscountPercentage
+// DONE 11. isInStock
+// DONE 12. getDisplayPrice
+// DONE 13. hasDiscount
+// DONE 14. getDiscountAmount
+// DONE 15. calculateDiscountPercentage
 
 describe("Product", () => {
   const productName = faker.commerce.productName();
@@ -850,6 +850,109 @@ describe("Product", () => {
 
       // Act & Assert
       expect(product.isInStock()).toBe(false);
+    });
+  });
+
+  describe("Product.getDisplayPrice()", () => {
+    test("if the product has no discount, it should return the price", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      args[10] = null;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.getDisplayPrice()).toEqual(args[9]);
+    });
+
+    test("if the product has a discount, it should return the discounted price", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.getDisplayPrice()).toEqual(args[10]);
+    });
+  });
+
+  describe("Product.hasDiscount()", () => {
+    test("if the product has no discount, it should return false", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      args[10] = null;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.hasDiscount()).toBe(false);
+    });
+
+    test("if the product has a discount, it should return true", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set price and discount
+      args[9] = Money.of(2000, "DZD");
+      args[10] = Money.of(1000, "DZD");
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.hasDiscount()).toBe(true);
+    });
+  });
+
+  describe("Product.getDiscountAmount()", () => {
+    test("if the product has no discount, it should return Money of 0 with the same currency", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      args[10] = null;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.getDiscountAmount()).toEqual(
+        Money.of(0, args[9].currency),
+      );
+    });
+
+    test("if the product has a discount, it should return the discount amount in the same currency", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set price and discount
+      args[9] = Money.of(2000, "DZD");
+      args[10] = Money.of(1000, "DZD");
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.getDiscountAmount()).toEqual(Money.of(1000, "DZD"));
+    });
+  });
+
+  describe("Product.getDiscountPercentage()", () => {
+    test("if the product has no discount, it should return 0", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      args[10] = null;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.calculateDiscountPercentage()).toBe(0);
+    });
+
+    test("if the product has a discount, it should return the discount percentage rounded to the nearest integer", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set price and discount
+      args[9] = Money.of(2000, "DZD");
+      args[10] = Money.of(1500, "DZD");
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(product.calculateDiscountPercentage()).toBe(25);
     });
   });
 });

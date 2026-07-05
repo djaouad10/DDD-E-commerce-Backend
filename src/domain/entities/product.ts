@@ -434,7 +434,7 @@ export class Product {
 
   getDiscountAmount(): Money {
     if (!this.hasDiscount()) {
-      return Money.of(0, Currency.DZD);
+      return Money.of(0, this._price.currency);
     }
 
     return this._price.subtract(this._discountedPrice!);
@@ -475,6 +475,8 @@ export class Product {
 
   // utils
   calculateDiscountPercentage(): number {
-    return Math.round(this.getDiscountAmount().amount / this._price.amount);
+    return Math.round(
+      (this.getDiscountAmount().amount / this._price.amount) * 100,
+    );
   }
 }
