@@ -42,7 +42,7 @@ export class File {
     return this._name;
   }
 
-  getIsMain(): boolean {
+  isMain(): boolean {
     return this._isMain;
   }
 
