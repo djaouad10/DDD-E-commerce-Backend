@@ -3,7 +3,6 @@ import type { WeightDTO } from "./weight.dto.js";
 
 export type VariationDTO = {
   id: string;
-  productId: string;
   size: Size;
   color: Color;
   totalQty: number;
