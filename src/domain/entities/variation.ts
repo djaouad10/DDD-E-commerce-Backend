@@ -27,25 +27,25 @@ export class Variation {
 
   //   factory
   static create(
-    _size: Size,
-    _color: Color,
-    _totalQty: number,
-    _reservedQty: number,
-    _weightInGrams: Weight,
+    size: Size,
+    color: Color,
+    totalQty: number,
+    reservedQty: number,
+    weightInGrams: Weight,
   ): Variation {
-    if (_weightInGrams.unit !== "g")
-      throw new ValidationError("_weightInGrams.unit", "must be grams");
+    if (weightInGrams.unit !== "g")
+      throw new ValidationError("weightInGrams.unit", "must be grams");
 
     // validation here then:
     const now = new Date();
 
     return new Variation(
       VariationId.generate(),
-      _size,
-      _color,
-      _totalQty,
-      _reservedQty,
-      _weightInGrams,
+      size,
+      color,
+      totalQty,
+      reservedQty,
+      weightInGrams,
       now,
       now,
     );
@@ -54,24 +54,24 @@ export class Variation {
   // reconstitute
   static reconstitute(
     id: VariationId,
-    _size: Size,
-    _color: Color,
-    _totalQty: number,
-    _reservedQty: number,
-    _weightInGrams: Weight,
+    size: Size,
+    color: Color,
+    totalQty: number,
+    reservedQty: number,
+    weightInGrams: Weight,
     createdAt: Date,
     updatedAt: Date,
   ): Variation {
-    if (_weightInGrams.unit !== "g")
-      throw new ValidationError("_weightInGrams.unit", "must be grams");
+    if (weightInGrams.unit !== "g")
+      throw new ValidationError("weightInGrams.unit", "must be grams");
 
     return new Variation(
       id,
-      _size,
-      _color,
-      _totalQty,
-      _reservedQty,
-      _weightInGrams,
+      size,
+      color,
+      totalQty,
+      reservedQty,
+      weightInGrams,
       createdAt,
       updatedAt,
     );
