@@ -161,6 +161,33 @@ describe("Product", () => {
       // Act & Assert
       expect(() => Product.create(...args)).toThrow(ValidationError);
     });
+
+    test("when a product is created with a discounted price with an amount greater than the price, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidCreateArguments();
+      // set price
+      args[8] = Money.of(1000, "DZD");
+
+      // set discounted price
+      args[9] = Money.of(2000, "DZD");
+
+      // Act & Assert
+      expect(() => Product.create(...args)).toThrow(ValidationError);
+    });
+
+    test("when a product is created with a discounted price with a currency different than the price, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidCreateArguments();
+      // set price
+      args[8] = Money.of(1000, "DZD");
+
+      // set discounted price
+      // @ts-expect-error: I don't use USD, just to test the error
+      args[9] = Money.of(2000, "USD");
+
+      // Act & Assert
+      expect(() => Product.create(...args)).toThrow(ValidationError);
+    });
   });
 
   describe("Product.reconstitute()", () => {
@@ -226,6 +253,33 @@ describe("Product", () => {
       // Arrange
       const args = makeValidReconstituteArguments();
       args[5] = [];
+
+      // Act & Assert
+      expect(() => Product.reconstitute(...args)).toThrow(ValidationError);
+    });
+
+    test("when a product is reconstituted with a discounted price with an amount greater than the price, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set price
+      args[9] = Money.of(1000, "DZD");
+
+      // set discounted price
+      args[10] = Money.of(2000, "DZD");
+
+      // Act & Assert
+      expect(() => Product.reconstitute(...args)).toThrow(ValidationError);
+    });
+
+    test("when a product is reconstituted with a discounted price with a currency different than the price, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set price
+      args[9] = Money.of(1000, "DZD");
+
+      // set discounted price
+      // @ts-expect-error: I don't use USD, just to test the error
+      args[10] = Money.of(2000, "USD");
 
       // Act & Assert
       expect(() => Product.reconstitute(...args)).toThrow(ValidationError);

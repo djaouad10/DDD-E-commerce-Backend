@@ -118,6 +118,12 @@ export class Product {
         "discounted price must be less than the price",
       );
 
+    if (discountedPrice && discountedPrice.currency !== price.currency)
+      throw new ValidationError(
+        "discountedPrice",
+        "discounted price must have the same currency as the price",
+      );
+
     const now = new Date();
 
     return new Product(
@@ -190,6 +196,12 @@ export class Product {
         "discounted price must be less than the price",
       );
 
+    if (discountedPrice && discountedPrice.currency !== price.currency)
+      throw new ValidationError(
+        "discountedPrice",
+        "discounted price must have the same currency as the price",
+      );
+
     // reconstitute from DB, reuse the same ID
     return new Product(
       id,
@@ -260,7 +272,7 @@ export class Product {
     this._updatedAt = new Date();
   }
 
-  updateDiscountPrice(newDiscountedPrice: Money | null): void {
+  updateDiscountedPrice(newDiscountedPrice: Money | null): void {
     if (
       newDiscountedPrice &&
       newDiscountedPrice.currency !== this._price.currency
