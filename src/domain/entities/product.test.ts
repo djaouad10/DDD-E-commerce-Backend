@@ -8,6 +8,7 @@ import { Weight } from "../value-objects/weight.js";
 import { Money } from "../value-objects/money.js";
 import { ProductId } from "../value-objects/product-id.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
+import { VariationId } from "../value-objects/variation-id.js";
 
 // What to test:
 // DONE 1. create()
@@ -546,6 +547,25 @@ describe("Product", () => {
       expect(product.getVariations()).not.toContainEqual(variations[1]);
     });
 
-    
+    test("when called with a non existing variation id, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      // set existing variations
+      const variations = [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.M, Color.BLUE, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.S, Color.GREEN, 100, 50, Weight.of(100, "g")),
+      ];
+
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => product.removeVariation(VariationId.generate())).toThrow(
+        ValidationError,
+      );
+    });
   });
 });
