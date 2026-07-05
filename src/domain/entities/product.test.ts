@@ -13,7 +13,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 // DONE 1. create()
 // DONE 2. reconstitute()
 // DONE 3. updateName()
-// 4. updatePrice
+// DONE 4. updatePrice
 // 5. updateDiscountedPrice
 // 6. addVariation
 // 7. removeVariation
@@ -386,5 +386,83 @@ describe("Product", () => {
       // Act & Assert
       expect(() => product.updatePrice(newPrice)).toThrow(ValidationError);
     });
+  });
+
+  describe("Product.updateDiscountedPrice()", () => {
+    test("when called with a valid discounted price, it should update the discounted price", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set old price
+      args[9] = Money.of(3000, "DZD");
+      // and discounted price
+      args[10] = Money.of(2000, "DZD");
+
+      const product = Product.reconstitute(...args);
+
+      const newDiscountedPrice = Money.of(1500, "DZD");
+
+      // Act
+      product.updateDiscountedPrice(newDiscountedPrice);
+
+      // Assert
+      expect(product.getDiscountedPrice()).toStrictEqual(newDiscountedPrice);
+    });
+
+    test("when called with a discounted price of different currency, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set old price
+      args[9] = Money.of(3000, "DZD");
+      // and discounted price
+      args[10] = Money.of(2000, "DZD");
+
+      const product = Product.reconstitute(...args);
+
+      // @ts-expect-error: I don't use USD, just to test the error
+      const newDiscountedPrice = Money.of(1500, "USD");
+
+      // Act & Assert
+      expect(() => product.updateDiscountedPrice(newDiscountedPrice)).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when called with a discounted price greater than the price, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set old price
+      args[9] = Money.of(3000, "DZD");
+      // and discounted price
+      args[10] = Money.of(2000, "DZD");
+
+      const product = Product.reconstitute(...args);
+
+      const newDiscountedPrice = Money.of(4000, "DZD");
+
+      // Act & Assert
+      expect(() => product.updateDiscountedPrice(newDiscountedPrice)).toThrow(
+        ValidationError,
+      );
+    });
+
+    test("when called with a discounted price equal to the price, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set old price
+      args[9] = Money.of(3000, "DZD");
+      // and discounted price
+      args[10] = Money.of(2900, "DZD");
+
+      const product = Product.reconstitute(...args);
+
+      const newDiscountedPrice = Money.of(3000, "DZD");
+
+      // Act & Assert
+      expect(() => product.updateDiscountedPrice(newDiscountedPrice)).toThrow(
+        ValidationError,
+      );
+    });
+
+    
   });
 });
