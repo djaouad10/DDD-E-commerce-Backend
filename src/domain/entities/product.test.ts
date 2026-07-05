@@ -14,7 +14,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 // DONE 2. reconstitute()
 // DONE 3. updateName()
 // DONE 4. updatePrice
-// 5. updateDiscountedPrice
+// DONE 5. updateDiscountedPrice
 // 6. addVariation
 // 7. removeVariation
 // 8. addImage
@@ -462,7 +462,64 @@ describe("Product", () => {
         ValidationError,
       );
     });
+  });
 
-    
+  describe("Product.addVariation()", () => {
+    test("when called with a new variation, it should add it to the variations", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      // set existing variations
+      const variations = [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.M, Color.BLUE, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.S, Color.GREEN, 100, 50, Weight.of(100, "g")),
+      ];
+
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      const newVariation = Variation.create(
+        Size.XL,
+        Color.RED,
+        100,
+        50,
+        Weight.of(100, "g"),
+      );
+
+      // Act
+      product.addVariation(newVariation);
+
+      // Assert
+      expect(product.getVariations()).toContainEqual(newVariation);
+    });
+
+    test("when called with a variation with existing color and size, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+
+      // set existing variations
+      const variations = [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.M, Color.BLUE, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.S, Color.GREEN, 100, 50, Weight.of(100, "g")),
+      ];
+
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      const newVariation = Variation.create(
+        Size.M,
+        Color.RED,
+        100,
+        50,
+        Weight.of(100, "g"),
+      );
+
+      // Act & Assert
+      expect(() => product.addVariation(newVariation)).toThrow(ValidationError);
+    });
   });
 });
