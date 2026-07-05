@@ -10,7 +10,7 @@ export class File {
     private readonly _key: string,
     private readonly _name: string,
     readonly publicUrl: string,
-    private readonly _isMain: boolean,
+    private _isMain: boolean,
   ) {}
 
   // factory
@@ -33,6 +33,13 @@ export class File {
   ): File {
     return new File(id, key, name, publicUrl, isMain);
   }
+
+  // command methods
+
+  setIsMain(newIsMain: boolean) {
+    this._isMain = newIsMain;
+  }
+
   // query methods
   getKey(): string {
     return this._key;
