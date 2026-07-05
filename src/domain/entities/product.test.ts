@@ -11,8 +11,8 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // What to test:
 // DONE 1. create()
-// 2. reconstitute()
-// 3. updateName()
+// DONE 2. reconstitute()
+// DONE 3. updateName()
 // 4. updatePrice
 // 5. updateDiscountedPrice
 // 6. addVariation
@@ -229,6 +229,57 @@ describe("Product", () => {
 
       // Act & Assert
       expect(() => Product.reconstitute(...args)).toThrow(ValidationError);
+    });
+  });
+
+  describe("Product.updateName()", () => {
+    test("when called with a valid name, it should update the name", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set old name
+      args[1] = "old name";
+
+      const product = Product.reconstitute(...args);
+
+      const newName = "new name";
+
+      // Act
+      product.updateName(newName);
+
+      // Assert
+      expect(product.getName()).toBe(newName);
+    });
+
+    test("when called with a valid name, it should update the slug", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set old name
+      args[1] = "old name";
+
+      const product = Product.reconstitute(...args);
+
+      // save old slug value
+      const oldSlug = product.getSlug();
+
+      const newName = "new name";
+
+      // Act
+      product.updateName(newName);
+
+      // Assert
+      expect(product.getSlug().value).not.toEqual(oldSlug.value);
+    });
+
+    test("when called with an invalid name, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidReconstituteArguments();
+      // set old name
+      args[1] = "old name";
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => product.updateName("")).toThrow(ValidationError);
     });
   });
 });
