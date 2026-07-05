@@ -30,7 +30,7 @@
     "test:db:migrate": "dotenv -e .env.test -- drizzle-kit migrate --config=./src/infrastructure/config/drizzle.config.ts",
     "dev:db:migrate": "dotenv -e .env.dev -- drizzle-kit migrate --config=./src/infrastructure/config/drizzle.config.ts",
     "test:db:reset": "npm run test:db:down && npm run test:db:up && npm run test:db:migrate",
-    "dev:db:reset": "npm run dev:db:down -v && npm run dev:db:up && npm run dev:db:migrate"
+    "dev:db:reset": "npm run dev:db:down && npm run dev:db:up && npm run dev:db:migrate"
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.11",
