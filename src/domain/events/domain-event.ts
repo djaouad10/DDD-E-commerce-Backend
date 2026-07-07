@@ -1,5 +1,6 @@
 export type DomainEventType =
   | "order.created"
+  | "order.cancelled"
   | "order.confirmed"
   | "user.registered"
   | "user.banned"
