@@ -6,7 +6,7 @@ export class StockReleased implements DomainEvent {
 
   constructor(
     readonly aggregateId: string,
-    readonly productId: string,
+    readonly variationId: string,
     readonly qty: number,
     readonly newAvailableQty: number,
   ) {}

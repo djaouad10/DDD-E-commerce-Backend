@@ -9,6 +9,8 @@ import { ProductMainImageUpdated } from "../events/product/product-main-image-up
 import { ProductUpdated } from "../events/product/product-updated.js";
 import { ProductVariationAdded } from "../events/product/product-variation-added.js";
 import { ProductVariationRemoved } from "../events/product/product-variation-removed.js";
+import { StockReleased } from "../events/product/stock-released.js";
+import { StockReserved } from "../events/product/stock-reserved.js";
 import type { CategoryId } from "../value-objects/category-id.js";
 import type { FileId } from "../value-objects/file-id.js";
 import { Money } from "../value-objects/money.js";
@@ -374,6 +376,51 @@ export class Product {
     // push domain events
     this.recordThat(
       new ProductVariationRemoved(this.id.value, variationId.value),
+    );
+  }
+
+  reserveStock(variationId: VariationId, qty: number) {
+    // find the variation to reserve
+    const variationToReserve = this._variations.find((v) =>
+      v.id.equals(variationId),
+    );
+
+    if (!variationToReserve)
+      throw new ValidationError("variationId", "variation not found");
+
+    variationToReserve.reserve(qty);
+
+    // record domain events
+    this.recordThat(
+      new StockReserved(
+        this.id.value,
+        variationId.value,
+        qty,
+        variationToReserve.getAvailableQty(),
+        variationToReserve.getReservedQty(),
+      ),
+    );
+  }
+
+  releaseStock(variationId: VariationId, qty: number) {
+    // find the variation to release
+    const variationToRelease = this._variations.find((v) =>
+      v.id.equals(variationId),
+    );
+
+    if (!variationToRelease)
+      throw new ValidationError("variationId", "variation not found");
+
+    variationToRelease.release(qty);
+
+    // record domain events
+    this.recordThat(
+      new StockReleased(
+        this.id.value,
+        variationId.value,
+        qty,
+        variationToRelease.getAvailableQty(),
+      ),
     );
   }
 
