@@ -1,6 +1,15 @@
 import type { OrderDTO } from "#/application/dto/order.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
+import { OrderCancelled } from "../events/order/order-cancelled.js";
+import { OrderConfirmed } from "../events/order/order-confirmed.js";
+import { OrderDelivered } from "../events/order/order-delivered.js";
+import { OrderMarkedAsPreTransit } from "../events/order/order-marked-as-pre-transit.js";
+import { OrderMarkedAsShipping } from "../events/order/order-marked-as-shipping.js";
+import { OrderResumedFromSuspension } from "../events/order/order-resumed-from-suspension.js";
+import { OrderReturned } from "../events/order/order-returned.js";
+import { OrderShippingStatusUpdated } from "../events/order/order-shipping-status-updated.js";
+import { OrderSuspended } from "../events/order/order-suspended.js";
 import { Currency, Money } from "../value-objects/money.js";
 import { OrderId } from "../value-objects/order-id.js";
 import type { ShippingDetails } from "../value-objects/shipping-details.js";
@@ -129,6 +138,18 @@ export class Order {
 
     this._status = OrderStatus.CONFIRMED;
     this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(
+      new OrderConfirmed(
+        this.id.value,
+        this.userId.value,
+        this._orderItems.length,
+        this.getTotalOrderPrice().amount,
+        this.getTotalOrderPrice().currency,
+        this.getSelectedShippingProvider(),
+      ),
+    );
   }
 
   cancel(): void {
@@ -138,6 +159,9 @@ export class Order {
 
     this._status = OrderStatus.CANCELLED;
     this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(new OrderCancelled(this.id.value, this.userId.value));
   }
 
   markAsPreTransit(): void {
@@ -147,6 +171,109 @@ export class Order {
 
     this._status = OrderStatus.PRE_TRANSIT;
     this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(
+      new OrderMarkedAsPreTransit(
+        this.id.value,
+        this.userId.value,
+        this.getTrackingNumber() || "unkown",
+        this.getSelectedShippingProvider(),
+      ),
+    );
+  }
+
+  // In Order class
+  markAsShipping(): void {
+    if (!orderStateMachine[this._status].includes(OrderStatus.SHIPPING)) {
+      throw new ValidationError("status", "invalid status transition");
+    }
+    this._status = OrderStatus.SHIPPING;
+    this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(
+      new OrderMarkedAsShipping(
+        this.id.value,
+        this.userId.value,
+        this.getTrackingNumber() || "unkown",
+        this.getSelectedShippingProvider(),
+      ),
+    );
+  }
+
+  markAsDelivered(): void {
+    if (!orderStateMachine[this._status].includes(OrderStatus.DELIVERED)) {
+      throw new ValidationError("status", "invalid status transition");
+    }
+    this._status = OrderStatus.DELIVERED;
+    this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(
+      new OrderDelivered(
+        this.id.value,
+        this.userId.value,
+        new Date(),
+        this.getSelectedShippingProvider(),
+      ),
+    );
+  }
+
+  markAsReturned(): void {
+    if (!orderStateMachine[this._status].includes(OrderStatus.RETURNED)) {
+      throw new ValidationError("status", "invalid status transition");
+    }
+    this._status = OrderStatus.RETURNED;
+    this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(
+      new OrderReturned(
+        this.id.value,
+        this.userId.value,
+        null, // for now
+        this.getSelectedShippingProvider(),
+      ),
+    );
+  }
+
+  markAsSuspended(): void {
+    if (!orderStateMachine[this._status].includes(OrderStatus.SUSPENDED)) {
+      throw new ValidationError("status", "invalid status transition");
+    }
+
+    const previousStatus = this._status;
+
+    this._status = OrderStatus.SUSPENDED;
+    this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(
+      new OrderSuspended(
+        this.id.value,
+        this.userId.value,
+        previousStatus,
+        this.getSelectedShippingProvider(),
+      ),
+    );
+  }
+
+  resumeFromSuspension(): void {
+    if (!orderStateMachine[this._status].includes(OrderStatus.SHIPPING)) {
+      throw new ValidationError("status", "invalid status transition");
+    }
+    this._status = OrderStatus.SHIPPING;
+    this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(
+      new OrderResumedFromSuspension(
+        this.id.value,
+        this.userId.value,
+        this.getSelectedShippingProvider(),
+      ),
+    );
   }
 
   setTrackingNumber(trackingNumber: string): void {
@@ -160,8 +287,20 @@ export class Order {
   }
 
   updateShippingStatus(shippingStatus: string): void {
+    const previousShippingStatus = this._shippingStatus;
+
     this._shippingStatus = shippingStatus;
     this._updatedAt = new Date();
+
+    // record the event
+    this.recordThat(
+      new OrderShippingStatusUpdated(
+        this.id.value,
+        shippingStatus,
+        previousShippingStatus,
+        this.getSelectedShippingProvider(),
+      ),
+    );
   }
 
   // query methods
@@ -277,5 +416,9 @@ export class Order {
 
   peekEvents(): readonly DomainEvent[] {
     return [...this._events];
+  }
+
+  recordThat(event: DomainEvent): void {
+    this._events.push(event);
   }
 }

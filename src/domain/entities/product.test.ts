@@ -27,6 +27,8 @@ import { FileId } from "../value-objects/file-id.js";
 // DONE 13. hasDiscount
 // DONE 14. getDiscountAmount
 // DONE 15. calculateDiscountPercentage
+// DONE 16. reserveStock
+// 17. releaseStock
 
 describe("Product", () => {
   const productName = faker.commerce.productName();
@@ -953,6 +955,92 @@ describe("Product", () => {
 
       // Act & Assert
       expect(product.calculateDiscountPercentage()).toBe(25);
+    });
+  });
+
+  describe("Product.reserveStock()", () => {
+    test("when called with valid arguments, it should reserve stock for the specified variation", () => {
+      // Arrange
+      const variations = [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.EU_37, Color.BEIGE, 100, 50, Weight.of(100, "g")),
+      ];
+
+      const args = makeValidReconstituteArguments();
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      // Act
+      product.reserveStock(variations[0]!.id, 10);
+
+      // Assert
+      const tragetVariation = variations.find((v) =>
+        v.id.equals(variations[0]!.id),
+      );
+
+      expect(tragetVariation!.getReservedQty()).toBe(60);
+    });
+
+    test("when reserving a non-existent variation, it should throw a ValidationError", () => {
+      // Arrange
+      const variations = [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.EU_37, Color.BEIGE, 100, 50, Weight.of(100, "g")),
+      ];
+
+      const args = makeValidReconstituteArguments();
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => product.reserveStock(VariationId.generate(), 10)).toThrow(
+        ValidationError,
+      );
+    });
+  });
+
+  describe("Product.releaseStock()", () => {
+    test("when called with valid arguments, it should release stock for the specified variation", () => {
+      // Arrange
+      const variations = [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.EU_37, Color.BEIGE, 100, 50, Weight.of(100, "g")),
+      ];
+
+      const args = makeValidReconstituteArguments();
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      // Act
+      product.releaseStock(variations[0]!.id, 10);
+
+      // Assert
+      const tragetVariation = variations.find((v) =>
+        v.id.equals(variations[0]!.id),
+      );
+
+      expect(tragetVariation!.getReservedQty()).toBe(40);
+    });
+
+    test("when releasing a non-existent variation, it should throw a ValidationError", () => {
+      // Arrange
+      const variations = [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.EU_37, Color.BEIGE, 100, 50, Weight.of(100, "g")),
+      ];
+
+      const args = makeValidReconstituteArguments();
+      args[5] = variations;
+
+      const product = Product.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => product.releaseStock(VariationId.generate(), 10)).toThrow(
+        ValidationError,
+      );
     });
   });
 });

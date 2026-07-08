@@ -104,6 +104,28 @@ export class Variation {
     this._updatedAt = new Date();
   }
 
+  reserve(qty: number): void {
+    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+    if (qty > this._availableQty)
+      throw new ValidationError("qty", "insufficient available stock");
+
+    this._reservedQty += qty;
+    this._availableQty = this._totalQty - this._reservedQty;
+    this._isInStock = this._availableQty > 0;
+    this._updatedAt = new Date();
+  }
+
+  release(qty: number): void {
+    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+    if (qty > this._reservedQty)
+      throw new ValidationError("qty", "cannot release more than reserved");
+
+    this._reservedQty -= qty;
+    this._availableQty = this._totalQty - this._reservedQty;
+    this._isInStock = this._availableQty > 0;
+    this._updatedAt = new Date();
+  }
+
   // query methods
   getSize(): Size {
     return this._size;

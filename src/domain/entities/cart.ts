@@ -1,5 +1,9 @@
 import type { CartDTO } from "#/application/dto/cart.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
+import { CartCleared } from "../events/cart/cart-cleared.js";
+import { CartItemAdded } from "../events/cart/cart-item-added.js";
+import { CartItemQtyUpdated } from "../events/cart/cart-item-qty-updated.js";
+import { CartItemRemoved } from "../events/cart/cart-item-removed.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { CartId } from "../value-objects/cart-id.js";
 import type { CartItemId } from "../value-objects/cart-item-id.js";
@@ -28,7 +32,7 @@ export class Cart {
   }
 
   // reconstitute
- static reconstitute(
+  static reconstitute(
     id: CartId,
     userId: UserId,
     items: CartItem[],
@@ -56,6 +60,16 @@ export class Cart {
 
     this._items.push(item);
     this._updatedAt = new Date();
+
+    this._events.push(
+      new CartItemAdded(
+        this.id.value,
+        this.userId.value,
+        item.id.value,
+        item.variationId.value,
+        item.getQty(),
+      ),
+    );
   }
 
   removeItem(itemId: CartItemId): void {
@@ -64,6 +78,10 @@ export class Cart {
 
     this._items = this._items.filter((i) => !i.id.equals(itemId));
     this._updatedAt = new Date();
+
+    this._events.push(
+      new CartItemRemoved(this.id.value, this.userId.value, itemId.value),
+    );
   }
 
   updateItemQty(itemId: CartItemId, newQty: number): void {
@@ -73,11 +91,23 @@ export class Cart {
 
     targetItem.updateQty(newQty);
     this._updatedAt = new Date();
+
+    this._events.push(
+      new CartItemQtyUpdated(
+        this.id.value,
+        this.userId.value,
+        targetItem.id.value,
+        targetItem.getQty(),
+        newQty,
+      ),
+    );
   }
 
   clear(): void {
     this._items = [];
     this._updatedAt = new Date();
+
+    this._events.push(new CartCleared(this.id.value, this.userId.value));
   }
 
   // query methods
