@@ -9,7 +9,7 @@ import { Variation } from "./variation.js";
 // DONE 2. reconstitute
 // DONE 3. updateTotalQty
 // DONE 4. updateWeight
-// 5. reserve
+// DONE 5. reserve
 // 6. release
 
 describe("Variation Entity", () => {
@@ -364,6 +364,76 @@ describe("Variation Entity", () => {
 
       // Act & Assert
       expect(() => variation.reserve(101)).toThrow(ValidationError);
+    });
+  });
+
+  describe("Variation.release()", () => {
+    test("when called with valid arguments, it should update the reserved quantity", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set total quantity
+      args[3] = 100;
+      // set reserved quantity
+      args[4] = 50;
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act
+      variation.release(20);
+
+      // Assert
+      expect(variation.getReservedQty()).toBe(30);
+    });
+
+    test("when releasing zero quantity, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.release(0)).toThrow(ValidationError);
+    });
+
+    test("when releasing a negative quantity, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.release(-1)).toThrow(ValidationError);
+    });
+
+    test("when releasing more than reserved quantity, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set total quantity
+      args[3] = 100;
+      // set reserved quantity
+      args[4] = 50;
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.release(51)).toThrow(ValidationError);
+    });
+
+    test("when reserved quantity was equal to total quantity before releasing, it should set isInStock to true", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set total quantity
+      args[3] = 100;
+      // set reserved quantity
+      args[4] = 100;
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act
+      variation.release(30);
+
+      // Assert
+      expect(variation.getReservedQty()).toBe(70);
+      expect(variation.getAvailableQty()).toBe(30);
+      expect(variation.isInStock()).toBe(true);
     });
   });
 });
