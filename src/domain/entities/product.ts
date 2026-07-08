@@ -11,12 +11,16 @@ import { ProductVariationAdded } from "../events/product/product-variation-added
 import { ProductVariationRemoved } from "../events/product/product-variation-removed.js";
 import { StockReleased } from "../events/product/stock-released.js";
 import { StockReserved } from "../events/product/stock-reserved.js";
+import { VariationCreated } from "../events/product/variation-created.js";
+import { VariationStockUpdated } from "../events/product/variation-stock-updated.js";
+import { VariationWeightUpdated } from "../events/product/variation-weight-updated.js";
 import type { CategoryId } from "../value-objects/category-id.js";
 import type { FileId } from "../value-objects/file-id.js";
 import { Money } from "../value-objects/money.js";
 import { ProductId } from "../value-objects/product-id.js";
 import { Slug } from "../value-objects/slug.js";
 import type { VariationId } from "../value-objects/variation-id.js";
+import type { Weight } from "../value-objects/weight.js";
 import type { File } from "./file.js";
 import type { Variation } from "./variation.js";
 
@@ -354,6 +358,68 @@ export class Product {
         newVariation.id.value,
         newVariation.getSize(),
         newVariation.getColor(),
+      ),
+    );
+
+    this.recordThat(
+      new VariationCreated(
+        this.id.value,
+        newVariation.id.value,
+        newVariation.getSize(),
+        newVariation.getColor(),
+        newVariation.getTotalQty(),
+        newVariation.getWeight().weight,
+      ),
+    );
+  }
+
+  updateVariationTotalQty(variationId: VariationId, newTotalQty: number) {
+    // find the variation to update
+    const variationToUpdate = this._variations.find((v) =>
+      v.id.equals(variationId),
+    );
+
+    if (!variationToUpdate)
+      throw new ValidationError("variationId", "variation not found");
+
+    const prevTotalQty = variationToUpdate.getTotalQty();
+
+    // validation here, then update
+    variationToUpdate.updateTotalQty(newTotalQty);
+
+    // record domain events
+    this.recordThat(
+      new VariationStockUpdated(
+        this.id.value,
+        variationId.value,
+        prevTotalQty,
+        variationToUpdate.getTotalQty(),
+        variationToUpdate.getAvailableQty(),
+      ),
+    );
+  }
+
+  updateVariationWeight(variationId: VariationId, newWeightInGrams: Weight) {
+    // find the variation to update
+    const variationToUpdate = this._variations.find((v) =>
+      v.id.equals(variationId),
+    );
+
+    if (!variationToUpdate)
+      throw new ValidationError("variationId", "variation not found");
+
+    const prevWeightInGrams = variationToUpdate.getWeight();
+
+    // validation here, then update
+    variationToUpdate.updateWeight(newWeightInGrams);
+
+    // record domain events
+    this.recordThat(
+      new VariationWeightUpdated(
+        this.id.value,
+        variationId.value,
+        prevWeightInGrams.weight,
+        variationToUpdate.getWeight().weight,
       ),
     );
   }
