@@ -9,8 +9,6 @@ export type DomainEventType =
   | "order.returned"
   | "order.suspended"
   | "order.resumed-from-suspension"
-  | "order.tracking-number-assigned"
-  | "order.tracking-number-removed"
   | "order.shipping-status-updated"
   // User events
   | "user.registered"
