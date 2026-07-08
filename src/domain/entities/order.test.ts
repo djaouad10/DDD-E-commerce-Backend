@@ -15,7 +15,7 @@ import { faker } from "@faker-js/faker";
 // DONE 3. confirm
 // DONE 4. cancel
 // DONE 5. markAsPreTransit
-// 6. markAsShipping
+// DONE 6. markAsShipping
 // 7. markAsDelivered
 // 8. markAsReturned
 // 9. markAsSuspended
@@ -809,6 +809,109 @@ describe("Order Aggregate", () => {
 
       // Act & Assert
       expect(() => order.markAsShipping()).toThrow(ValidationError);
+    });
+  });
+
+  describe("Order.markAsDelivered()", () => {
+    test("when marking a shipping order as delivered, it should set the status to delivered and updates updatedAt", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.SHIPPING,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+      const originalUpdatedAt = order.getUpdatedAt();
+
+      // Act
+      order.markAsDelivered();
+
+      // Assert
+      expect(order.getStatus()).toBe(OrderStatus.DELIVERED);
+      expect(order.getUpdatedAt()).not.toBe(originalUpdatedAt);
+    });
+
+    test("when marking a suspended order as delivered, it should throw a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.SUSPENDED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
+    });
+
+    test("when marking a pending order as delivered, it should throw a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.PENDING,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
+    });
+
+    test("when marking a confirmed order as delivered, it should throw a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.CONFIRMED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
+    });
+
+    test("when marking a returned order as delivered, it should throw a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.RETURNED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
+    });
+
+    test("when marking a cancelled order as delivered, it should throw a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.CANCELLED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
+    });
+
+    test("when marking a pre-transit order as delivered, it should throw a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.PRE_TRANSIT,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
+    });
+
+    test("when marking a delivered order as delivered, it should throw a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.DELIVERED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
     });
   });
 
