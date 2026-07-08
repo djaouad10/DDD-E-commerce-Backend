@@ -6,7 +6,6 @@ export class UserBanned implements DomainEvent {
 
   constructor(
     readonly aggregateId: string,
-    readonly userId: string,
     readonly banReason: string | null,
     readonly banExpires: string | null,
   ) {}

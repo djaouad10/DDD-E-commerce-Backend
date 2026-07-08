@@ -1,5 +1,9 @@
 import type { UserDTO } from "#/application/dto/user.dto.js";
 import type { DomainEvent } from "../events/domain-event.js";
+import { UserBanned } from "../events/user/user-banned.js";
+import { UserProfileUpdated } from "../events/user/user-profile-updated.js";
+import { UserRegistered } from "../events/user/user-registered.js";
+import { UserUnBanned } from "../events/user/user-unbanned.js";
 import { UserId } from "../value-objects/user-id.js";
 
 export const UserRole = {
@@ -38,7 +42,7 @@ export class User {
 
     const now = new Date();
 
-    return new User(
+    const user = new User(
       UserId.generate(),
       name,
       email,
@@ -50,6 +54,11 @@ export class User {
       banReason ?? null,
       banExpires ?? null,
     );
+
+    // record events
+    user.recordThat(new UserRegistered(user.id.value, email, name, role));
+
+    return user;
   }
 
   static reconstitute(
@@ -84,18 +93,47 @@ export class User {
 
   updateName(newName: string): void {
     this._name = newName;
+
+    this._updatedAt = new Date();
+
+    // record events
+    this.recordThat(new UserProfileUpdated(this.id.value, ["name"]));
+  }
+
+  updateImage(newImage: string): void {
+    this._image = newImage;
+    this._updatedAt = new Date();
+
+    // record events
+    this.recordThat(new UserProfileUpdated(this.id.value, ["image"]));
   }
 
   ban(banReason?: string, banExpires?: Date): void {
     this._banned = true;
     this._banReason = banReason ?? null;
     this._banExpires = banExpires ?? null;
+
+    this._updatedAt = new Date();
+
+    // record events
+    this.recordThat(
+      new UserBanned(
+        this.id.value,
+        this._banReason,
+        this._banExpires?.toISOString() ?? null,
+      ),
+    );
   }
 
   unBan(): void {
     this._banned = false;
     this._banReason = null;
     this._banExpires = null;
+
+    this._updatedAt = new Date();
+
+    // record events
+    this.recordThat(new UserUnBanned(this.id.value));
   }
 
   // business queries
@@ -135,6 +173,10 @@ export class User {
 
   peekEvents(): readonly DomainEvent[] {
     return [...this._events];
+  }
+
+  recordThat(event: DomainEvent): void {
+    this._events.push(event);
   }
 
   // private utils
