@@ -10,7 +10,7 @@ import { Variation } from "./variation.js";
 // DONE 3. updateTotalQty
 // DONE 4. updateWeight
 // DONE 5. reserve
-// 6. release
+// DONE 6. release
 
 describe("Variation Entity", () => {
   const makeValidVariationCreateArgs = (): Parameters<
