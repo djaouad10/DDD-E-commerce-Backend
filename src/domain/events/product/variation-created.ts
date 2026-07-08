@@ -6,7 +6,7 @@ export class VariationCreated implements DomainEvent {
 
   constructor(
     readonly aggregateId: string,
-    readonly productId: string,
+    readonly variationId: string,
     readonly size: string,
     readonly color: string,
     readonly totalQty: number,

@@ -6,7 +6,7 @@ export class VariationWeightUpdated implements DomainEvent {
 
   constructor(
     readonly aggregateId: string,
-    readonly productId: string,
+    readonly variationId: string,
     readonly previousWeightInGrams: number,
     readonly newWeightInGrams: number,
   ) {}
