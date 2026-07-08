@@ -1,6 +1,14 @@
 import type { ProductDTO } from "#/application/dto/product.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
+import { FileUploaded } from "../events/file/file-uploaded.js";
+import { ProductCreated } from "../events/product/product-created.js";
+import { ProductImageAdded } from "../events/product/product-image-added.js";
+import { ProductImageRemoved } from "../events/product/product-image-removed.js";
+import { ProductMainImageUpdated } from "../events/product/product-main-image-updated.js";
+import { ProductUpdated } from "../events/product/product-updated.js";
+import { ProductVariationAdded } from "../events/product/product-variation-added.js";
+import { ProductVariationRemoved } from "../events/product/product-variation-removed.js";
 import type { CategoryId } from "../value-objects/category-id.js";
 import type { FileId } from "../value-objects/file-id.js";
 import { Money } from "../value-objects/money.js";
@@ -126,7 +134,7 @@ export class Product {
 
     const now = new Date();
 
-    return new Product(
+    const product = new Product(
       ProductId.generate(),
       name,
       slug,
@@ -142,6 +150,20 @@ export class Product {
       now,
       now,
     );
+
+    product.recordThat(
+      new ProductCreated(
+        product.id.value,
+        name,
+        slug.value,
+        categoryId?.value ?? null,
+        brand,
+        price.amount,
+        price.currency,
+      ),
+    );
+
+    return product;
   }
 
   // reconstitute
@@ -230,26 +252,36 @@ export class Product {
     this._name = newName;
     this.slug = Slug.generate(newName);
     this._updatedAt = new Date();
+
+    this.recordThat(new ProductUpdated(this.id.value, ["name"]));
   }
 
   updateCategory(newCategoryId: CategoryId | null): void {
     this._categoryId = newCategoryId;
     this._updatedAt = new Date();
+
+    this.recordThat(new ProductUpdated(this.id.value, ["category"]));
   }
 
   updateDescription(newDescription: string | null): void {
     this._description = newDescription;
     this._updatedAt = new Date();
+
+    this.recordThat(new ProductUpdated(this.id.value, ["description"]));
   }
 
   updateBrand(newBrand: string): void {
     this._brand = newBrand;
     this._updatedAt = new Date();
+
+    this.recordThat(new ProductUpdated(this.id.value, ["brand"]));
   }
 
   updateMaterial(newMaterial: string): void {
     this._material = newMaterial;
     this._updatedAt = new Date();
+
+    this.recordThat(new ProductUpdated(this.id.value, ["material"]));
   }
 
   updatePrice(newPrice: Money): void {
@@ -270,6 +302,8 @@ export class Product {
 
     this._price = newPrice;
     this._updatedAt = new Date();
+
+    this.recordThat(new ProductUpdated(this.id.value, ["price"]));
   }
 
   updateDiscountedPrice(newDiscountedPrice: Money | null): void {
@@ -290,6 +324,8 @@ export class Product {
 
     this._discountedPrice = newDiscountedPrice;
     this._updatedAt = new Date();
+
+    this.recordThat(new ProductUpdated(this.id.value, ["discountedPrice"]));
   }
 
   addVariation(newVariation: Variation): void {
@@ -309,6 +345,15 @@ export class Product {
 
     this._variations.push(newVariation);
     this._updatedAt = new Date();
+
+    this.recordThat(
+      new ProductVariationAdded(
+        this.id.value,
+        newVariation.id.value,
+        newVariation.getSize(),
+        newVariation.getColor(),
+      ),
+    );
   }
 
   removeVariation(variationId: VariationId): void {
@@ -325,6 +370,11 @@ export class Product {
     );
 
     this._updatedAt = new Date();
+
+    // push domain events
+    this.recordThat(
+      new ProductVariationRemoved(this.id.value, variationId.value),
+    );
   }
 
   addImage(newImage: File): void {
@@ -333,6 +383,20 @@ export class Product {
 
     this._images.push(newImage);
     this._updatedAt = new Date();
+
+    // push domain events
+    this.recordThat(
+      new FileUploaded(
+        this.id.value,
+        newImage.id.value,
+        newImage.getKey(),
+        false,
+      ),
+    );
+
+    this.recordThat(
+      new ProductImageAdded(this.id.value, newImage.id.value, false),
+    );
   }
 
   updateMainImage(newMainImage: File): void {
@@ -353,6 +417,15 @@ export class Product {
       this._images = this._images.filter((i) => !i.id.equals(oldMainImage.id));
 
     this._updatedAt = new Date();
+
+    // push domain events
+    this.recordThat(
+      new ProductMainImageUpdated(
+        this.id.value,
+        newMainImage.id.value,
+        oldMainImage?.id.value ?? null,
+      ),
+    );
   }
 
   removeImage(imageId: FileId): void {
@@ -365,6 +438,9 @@ export class Product {
 
     this._images = this._images.filter((i) => !i.id.equals(imageId));
     this._updatedAt = new Date();
+
+    // push domain events
+    this.recordThat(new ProductImageRemoved(this.id.value, imageId.value));
   }
 
   // query methods
@@ -449,6 +525,10 @@ export class Product {
 
   peekEvents(): readonly DomainEvent[] {
     return [...this._events];
+  }
+
+  private recordThat(event: DomainEvent): void {
+    this._events.push(event);
   }
 
   // mappers
