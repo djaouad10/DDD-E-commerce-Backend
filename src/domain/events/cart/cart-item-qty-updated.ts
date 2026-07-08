@@ -6,6 +6,7 @@ export class CartItemQtyUpdated implements DomainEvent {
 
   constructor(
     readonly aggregateId: string,
+    readonly userId: string,
     readonly itemId: string,
     readonly previousQty: number,
     readonly newQty: number,
