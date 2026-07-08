@@ -8,7 +8,9 @@ import { Variation } from "./variation.js";
 // DONE 1. create
 // DONE 2. reconstitute
 // DONE 3. updateTotalQty
-// 4. updateWeight
+// DONE 4. updateWeight
+// 5. reserve
+// 6. release
 
 describe("Variation Entity", () => {
   const makeValidVariationCreateArgs = (): Parameters<
@@ -292,6 +294,76 @@ describe("Variation Entity", () => {
       expect(() => variation.updateWeight(Weight.of(2, "kg"))).toThrow(
         ValidationError,
       );
+    });
+  });
+
+  describe("Variation.reserve()", () => {
+    test("when called with valid arguments, it should update the reserved quantity", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set total quantity
+      args[3] = 100;
+      // set reserved quantity
+      args[4] = 50;
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act
+      variation.reserve(20);
+
+      // Assert
+      expect(variation.getReservedQty()).toBe(70);
+    });
+
+    test("when reserving exact available quantity, it should reserve it and set isInStock to false", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set total quantity
+      args[3] = 100;
+      // set reserved quantity
+      args[4] = 50;
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act
+      variation.reserve(50);
+
+      // Assert
+      expect(variation.getReservedQty()).toBe(100);
+      expect(variation.getAvailableQty()).toBe(0);
+      expect(variation.isInStock()).toBe(false);
+    });
+
+    test("when reserving zero quantity, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.reserve(0)).toThrow(ValidationError);
+    });
+
+    test("when reserving a negative quantity, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.reserve(-1)).toThrow(ValidationError);
+    });
+
+    test("when reserving more than available quantity, it should throw a ValidationError", () => {
+      // Arrange
+      const args = makeValidVariationReconstituteArgs();
+      // set total quantity
+      args[3] = 100;
+      // set reserved quantity
+      args[4] = 50;
+
+      const variation = Variation.reconstitute(...args);
+
+      // Act & Assert
+      expect(() => variation.reserve(101)).toThrow(ValidationError);
     });
   });
 });

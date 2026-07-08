@@ -18,8 +18,7 @@ import { faker } from "@faker-js/faker";
 // DONE 6. markAsShipping
 // DONE 7. markAsDelivered
 // DONE 8. markAsReturned
-// 9. markAsSuspended
-// 10. resumeFromSuspension
+// DONE 9. markAsSuspended
 // DONE 11. getTotalItemsPrice
 // DONE 12. getTotalOrderPrice
 // DONE 13. getTotalDiscount
