@@ -8,5 +8,6 @@ export class OrderReturned implements DomainEvent {
     readonly aggregateId: string,
     readonly userId: string,
     readonly reason: string | null,
+    readonly selectedShippingProvider: string,
   ) {}
 }

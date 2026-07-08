@@ -10,5 +10,6 @@ export class OrderCreated implements DomainEvent {
     readonly itemCount: number,
     readonly totalPrice: number,
     readonly currency: string,
+    readonly selectedShippingProvider: string,
   ) {}
 }

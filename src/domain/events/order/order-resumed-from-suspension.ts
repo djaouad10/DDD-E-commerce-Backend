@@ -7,5 +7,6 @@ export class OrderResumedFromSuspension implements DomainEvent {
   constructor(
     readonly aggregateId: string,
     readonly userId: string,
+    readonly selectedShippingProvider: string,
   ) {}
 }

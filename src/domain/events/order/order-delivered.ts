@@ -8,5 +8,6 @@ export class OrderDelivered implements DomainEvent {
     readonly aggregateId: string,
     readonly userId: string,
     readonly deliveredAt: Date,
+    readonly selectedShippingProvider: string,
   ) {}
 }

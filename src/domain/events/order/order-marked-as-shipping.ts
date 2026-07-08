@@ -8,5 +8,6 @@ export class OrderMarkedAsShipping implements DomainEvent {
     readonly aggregateId: string,
     readonly userId: string,
     readonly trackingNumber: string,
+    readonly selectedShippingProvider: string,
   ) {}
 }

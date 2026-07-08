@@ -8,5 +8,6 @@ export class OrderShippingStatusUpdated implements DomainEvent {
     readonly aggregateId: string,
     readonly shippingStatus: string,
     readonly previousStatus: string | null,
+    readonly selectedShippingProvider: string,
   ) {}
 }

@@ -8,5 +8,6 @@ export class OrderSuspended implements DomainEvent {
     readonly aggregateId: string,
     readonly userId: string,
     readonly previousStatus: string,
+    readonly selectedShippingProvider: string,
   ) {}
 }
