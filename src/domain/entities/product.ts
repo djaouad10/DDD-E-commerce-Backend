@@ -352,6 +352,7 @@ export class Product {
     this._variations.push(newVariation);
     this._updatedAt = new Date();
 
+    // record domain events
     this.recordThat(
       new ProductVariationAdded(
         this.id.value,
@@ -439,7 +440,7 @@ export class Product {
 
     this._updatedAt = new Date();
 
-    // push domain events
+    // record domain events
     this.recordThat(
       new ProductVariationRemoved(this.id.value, variationId.value),
     );
@@ -497,7 +498,7 @@ export class Product {
     this._images.push(newImage);
     this._updatedAt = new Date();
 
-    // push domain events
+    // record domain events
     this.recordThat(
       new FileUploaded(
         this.id.value,
@@ -531,7 +532,7 @@ export class Product {
 
     this._updatedAt = new Date();
 
-    // push domain events
+    // record domain events
     this.recordThat(
       new ProductMainImageUpdated(
         this.id.value,
@@ -552,7 +553,7 @@ export class Product {
     this._images = this._images.filter((i) => !i.id.equals(imageId));
     this._updatedAt = new Date();
 
-    // push domain events
+    // record domain events
     this.recordThat(new ProductImageRemoved(this.id.value, imageId.value));
   }
 
