@@ -7,5 +7,7 @@ export class UserRegistered implements DomainEvent {
   constructor(
     readonly aggregateId: string,
     readonly email: string,
+    readonly name: string,
+    readonly role: string,
   ) {}
 }
