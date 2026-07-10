@@ -83,10 +83,9 @@ export const shippingProviderEnum = pgEnum("shipping_provider", [
   "WORLD_EXPRESS",
 ]);
 
-export const outboxEventTypeEnum = pgEnum("outbox_event_type", [
-  "create_order_in_shipping_api",
-  "delete_order_from_shipping_api",
-  "create_shipment_in_shipping_api",
+export const outboxCategoryEnum = pgEnum("outbox_category", [
+  "outbox-job",
+  "domain-event",
 ]);
 
 export const outboxStatusEnum = pgEnum("outbox_status", [
@@ -357,21 +356,39 @@ export const rating = pgTable(
   ],
 );
 
-export const outbox = pgTable("outbox", {
-  id: varchar("id", { length: 40 }).notNull().primaryKey(),
-  event_type: outboxEventTypeEnum("event_type").notNull(),
-  payload: jsonb("payload").notNull(),
-  status: outboxStatusEnum("status").notNull().default("PENDING"),
-  attempts: integer("attempts").notNull().default(0),
-  scheduledAt: timestamp("scheduled_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  processed_at: timestamp("processed_at", { withTimezone: true }),
-  error_message: text("error_message"),
-  created_at: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const outbox = pgTable(
+  "outbox",
+  {
+    id: varchar("id", { length: 40 }).notNull().primaryKey(),
+    category: outboxCategoryEnum("category").notNull(),
+    // event_type could be like: "order.created" in case of a "domain-event" category
+    // event_type could be like: "create_order_in_shipping_api" in case of a "outbox-job" category
+    event_type: varchar("event_type", { length: 100 }).notNull(),
+    // Optional but useful to query all domain events of a specific aggregate ordered by created_at for debugging.
+    aggregate_id: varchar("aggregate_id", { length: 40 }),
+    payload: jsonb("payload").notNull(),
+    status: outboxStatusEnum("status").notNull().default("PENDING"),
+    attempts: integer("attempts").notNull().default(0),
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    processed_at: timestamp("processed_at", { withTimezone: true }),
+    error_message: text("error_message"),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    // Critical: each worker polls its own slice efficiently
+    index("outbox_category_status_scheduled_idx").on(
+      t.category,
+      t.status,
+      t.scheduledAt,
+    ),
+    index("outbox_aggregate_id_idx").on(t.aggregate_id),
+    index("outbox_event_type_idx").on(t.event_type),
+  ],
+);
 
 // Relations
 

@@ -1,7 +1,7 @@
 CREATE TYPE "public"."color" AS ENUM('BLACK', 'WHITE', 'GRAY', 'RED', 'BLUE', 'GREEN', 'YELLOW', 'ORANGE', 'PURPLE', 'PINK', 'BROWN', 'BEIGE', 'NAVY', 'MAROON', 'TEAL');--> statement-breakpoint
 CREATE TYPE "public"."delivery_type" AS ENUM('TO_DESK', 'TO_HOME');--> statement-breakpoint
 CREATE TYPE "public"."order_status" AS ENUM('PENDING', 'CONFIRMED', 'PRE_TRANSIT', 'SHIPPING', 'DELIVERED', 'RETURNED', 'CANCELLED', 'SUSPENDED');--> statement-breakpoint
-CREATE TYPE "public"."outbox_event_type" AS ENUM('create_order_in_shipping_api', 'delete_order_from_shipping_api', 'create_shipment_in_shipping_api');--> statement-breakpoint
+CREATE TYPE "public"."outbox_category" AS ENUM('outbox-job', 'domain-event');--> statement-breakpoint
 CREATE TYPE "public"."outbox_status" AS ENUM('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED');--> statement-breakpoint
 CREATE TYPE "public"."role" AS ENUM('CLIENT', 'ADMIN');--> statement-breakpoint
 CREATE TYPE "public"."shipping_provider" AS ENUM('WORLD_EXPRESS');--> statement-breakpoint
@@ -73,7 +73,9 @@ CREATE TABLE "order_item" (
 --> statement-breakpoint
 CREATE TABLE "outbox" (
 	"id" varchar(40) PRIMARY KEY NOT NULL,
-	"event_type" "outbox_event_type" NOT NULL,
+	"category" "outbox_category" NOT NULL,
+	"event_type" varchar(100) NOT NULL,
+	"aggregate_id" varchar(40),
 	"payload" jsonb NOT NULL,
 	"status" "outbox_status" DEFAULT 'PENDING' NOT NULL,
 	"attempts" integer DEFAULT 0 NOT NULL,
@@ -175,6 +177,9 @@ CREATE INDEX "order_user_id_idx" ON "order" USING btree ("user_id");--> statemen
 CREATE INDEX "order_status_idx" ON "order" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "order_created_at_idx" ON "order" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "order_item_order_id_idx" ON "order_item" USING btree ("order_id");--> statement-breakpoint
+CREATE INDEX "outbox_category_status_scheduled_idx" ON "outbox" USING btree ("category","status","scheduled_at");--> statement-breakpoint
+CREATE INDEX "outbox_aggregate_id_idx" ON "outbox" USING btree ("aggregate_id");--> statement-breakpoint
+CREATE INDEX "outbox_event_type_idx" ON "outbox" USING btree ("event_type");--> statement-breakpoint
 CREATE INDEX "product_category_id_idx" ON "product" USING btree ("category_id");--> statement-breakpoint
 CREATE INDEX "product_slug_idx" ON "product" USING btree ("slug");--> statement-breakpoint
 CREATE INDEX "rating_product_id_idx" ON "rating" USING btree ("product_id");--> statement-breakpoint

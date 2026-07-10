@@ -1,5 +1,5 @@
 {
-  "id": "82c3aac0-b5a6-4b66-b714-d3214280184c",
+  "id": "0e293501-430d-4aad-a49a-2f974be5fafb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -612,12 +612,24 @@
           "primaryKey": true,
           "notNull": true
         },
-        "event_type": {
-          "name": "event_type",
-          "type": "outbox_event_type",
+        "category": {
+          "name": "category",
+          "type": "outbox_category",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aggregate_id": {
+          "name": "aggregate_id",
+          "type": "varchar(40)",
+          "primaryKey": false,
+          "notNull": false
         },
         "payload": {
           "name": "payload",
@@ -667,7 +679,65 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "outbox_category_status_scheduled_idx": {
+          "name": "outbox_category_status_scheduled_idx",
+          "columns": [
+            {
+              "expression": "category",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "scheduled_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "outbox_aggregate_id_idx": {
+          "name": "outbox_aggregate_id_idx",
+          "columns": [
+            {
+              "expression": "aggregate_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "outbox_event_type_idx": {
+          "name": "outbox_event_type_idx",
+          "columns": [
+            {
+              "expression": "event_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -1432,13 +1502,12 @@
         "SUSPENDED"
       ]
     },
-    "public.outbox_event_type": {
-      "name": "outbox_event_type",
+    "public.outbox_category": {
+      "name": "outbox_category",
       "schema": "public",
       "values": [
-        "create_order_in_shipping_api",
-        "delete_order_from_shipping_api",
-        "create_shipment_in_shipping_api"
+        "outbox-job",
+        "domain-event"
       ]
     },
     "public.outbox_status": {
