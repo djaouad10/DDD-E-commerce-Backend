@@ -1,6 +1,7 @@
 import type { CategoryId } from "#/domain/value-objects/category-id.js";
 import type { Money } from "#/domain/value-objects/money.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
+import type { VariationId } from "#/domain/value-objects/variation-id.js";
 import type { ProductDTO } from "../dto/product.dto.js";
 import type { VariationDTO } from "../dto/variation.dto.js";
 
@@ -30,5 +31,5 @@ export type ProductQueries = {
     productId: ProductId,
   ) => Promise<VariationDTO[]>;
 
-  findVariation: (variationId: ProductId) => Promise<VariationDTO | null>;
+  findVariation: (variationId: VariationId) => Promise<VariationDTO | null>;
 };
