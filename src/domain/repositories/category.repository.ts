@@ -1,7 +1,8 @@
 import type { Category } from "../entities/category.js";
+import type { CategoryId } from "../value-objects/category-id.js";
 
 export type CategoryRepository = {
-  find(id: string): Promise<Category | null>;
+  find(id: CategoryId): Promise<Category | null>;
   save(category: Category): Promise<void>;
-  delete(id: string): Promise<void>;
+  delete(id: CategoryId): Promise<void>;
 };
