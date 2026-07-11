@@ -1,4 +1,4 @@
-import type { ProductDTO } from "#/application/dto/product.dto.js";
+import type { ProductSnapshot } from "#/application/dto/product.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { FileUploaded } from "../events/file/file-uploaded.js";
@@ -646,7 +646,7 @@ export class Product {
   }
 
   // mappers
-  toSnapshot(): ProductDTO {
+  toSnapshot(): ProductSnapshot {
     return {
       id: this.id.toString(),
       name: this._name,

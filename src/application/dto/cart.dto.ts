@@ -1,8 +1,8 @@
-import type { CartItemDTO } from "./cart-item.dto.js";
+import type { CartItemSnapshot } from "./cart-item.dto.js";
 
-export type CartDTO = {
+export type CartSnapshot = {
   id: string;
   userId: string;
-  items: CartItemDTO[];
+  items: CartItemSnapshot[];
   updatedAt: string;
 };

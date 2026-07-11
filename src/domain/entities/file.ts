@@ -1,4 +1,4 @@
-import type { FileDTO } from "#/application/dto/file.dto.js";
+import type { FileSnapshot } from "#/application/dto/file.dto.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { FileId } from "../value-objects/file-id.js";
 
@@ -65,7 +65,7 @@ export class File {
   }
 
   // mappers
-  toSnapshot(): FileDTO {
+  toSnapshot(): FileSnapshot {
     return {
       id: this.id.value,
       name: this._name,

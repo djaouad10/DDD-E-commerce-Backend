@@ -1,4 +1,4 @@
-import type { RatingDTO } from "#/application/dto/rating.dto.js";
+import type { RatingSnapshot } from "#/application/dto/rating.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { RatingApproved } from "../events/rating/rating-approved.js";
@@ -144,7 +144,7 @@ export class Rating {
   }
 
   // mappers
-  toSnapshot(): RatingDTO {
+  toSnapshot(): RatingSnapshot {
     return {
       userId: this.userId.value,
       productId: this.productId.value,

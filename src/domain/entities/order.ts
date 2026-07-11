@@ -1,4 +1,4 @@
-import type { OrderDTO } from "#/application/dto/order.dto.js";
+import type { OrderSnapshot } from "#/application/dto/order.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { OrderCancelled } from "../events/order/order-cancelled.js";
@@ -386,7 +386,7 @@ export class Order {
 
   // mappers
 
-  toSnapshot(): OrderDTO {
+  toSnapshot(): OrderSnapshot {
     return {
       id: this.id.value,
       userId: this.userId.value,

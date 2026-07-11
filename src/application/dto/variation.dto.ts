@@ -1,7 +1,7 @@
 import type { Color, Size } from "#/domain/entities/product.js";
 import type { WeightDTO } from "./weight.dto.js";
 
-export type VariationDTO = {
+export type VariationSnapshot = {
   id: string;
   size: Size;
   color: Color;

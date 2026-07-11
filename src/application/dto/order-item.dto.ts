@@ -1,15 +1,15 @@
-import type { MoneyDTO } from "./money.dto.js";
-import type { WeightDTO } from "./weight.dto.js";
+import type { MoneySnapshot } from "./money.dto.js";
+import type { WeightSnapshot } from "./weight.dto.js";
 
-export type OrderItemDTO = {
+export type OrderItemSnapshot = {
   id: string;
   variationId: string;
   qty: number;
-  unitPriceAtOrderTime: MoneyDTO;
-  unitDiscountPriceAtOrderTime: MoneyDTO | null;
-  weightAtOrderTime: WeightDTO;
-  lineTotal: MoneyDTO;
-  discountAmount: MoneyDTO | null;
-  totalWeightInGrams: WeightDTO;
+  unitPriceAtOrderTime: MoneySnapshot;
+  unitDiscountPriceAtOrderTime: MoneySnapshot | null;
+  weightAtOrderTime: WeightSnapshot;
+  lineTotal: MoneySnapshot;
+  discountAmount: MoneySnapshot | null;
+  totalWeightInGrams: WeightSnapshot;
   hasDiscount: boolean;
 };

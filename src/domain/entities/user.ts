@@ -1,4 +1,4 @@
-import type { UserDTO } from "#/application/dto/user.dto.js";
+import type { UserSnapshot } from "#/application/dto/user.dto.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { UserBanned } from "../events/user/user-banned.js";
 import { UserProfileUpdated } from "../events/user/user-profile-updated.js";
@@ -150,7 +150,7 @@ export class User {
   }
 
   // mappers
-  toSnapshot(): UserDTO {
+  toSnapshot(): UserSnapshot {
     // construct a public, serilizable, user facing object
     // can be called at http layer to make a response object
     return {

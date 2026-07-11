@@ -1,6 +1,6 @@
 import type { UserRole } from "#/domain/entities/user.js";
 
-export type UserDTO = {
+export type UserSnapshot = {
   id: string;
   name: string;
   email: string;

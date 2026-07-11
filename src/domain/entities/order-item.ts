@@ -1,4 +1,4 @@
-import type { OrderItemDTO } from "#/application/dto/order-item.dto.js";
+import type { OrderItemSnapshot } from "#/application/dto/order-item.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import { Currency, Money } from "../value-objects/money.js";
 import { OrderItemId } from "../value-objects/order-item-id.js";
@@ -102,7 +102,7 @@ export class OrderItem {
   }
 
   // mappers
-  toSnapshot(): OrderItemDTO {
+  toSnapshot(): OrderItemSnapshot {
     return {
       id: this.id.value,
       variationId: this.variationId.value,
