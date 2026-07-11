@@ -47,6 +47,12 @@ CREATE TABLE "file" (
 	CONSTRAINT "file_key_unique" UNIQUE("key")
 );
 --> statement-breakpoint
+CREATE TABLE "idempotency_keys" (
+	"id" varchar(40) PRIMARY KEY NOT NULL,
+	"handler_name" varchar(100) NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "order" (
 	"id" varchar(40) PRIMARY KEY NOT NULL,
 	"tracking_number" varchar(32),
