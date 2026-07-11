@@ -11,5 +11,7 @@ type OrderSearchCriteria = {
 };
 
 export type OrderQueries = {
-  search: (criteria: OrderSearchCriteria) => Promise<OrderDTO[]>;
+  search: (
+    criteria: OrderSearchCriteria,
+  ) => Promise<{ orders: OrderDTO[]; nextCursor?: OrderId }>;
 };
