@@ -1,4 +1,4 @@
-import type { RatingSnapshot } from "#/application/dto/rating.dto.js";
+import type { RatingSnapshot } from "#/domain/entities-snapshots/rating.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { RatingApproved } from "../events/rating/rating-approved.js";

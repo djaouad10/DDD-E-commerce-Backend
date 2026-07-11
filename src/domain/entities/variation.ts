@@ -1,4 +1,4 @@
-import type { VariationSnapshot } from "#/application/dto/variation.dto.js";
+import type { VariationSnapshot } from "#/domain/entities-snapshots/variation.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { VariationId } from "../value-objects/variation-id.js";

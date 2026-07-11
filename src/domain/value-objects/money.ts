@@ -1,4 +1,4 @@
-import type { MoneyDTO } from "#/application/dto/money.dto.js";
+import type { MoneyDTO } from "#/domain/entities-snapshots/money.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // add more currencies here in the future

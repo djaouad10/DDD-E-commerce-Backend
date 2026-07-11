@@ -1,4 +1,4 @@
-import type { CartItemSnapshot } from "#/application/dto/cart-item.dto.js";
+import type { CartItemSnapshot } from "#/domain/entities-snapshots/cart-item.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { CartItemId } from "../value-objects/cart-item-id.js";

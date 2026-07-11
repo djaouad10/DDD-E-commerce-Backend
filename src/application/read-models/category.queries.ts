@@ -1,4 +1,4 @@
-import type { CategoryDTO } from "../dto/category.dto.js";
+import type { CategoryDTO } from "../../domain/entities-snapshots/category.dto.js";
 
 export type CategoryQueries = {
   getAll: () => Promise<CategoryDTO[]>;

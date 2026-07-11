@@ -1,4 +1,4 @@
-import type { OrderItemSnapshot } from "#/application/dto/order-item.dto.js";
+import type { OrderItemSnapshot } from "#/domain/entities-snapshots/order-item.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import { Currency, Money } from "../value-objects/money.js";
 import { OrderItemId } from "../value-objects/order-item-id.js";

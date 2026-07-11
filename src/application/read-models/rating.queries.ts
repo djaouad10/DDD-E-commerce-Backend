@@ -1,6 +1,6 @@
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
-import type { RatingDTO } from "../dto/rating.dto.js";
+import type { RatingDTO } from "../../domain/entities-snapshots/rating.dto.js";
 
 type RatingCursor = {
   userId: UserId;

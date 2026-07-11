@@ -1,4 +1,4 @@
-import type { CategorySnapshot } from "#/application/dto/category.dto.js";
+import type { CategorySnapshot } from "#/domain/entities-snapshots/category.dto.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { CategoryId } from "../value-objects/category-id.js";
