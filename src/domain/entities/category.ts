@@ -84,7 +84,7 @@ export class Category {
   }
 
   // mappers
-  toDTO(): CategoryDTO {
+  toSnapshot(): CategoryDTO {
     return {
       id: this.id.value,
       name: this._name,

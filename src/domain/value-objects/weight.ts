@@ -36,7 +36,7 @@ export class Weight {
     return new Weight(weightInKg, "kg");
   }
 
-  toDTO(): WeightDTO {
+  toSnapshot(): WeightDTO {
     return { weight: this.weight, unit: this.unit };
   }
 }

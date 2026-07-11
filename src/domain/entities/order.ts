@@ -386,22 +386,22 @@ export class Order {
 
   // mappers
 
-  toDTO(): OrderDTO {
+  toSnapshot(): OrderDTO {
     return {
       id: this.id.value,
       userId: this.userId.value,
       trackingNumber: this._trackingNumber,
       status: this._status,
       shippingStatus: this._shippingStatus,
-      shippingPriceAtOrderTime: this._shippingPriceAtOrderTime.toDTO(),
+      shippingPriceAtOrderTime: this._shippingPriceAtOrderTime.toSnapshot(),
       selectedShippingProvider: this._selectedShippingProvider,
-      shippingDetails: this._shippingDetails.toDTO(),
-      orderItems: this._orderItems.map((item) => item.toDTO()),
-      totalItemsPrice: this.getTotalItemsPrice().toDTO(),
-      totalOrderPrice: this.getTotalOrderPrice().toDTO(),
-      totalDiscount: this.getTotalDiscount().toDTO(),
-      totalWeightInGrams: this.getTotalWeightInGrams().toDTO(),
-      totalWeightInKg: this.getTotalWeightInKg().toDTO(),
+      shippingDetails: this._shippingDetails.toSnapshot(),
+      orderItems: this._orderItems.map((item) => item.toSnapshot()),
+      totalItemsPrice: this.getTotalItemsPrice().toSnapshot(),
+      totalOrderPrice: this.getTotalOrderPrice().toSnapshot(),
+      totalDiscount: this.getTotalDiscount().toSnapshot(),
+      totalWeightInGrams: this.getTotalWeightInGrams().toSnapshot(),
+      totalWeightInKg: this.getTotalWeightInKg().toSnapshot(),
       createdAt: this._createdAt.toISOString(),
       updatedAt: this._updatedAt.toISOString(),
     };

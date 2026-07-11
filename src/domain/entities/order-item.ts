@@ -102,18 +102,18 @@ export class OrderItem {
   }
 
   // mappers
-  toDTO(): OrderItemDTO {
+  toSnapshot(): OrderItemDTO {
     return {
       id: this.id.value,
       variationId: this.variationId.value,
       qty: this.qty,
-      unitPriceAtOrderTime: this.unitPriceAtOrderTime.toDTO(),
+      unitPriceAtOrderTime: this.unitPriceAtOrderTime.toSnapshot(),
       unitDiscountPriceAtOrderTime:
-        this.unitDiscountPriceAtOrderTime?.toDTO() ?? null,
-      weightAtOrderTime: this.weightAtOrderTime.toDTO(),
-      lineTotal: this.lineTotal().toDTO(),
-      discountAmount: this.discountAmount()?.toDTO() ?? null,
-      totalWeightInGrams: this.totalWeightInGrams().toDTO(),
+        this.unitDiscountPriceAtOrderTime?.toSnapshot() ?? null,
+      weightAtOrderTime: this.weightAtOrderTime.toSnapshot(),
+      lineTotal: this.lineTotal().toSnapshot(),
+      discountAmount: this.discountAmount()?.toSnapshot() ?? null,
+      totalWeightInGrams: this.totalWeightInGrams().toSnapshot(),
       hasDiscount: this.hasDiscount(),
     };
   }

@@ -153,7 +153,7 @@ export class ShippingDetails {
     return this.postalCode;
   }
 
-  toDTO(): ShippingDetailsDTO {
+  toSnapshot(): ShippingDetailsDTO {
     return {
       deliveryType: this.deliveryType,
       fullName: this._fullName,

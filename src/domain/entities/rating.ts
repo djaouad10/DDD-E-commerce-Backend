@@ -144,7 +144,7 @@ export class Rating {
   }
 
   // mappers
-  toDTO(): RatingDTO {
+  toSnapshot(): RatingDTO {
     return {
       userId: this.userId.value,
       productId: this.productId.value,

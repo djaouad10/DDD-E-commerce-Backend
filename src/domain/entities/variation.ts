@@ -175,7 +175,7 @@ export class Variation {
   }
 
   // mappers
-  toDTO(): VariationDTO {
+  toSnapshot(): VariationDTO {
     return {
       id: this.id.value,
       size: this._size,
@@ -184,7 +184,7 @@ export class Variation {
       reservedQty: this._reservedQty,
       availableQty: this._availableQty,
       isInStock: this._isInStock,
-      weightInGrams: this._weightInGrams.toDTO(),
+      weightInGrams: this._weightInGrams.toSnapshot(),
       createdAt: this._createdAt.toISOString(),
       updatedAt: this._updatedAt.toISOString(),
     };

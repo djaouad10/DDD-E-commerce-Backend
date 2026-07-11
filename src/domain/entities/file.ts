@@ -65,7 +65,7 @@ export class File {
   }
 
   // mappers
-  toDTO(): FileDTO {
+  toSnapshot(): FileDTO {
     return {
       id: this.id.value,
       name: this._name,

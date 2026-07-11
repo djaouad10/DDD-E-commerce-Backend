@@ -150,7 +150,7 @@ export class User {
   }
 
   // mappers
-  toDTO(): UserDTO {
+  toSnapshot(): UserDTO {
     // construct a public, serilizable, user facing object
     // can be called at http layer to make a response object
     return {

@@ -61,7 +61,7 @@ export class CartItem {
   }
 
   // mappers
-  toDTO(): CartItemDTO {
+  toSnapshot(): CartItemDTO {
     return {
       id: this.id.value,
       variationId: this.variationId.value,

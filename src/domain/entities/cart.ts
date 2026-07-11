@@ -132,11 +132,11 @@ export class Cart {
 
   // mappers
 
-  toDTO(): CartDTO {
+  toSnapshot(): CartDTO {
     return {
       id: this.id.value,
       userId: this.userId.value,
-      items: this._items.map((i) => i.toDTO()),
+      items: this._items.map((i) => i.toSnapshot()),
       updatedAt: this._updatedAt.toISOString(),
     };
   }
