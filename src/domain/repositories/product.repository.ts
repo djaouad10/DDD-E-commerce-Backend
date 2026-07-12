@@ -5,6 +5,7 @@ import type { Slug } from "../value-objects/slug.js";
 export type ProductRepository = {
   find(id: ProductId): Promise<Product | null>;
   findBySlug(slug: Slug): Promise<Product | null>;
+  findMany(ids: ProductId[]): Promise<Product[]>;
   save(product: Product): Promise<void>;
   delete(id: ProductId): Promise<void>;
 };
