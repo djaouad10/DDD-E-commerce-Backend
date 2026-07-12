@@ -1,4 +1,4 @@
-export type RatingDTO = {
+export type RatingSnapshot = {
   userId: string;
   productId: string;
   rating: number;

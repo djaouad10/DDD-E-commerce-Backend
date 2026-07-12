@@ -1,4 +1,4 @@
-import type { CartDTO } from "#/application/dto/cart.dto.js";
+import type { CartSnapshot } from "#/domain/entities-snapshots/cart.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import { CartCleared } from "../events/cart/cart-cleared.js";
 import { CartItemAdded } from "../events/cart/cart-item-added.js";
@@ -132,11 +132,11 @@ export class Cart {
 
   // mappers
 
-  toDTO(): CartDTO {
+  toSnapshot(): CartSnapshot {
     return {
       id: this.id.value,
       userId: this.userId.value,
-      items: this._items.map((i) => i.toDTO()),
+      items: this._items.map((i) => i.toSnapshot()),
       updatedAt: this._updatedAt.toISOString(),
     };
   }

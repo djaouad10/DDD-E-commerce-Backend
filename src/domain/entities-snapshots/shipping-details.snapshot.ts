@@ -1,6 +1,6 @@
 import type { DeliveryType } from "#/domain/value-objects/shipping-details.js";
 
-export type ShippingDetailsDTO = {
+export type ShippingDetailsSnapshot = {
   deliveryType: DeliveryType;
   fullName: string;
   firstPhone: string;

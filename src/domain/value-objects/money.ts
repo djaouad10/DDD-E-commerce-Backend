@@ -1,4 +1,4 @@
-import type { MoneyDTO } from "#/application/dto/money.dto.js";
+import type { MoneyDTO } from "#/domain/entities-snapshots/money.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // add more currencies here in the future
@@ -18,7 +18,7 @@ export class Money {
   static of(amount: number, currency: Currency): Money {
     if (amount < 0)
       throw new ValidationError("amount", "Money can not be negative");
-    
+
     return new Money(amount, currency);
   }
 
@@ -47,11 +47,11 @@ export class Money {
 
   multiply(qty: number): Money {
     if (qty < 0) throw new ValidationError("qty", "qty can not be negative");
-    
+
     return new Money(this.amount * qty, this.currency);
   }
 
-  toDTO(): MoneyDTO {
+  toSnapshot(): MoneyDTO {
     return { amount: this.amount, currency: this.currency };
   }
 }

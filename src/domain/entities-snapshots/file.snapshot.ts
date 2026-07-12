@@ -1,4 +1,4 @@
-export type FileDTO = {
+export type FileSnapshot = {
   id: string;
   name: string;
   publicUrl: string;

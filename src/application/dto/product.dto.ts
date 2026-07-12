@@ -1,22 +1,20 @@
-import type { FileDTO } from "./file.dto.js";
-import type { MoneyDTO } from "./money.dto.js";
-import type { VariationDTO } from "./variation.dto.js";
+import type { MoneySnapshot } from "#/domain/entities-snapshots/money.snapshot.js";
+import type { CategoryDTO } from "./category.dto.js";
 
-export interface ProductDTO {
+export type ProductSearchDTO = ProductStaticDataDTO & {};
+
+export type ProductStaticDataDTO = {
   id: string;
   name: string;
   slug: string;
   description: string | null;
-  images: FileDTO[];
-  variations: VariationDTO[];
   brand: string;
   material: string;
-  price: MoneyDTO;
-  discountedPrice: MoneyDTO | null;
-  category: string | null;
+  price: MoneySnapshot;
+  discountedPrice: MoneySnapshot | null;
+  category: CategoryDTO;
   averageRating: number | null;
-  discountAmount: MoneyDTO;
-  discountPercentage: number;
-  createdAt: string;
-  updatedAt: string;
-}
+  mainImage: string;
+};
+
+export type ProductLowStockDTO = ProductStaticDataDTO & {};

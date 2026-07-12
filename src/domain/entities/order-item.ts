@@ -1,4 +1,4 @@
-import type { OrderItemDTO } from "#/application/dto/order-item.dto.js";
+import type { OrderItemSnapshot } from "#/domain/entities-snapshots/order-item.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import { Currency, Money } from "../value-objects/money.js";
 import { OrderItemId } from "../value-objects/order-item-id.js";
@@ -102,18 +102,18 @@ export class OrderItem {
   }
 
   // mappers
-  toDTO(): OrderItemDTO {
+  toSnapshot(): OrderItemSnapshot {
     return {
       id: this.id.value,
       variationId: this.variationId.value,
       qty: this.qty,
-      unitPriceAtOrderTime: this.unitPriceAtOrderTime.toDTO(),
+      unitPriceAtOrderTime: this.unitPriceAtOrderTime.toSnapshot(),
       unitDiscountPriceAtOrderTime:
-        this.unitDiscountPriceAtOrderTime?.toDTO() ?? null,
-      weightAtOrderTime: this.weightAtOrderTime.toDTO(),
-      lineTotal: this.lineTotal().toDTO(),
-      discountAmount: this.discountAmount()?.toDTO() ?? null,
-      totalWeightInGrams: this.totalWeightInGrams().toDTO(),
+        this.unitDiscountPriceAtOrderTime?.toSnapshot() ?? null,
+      weightAtOrderTime: this.weightAtOrderTime.toSnapshot(),
+      lineTotal: this.lineTotal().toSnapshot(),
+      discountAmount: this.discountAmount()?.toSnapshot() ?? null,
+      totalWeightInGrams: this.totalWeightInGrams().toSnapshot(),
       hasDiscount: this.hasDiscount(),
     };
   }

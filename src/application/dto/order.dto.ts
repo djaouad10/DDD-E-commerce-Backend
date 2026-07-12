@@ -1,11 +1,35 @@
-import type {
-  OrderStatus,
-  ShippingProviderType,
-} from "#/domain/entities/order.js";
-import type { MoneyDTO } from "./money.dto.js";
-import type { OrderItemDTO } from "./order-item.dto.js";
-import type { ShippingDetailsDTO } from "./shipping-details.dto.js";
-import type { WeightDTO } from "./weight.dto.js";
+import type { MoneySnapshot } from "#/domain/entities-snapshots/money.snapshot.js";
+import type { WeightSnapshot } from "#/domain/entities-snapshots/weight.snapshot.js";
+import type { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
+import type { DeliveryType } from "#/domain/value-objects/shipping-details.js";
+import type { VariationDTO } from "./variation.dto.js";
+
+export type OrderItemDTO = {
+  id: string;
+  variationId: VariationDTO;
+  qty: number;
+  unitPriceAtOrderTime: MoneySnapshot;
+  unitDiscountPriceAtOrderTime: MoneySnapshot | null;
+  weightAtOrderTime: WeightSnapshot;
+  lineTotal: MoneySnapshot;
+  discountAmount: MoneySnapshot | null;
+  totalWeightInGrams: WeightSnapshot;
+  hasDiscount: boolean;
+};
+
+export type ShippingDetailsDTO = {
+  deliveryType: DeliveryType;
+  fullName: string;
+  firstPhone: string;
+  secondPhone: string | null;
+  wilayaCode: number;
+  commune: string;
+  postalCode: string;
+  address: string;
+  gpsLink: string | null;
+  clientNote: string | null;
+  fragile: boolean;
+};
 
 export type OrderDTO = {
   id: string;
@@ -13,15 +37,17 @@ export type OrderDTO = {
   trackingNumber: string | null;
   status: OrderStatus;
   shippingStatus: string | null;
-  shippingPriceAtOrderTime: MoneyDTO;
-  selectedShippingProvider: ShippingProviderType;
+  shippingPriceAtOrderTime: MoneySnapshot;
+  selectedShippingProvider: ShippingProvider;
   shippingDetails: ShippingDetailsDTO;
   orderItems: OrderItemDTO[];
-  totalOrderPrice: MoneyDTO;
-  totalItemsPrice: MoneyDTO;
-  totalDiscount: MoneyDTO;
-  totalWeightInGrams: WeightDTO;
-  totalWeightInKg: WeightDTO;
+  totalOrderPrice: MoneySnapshot;
+  totalItemsPrice: MoneySnapshot;
+  totalDiscount: MoneySnapshot;
+  totalWeightInGrams: WeightSnapshot;
+  totalWeightInKg: WeightSnapshot;
   createdAt: string;
   updatedAt: string;
 };
+
+// add a less explicit type for search results,... etc.

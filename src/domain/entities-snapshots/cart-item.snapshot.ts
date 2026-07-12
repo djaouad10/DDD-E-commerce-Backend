@@ -1,4 +1,4 @@
-export type CartItemDTO = {
+export type CartItemSnapshot = {
   id: string;
   variationId: string;
   qty: number;

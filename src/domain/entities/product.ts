@@ -1,4 +1,4 @@
-import type { ProductDTO } from "#/application/dto/product.dto.js";
+import type { ProductSnapshot } from "#/domain/entities-snapshots/product.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { FileUploaded } from "../events/file/file-uploaded.js";
@@ -646,21 +646,21 @@ export class Product {
   }
 
   // mappers
-  toDTO(): ProductDTO {
+  toSnapshot(): ProductSnapshot {
     return {
       id: this.id.toString(),
       name: this._name,
       slug: this.slug.value,
       description: this._description,
-      images: this._images.map((i) => i.toDTO()),
-      variations: this._variations.map((v) => v.toDTO()),
+      images: this._images.map((i) => i.toSnapshot()),
+      variations: this._variations.map((v) => v.toSnapshot()),
       brand: this._brand,
       material: this._material,
-      price: this._price.toDTO(),
-      discountedPrice: this._discountedPrice?.toDTO() ?? null,
+      price: this._price.toSnapshot(),
+      discountedPrice: this._discountedPrice?.toSnapshot() ?? null,
       category: this._categoryId?.toString() ?? null,
       averageRating: this._averageRating,
-      discountAmount: this.getDiscountAmount().toDTO(),
+      discountAmount: this.getDiscountAmount().toSnapshot(),
       discountPercentage: this.calculateDiscountPercentage(),
       createdAt: this._createdAt.toISOString(),
       updatedAt: this._updatedAt.toISOString(),

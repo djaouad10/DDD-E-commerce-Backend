@@ -1,4 +1,4 @@
-import type { VariationDTO } from "#/application/dto/variation.dto.js";
+import type { VariationSnapshot } from "#/domain/entities-snapshots/variation.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { VariationId } from "../value-objects/variation-id.js";
@@ -175,7 +175,7 @@ export class Variation {
   }
 
   // mappers
-  toDTO(): VariationDTO {
+  toSnapshot(): VariationSnapshot {
     return {
       id: this.id.value,
       size: this._size,
@@ -184,7 +184,7 @@ export class Variation {
       reservedQty: this._reservedQty,
       availableQty: this._availableQty,
       isInStock: this._isInStock,
-      weightInGrams: this._weightInGrams.toDTO(),
+      weightInGrams: this._weightInGrams.toSnapshot(),
       createdAt: this._createdAt.toISOString(),
       updatedAt: this._updatedAt.toISOString(),
     };

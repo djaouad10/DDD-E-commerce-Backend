@@ -1,4 +1,4 @@
-import type { CategoryDTO } from "#/application/dto/category.dto.js";
+import type { CategorySnapshot } from "#/domain/entities-snapshots/category.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { CategoryId } from "../value-objects/category-id.js";
@@ -84,7 +84,7 @@ export class Category {
   }
 
   // mappers
-  toDTO(): CategoryDTO {
+  toSnapshot(): CategorySnapshot {
     return {
       id: this.id.value,
       name: this._name,
