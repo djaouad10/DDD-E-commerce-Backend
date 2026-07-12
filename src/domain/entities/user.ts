@@ -1,4 +1,4 @@
-import type { UserSnapshot } from "#/domain/entities-snapshots/user.dto.js";
+import type { UserSnapshot } from "#/domain/entities-snapshots/user.snapshot.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { UserBanned } from "../events/user/user-banned.js";
 import { UserProfileUpdated } from "../events/user/user-profile-updated.js";

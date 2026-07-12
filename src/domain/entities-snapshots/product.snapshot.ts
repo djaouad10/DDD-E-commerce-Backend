@@ -1,6 +1,6 @@
-import type { FileSnapshot } from "./file.dto.js";
-import type { MoneySnapshot } from "./money.dto.js";
-import type { VariationSnapshot } from "./variation.dto.js";
+import type { FileSnapshot } from "./file.snapshot.js";
+import type { MoneySnapshot } from "./money.snapshot.js";
+import type { VariationSnapshot } from "./variation.snapshot.js";
 
 export type ProductSnapshot = {
   id: string;

@@ -1,4 +1,4 @@
-import type { ProductSnapshot } from "#/domain/entities-snapshots/product.dto.js";
+import type { ProductSnapshot } from "#/domain/entities-snapshots/product.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { FileUploaded } from "../events/file/file-uploaded.js";

@@ -1,5 +1,5 @@
-import type { MoneySnapshot } from "./money.dto.js";
-import type { WeightSnapshot } from "./weight.dto.js";
+import type { MoneySnapshot } from "./money.snapshot.js";
+import type { WeightSnapshot } from "./weight.snapshot.js";
 
 export type OrderItemSnapshot = {
   id: string;

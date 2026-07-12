@@ -1,4 +1,4 @@
-import type { CartItemSnapshot } from "./cart-item.dto.js";
+import type { CartItemSnapshot } from "./cart-item.snapshot.js";
 
 export type CartSnapshot = {
   id: string;

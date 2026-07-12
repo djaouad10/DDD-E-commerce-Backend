@@ -1,5 +1,5 @@
 import type { Color, Size } from "#/domain/entities/product.js";
-import type { WeightDTO } from "./weight.dto.js";
+import type { WeightSnapshot } from "./weight.snapshot.js";
 
 export type VariationSnapshot = {
   id: string;
@@ -9,7 +9,7 @@ export type VariationSnapshot = {
   reservedQty: number;
   availableQty: number;
   isInStock: boolean;
-  weightInGrams: WeightDTO;
+  weightInGrams: WeightSnapshot;
   createdAt: string;
   updatedAt: string;
 };

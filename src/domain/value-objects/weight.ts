@@ -1,4 +1,4 @@
-import type { WeightDTO } from "#/domain/entities-snapshots/weight.dto.js";
+import type { WeightDTO } from "#/domain/entities-snapshots/weight.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // add more units here in the future

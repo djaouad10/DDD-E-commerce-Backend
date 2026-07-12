@@ -1,8 +1,8 @@
 import type { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
-import type { MoneySnapshot } from "./money.dto.js";
-import type { OrderItemSnapshot } from "./order-item.dto.js";
-import type { ShippingDetailsSnapshot } from "./shipping-details.dto.js";
-import type { WeightSnapshot } from "./weight.dto.js";
+import type { MoneySnapshot } from "./money.snapshot.js";
+import type { OrderItemSnapshot } from "./order-item.snapshot.js";
+import type { ShippingDetailsSnapshot } from "./shipping-details.snapshot.js";
+import type { WeightSnapshot } from "./weight.snapshot.js";
 
 export type OrderSnapshot = {
   id: string;
