@@ -1,3 +1,7 @@
+// parameters of the gateway methods should use domain entities and value objects
+// return types of the gateway methods should use domain entities and value objects
+
+// to do: make this a domain value object
 export type UploadInstructions = {
   url: string; // where the client PUTs/POSTs the file
   publicUrl: string; // where the file will be readable after upload

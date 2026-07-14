@@ -17,9 +17,9 @@ export type OrderTrackingStatus =
 
 export class TrackingHistory {
   constructor(
-    date: Date,
-    time: string,
-    status: OrderTrackingStatus,
-    station?: string,
+    public readonly date: Date,
+    public readonly time: string,
+    public readonly status: OrderTrackingStatus,
+    public readonly station?: string,
   ) {}
 }
