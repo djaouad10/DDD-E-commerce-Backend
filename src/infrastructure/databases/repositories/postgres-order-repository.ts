@@ -13,21 +13,45 @@ import { DatabaseError } from "#/shared/errors/domain-error.js";
 export class PostgresOrderRepository implements OrderRepository {
   async find(orderId: OrderId): Promise<Order | null> {
     try {
-      const orderRow: OrderWithItemsRow | undefined =
+      const orderWithItemsRow: OrderWithItemsRow | undefined =
         await db.query.order.findFirst({
           where: eq(order.id, orderId.value),
           with: { order_items: true },
         });
 
-      if (!orderRow) {
+      if (!orderWithItemsRow) {
         return null;
       }
 
-      return PostgresOrderMapper.toDomain(orderRow);
+      return PostgresOrderMapper.toDomain(orderWithItemsRow);
     } catch (error) {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
         "PostgresOrderRepository.find",
+        error,
+      );
+    }
+  }
+
+  async findMany(ids: OrderId[]): Promise<Order[]> {
+    if (ids.length === 0) return [];
+
+    try {
+      const manyOrdersWithItemsRows: OrderWithItemsRow[] =
+        await db.query.order.findMany({
+          where: (order, { inArray }) =>
+            inArray(
+              order.id,
+              ids.map((id) => id.value),
+            ),
+          with: { order_items: true },
+        });
+
+      return manyOrdersWithItemsRows.map(PostgresOrderMapper.toDomain);
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresOrderRepository.findMany",
         error,
       );
     }
