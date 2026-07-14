@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, type InferSelectModel } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -473,3 +473,7 @@ export const ratingRelations = relations(rating, ({ one }) => ({
     references: [product.id],
   }),
 }));
+
+export type DrizzleOrderSelect = InferSelectModel<typeof order>;
+
+export type DrizzleOrderItemSelect = InferSelectModel<typeof orderItem>;
