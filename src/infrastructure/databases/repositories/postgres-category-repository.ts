@@ -31,4 +31,17 @@ export class PostgresCategoryRepository implements CategoryRepository {
       );
     }
   }
+
+  async findMany(): Promise<Category[]> {
+    try {
+      const categoriesRows: CategoryRow[] = await db.query.category.findMany();
+      return categoriesRows.map(PostgresCategoryMapper.toDomain);
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresCategoryRepository.findMany",
+        error,
+      );
+    }
+  }
 }
