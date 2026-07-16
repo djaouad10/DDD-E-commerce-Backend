@@ -58,4 +58,31 @@ export class PostgresOrderMapper {
       orderRow.updated_at,
     );
   }
+
+  static toRow(order: Order): OrderRow {
+    return {
+      id: order.id.value,
+      user_id: order.userId.value,
+      tracking_number: order.getTrackingNumber(),
+      status: order.getStatus(),
+      shipping_status: order.getShippingStatus(),
+      shipping_price_at_order_time: order.getShippingPriceAtOrderTime().amount,
+      selected_shipping_provider: order.getSelectedShippingProvider(),
+      shipping_details: {
+        delivery_type: order.getShippingDetails().deliveryType,
+        full_name: order.getShippingDetails().getFullName(),
+        first_phone: order.getShippingDetails().getFirstPhone(),
+        wilaya_code: order.getShippingDetails().getWilayaCode(),
+        commune: order.getShippingDetails().getCommune(),
+        postal_code: order.getShippingDetails().getPostalCode(),
+        address: order.getShippingDetails().getAddress(),
+        fragile: order.getShippingDetails().getFragile(),
+        second_phone: order.getShippingDetails().getSecondPhone(),
+        gps_link: order.getShippingDetails().getGpsLink(),
+        client_note: order.getShippingDetails().getClientNote(),
+      },
+      created_at: order.getCreatedAt(),
+      updated_at: order.getUpdatedAt(),
+    };
+  }
 }
