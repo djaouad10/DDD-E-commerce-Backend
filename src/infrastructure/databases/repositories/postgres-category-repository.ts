@@ -66,4 +66,16 @@ export class PostgresCategoryRepository implements CategoryRepository {
       );
     }
   }
+
+  async delete(id: CategoryId): Promise<void> {
+    try {
+      await db.delete(category).where(eq(category.id, id.value));
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresCategoryRepository.delete",
+        error,
+      );
+    }
+  }
 }
