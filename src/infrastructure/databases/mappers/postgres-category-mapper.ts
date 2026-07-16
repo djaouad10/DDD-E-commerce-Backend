@@ -11,4 +11,11 @@ export class PostgresCategoryMapper {
       categoryRow.name,
     );
   }
+
+  static toRow(category: Category): CategoryRow {
+    return {
+      id: category.id.value,
+      name: category.getName(),
+    };
+  }
 }
