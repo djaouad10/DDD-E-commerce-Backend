@@ -3,9 +3,11 @@ import type { OrderRepository } from "#/domain/repositories/order.repository.js"
 import type { OrderId } from "#/domain/value-objects/order-id.js";
 import { db } from "#/infrastructure/config/database.js";
 import { eq } from "drizzle-orm";
-import { order } from "../schema.js";
+import { order, orderItem } from "../schema.js";
 import {
   PostgresOrderMapper,
+  type OrderItemRow,
+  type OrderRow,
   type OrderWithItemsRow,
 } from "../mappers/postgres-order-mapper.js";
 import { DatabaseError } from "#/shared/errors/domain-error.js";
@@ -57,8 +59,43 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
+  async save(orderAgg: Order): Promise<void> {
+    // had to name it orderAgg because order is a reserved keyword for the schema table
+    const orderRow: OrderRow = PostgresOrderMapper.toRow(orderAgg);
+    const orderItemsRows: OrderItemRow[] =
+      PostgresOrderMapper.toOrderItemsRows(orderAgg);
+
+    // onConflictDoUpdate will update the createdAt timestamp, so we don't include it in the "set" clause
+    const { created_at, ...orderRowToUpsert } = orderRow;
+
+    try {
+      await db.transaction(async (tx) => {
+        await tx
+          .insert(order)
+          .values(orderRow)
+          .onConflictDoUpdate({
+            target: [order.id],
+            set: orderRowToUpsert,
+          });
+
+        await tx.delete(orderItem).where(eq(orderItem.orderId, orderRow.id));
+
+        if (orderItemsRows.length > 0) {
+          await tx.insert(orderItem).values(orderItemsRows);
+        }
+      });
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresOrderRepository.save",
+        error,
+      );
+    }
+  }
+
   async delete(id: OrderId): Promise<void> {
     try {
+      // order items will be deleted automatically (on delete cascade)
       await db.delete(order).where(eq(order.id, id.value));
     } catch (error) {
       throw new DatabaseError(
