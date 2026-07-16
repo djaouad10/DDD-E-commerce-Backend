@@ -71,4 +71,20 @@ export class PostgresProductMapper {
       row.updated_at,
     );
   }
+
+  static toRow(product: Product): PorductRow {
+    return {
+      id: product.id.value,
+      name: product.getName(),
+      slug: product.getSlug().value,
+      description: product.getDescription(),
+      brand: product.getBrand(),
+      categoryId: product.getCategoryId()?.value ?? null,
+      material: product.getMaterial(),
+      price: product.getPrice().amount,
+      discount_price: product.getDiscountedPrice()?.amount ?? null,
+      created_at: product.getCreatedAt(),
+      updated_at: product.getUpdatedAt(),
+    };
+  }
 }
