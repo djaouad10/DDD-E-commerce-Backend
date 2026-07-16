@@ -91,4 +91,31 @@ export class PostgresProductRepository implements ProductRepository {
       );
     }
   }
+
+  async findMany(ids: ProductId[]): Promise<Product[]> {
+    try {
+      // get products with their variations and files
+      const productWithVariationsAndFilesRow:
+        | ProductWithVariationsAndFilesRow[]
+        | undefined = await this.db.query.product.findMany({
+        where: (product, { inArray }) =>
+          inArray(
+            product.id,
+            ids.map((id) => id.value),
+          ),
+        with: { variations: true, images: true },
+      });
+
+      // reconstitute products aggregates and return them
+      return productWithVariationsAndFilesRow.map(
+        PostgresProductMapper.toDomain,
+      );
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresProductRepository.findMany",
+        error,
+      );
+    }
+  }
 }
