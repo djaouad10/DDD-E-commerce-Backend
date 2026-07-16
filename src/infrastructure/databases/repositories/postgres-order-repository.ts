@@ -56,4 +56,16 @@ export class PostgresOrderRepository implements OrderRepository {
       );
     }
   }
+
+  async delete(id: OrderId): Promise<void> {
+    try {
+      await db.delete(order).where(eq(order.id, id.value));
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresOrderRepository.delete",
+        error,
+      );
+    }
+  }
 }
