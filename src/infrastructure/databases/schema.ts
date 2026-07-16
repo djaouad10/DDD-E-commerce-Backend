@@ -477,3 +477,5 @@ export const ratingRelations = relations(rating, ({ one }) => ({
 export type DrizzleOrderSelect = InferSelectModel<typeof order>;
 
 export type DrizzleOrderItemSelect = InferSelectModel<typeof orderItem>;
+
+export type DrizzleCategorySelect = InferSelectModel<typeof category>;
