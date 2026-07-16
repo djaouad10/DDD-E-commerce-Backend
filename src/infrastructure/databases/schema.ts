@@ -479,3 +479,9 @@ export type DrizzleOrderSelect = InferSelectModel<typeof order>;
 export type DrizzleOrderItemSelect = InferSelectModel<typeof orderItem>;
 
 export type DrizzleCategorySelect = InferSelectModel<typeof category>;
+
+export type DrizzleProductSelect = InferSelectModel<typeof product>;
+
+export type DrizzleVariationSelect = InferSelectModel<typeof variation>;
+
+export type DrizzleFileSelect = InferSelectModel<typeof file>;
