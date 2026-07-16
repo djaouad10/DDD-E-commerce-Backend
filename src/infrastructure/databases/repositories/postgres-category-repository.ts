@@ -44,4 +44,26 @@ export class PostgresCategoryRepository implements CategoryRepository {
       );
     }
   }
+
+  async save(categoryEntity: Category): Promise<void> {
+    // named it categoryEntity because category is a reserved keyword
+    const categoryRow: CategoryRow =
+      PostgresCategoryMapper.toRow(categoryEntity);
+
+    try {
+      await db
+        .insert(category)
+        .values(categoryRow)
+        .onConflictDoUpdate({
+          target: [category.id],
+          set: categoryRow,
+        });
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresCategoryRepository.save",
+        error,
+      );
+    }
+  }
 }
