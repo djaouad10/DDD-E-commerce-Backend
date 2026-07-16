@@ -87,4 +87,18 @@ export class PostgresProductMapper {
       updated_at: product.getUpdatedAt(),
     };
   }
+
+  static toVariationRow(product: Product): VariationRow[] {
+    return product.getVariations().map((v) => ({
+      id: v.id.value,
+      product_id: product.id.value,
+      size: v.getSize(),
+      color: v.getColor(),
+      total_qty: v.getTotalQty(),
+      reserved_qty: v.getReservedQty(),
+      weight_in_grams: v.getWeight().weight,
+      created_at: v.getCreatedAt(),
+      updated_at: v.getUpdatedAt(),
+    }));
+  }
 }
