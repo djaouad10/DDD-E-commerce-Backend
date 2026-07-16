@@ -101,4 +101,15 @@ export class PostgresProductMapper {
       updated_at: v.getUpdatedAt(),
     }));
   }
+
+  static toFileRow(product: Product): FileRow[] {
+    return product.getImages().map((f) => ({
+      id: f.id.value,
+      product_id: product.id.value,
+      name: f.getName(),
+      key: f.getKey(),
+      public_url: f.publicUrl,
+      is_main: f.isMain(),
+    }));
+  }
 }
