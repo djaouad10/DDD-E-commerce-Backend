@@ -85,4 +85,17 @@ export class PostgresOrderMapper {
       updated_at: order.getUpdatedAt(),
     };
   }
+
+  static toOrderItemsRows(order: Order): OrderItemRow[] {
+    return order.getOrderItems().map((item) => ({
+      id: item.id.value,
+      orderId: order.id.value,
+      variation_id: item.getVariationId().value,
+      qty: item.getQty(),
+      unit_price_at_order_time: item.unitPriceAtOrderTime.amount,
+      unit_discount_price_at_order_time:
+        item.unitDiscountPriceAtOrderTime?.amount ?? null,
+      weight_at_order_time: item.weightAtOrderTime.weight,
+    }));
+  }
 }
