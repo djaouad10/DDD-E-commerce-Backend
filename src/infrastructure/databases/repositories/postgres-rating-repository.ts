@@ -49,4 +49,20 @@ export class PostgresRatingRepository implements RatingRepository {
       );
     }
   }
+
+  async findManyByUserId(userId: UserId): Promise<Rating[]> {
+    try {
+      const ratingRows: RatingRow[] = await this.db.query.rating.findMany({
+        where: (rating, { eq }) => eq(rating.user_id, userId.value),
+      });
+
+      return ratingRows.map(PostgresRatingMapper.toDomain);
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresRatingRepository.findManyByUserId",
+        error,
+      );
+    }
+  }
 }
