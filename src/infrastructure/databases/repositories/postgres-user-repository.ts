@@ -29,4 +29,26 @@ export class PostgresUserRepository implements UserRepository {
       );
     }
   }
+
+  async findMany(ids: UserId[]): Promise<User[]> {
+    if (ids.length === 0) return [];
+
+    try {
+      const userRows: UserRow[] = await this.db.query.user.findMany({
+        where: (user, { inArray }) =>
+          inArray(
+            user.id,
+            ids.map((id) => id.value),
+          ),
+      });
+
+      return userRows.map(PostgresUserMapper.toDomain);
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresUserRepository.findMany",
+        error,
+      );
+    }
+  }
 }
