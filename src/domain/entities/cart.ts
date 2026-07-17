@@ -32,17 +32,16 @@ export class Cart {
   }
 
   // reconstitute
-  static reconstitute(
-    id: CartId,
-    userId: UserId,
-    items: CartItem[],
-    updatedAt: Date,
-  ): Cart {
+  static reconstitute(id: CartId, userId: UserId, items: CartItem[]): Cart {
     if (new Set(items.map((item) => item.id.value)).size !== items.length)
       throw new ValidationError(
         "items",
         "can't reconstitute a cart with duplicate items",
       );
+
+    const updatedAt = items.reduce((prev, curr) => {
+      return prev > curr.getUpdatedAt() ? prev : curr.getUpdatedAt();
+    }, new Date());
 
     return new Cart(id, userId, items, updatedAt);
   }
