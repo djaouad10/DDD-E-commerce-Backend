@@ -4,10 +4,12 @@ import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { DatabaseError } from "#/shared/errors/domain-error.js";
+import { and, eq } from "drizzle-orm";
 import {
   PostgresRatingMapper,
   type RatingRow,
 } from "../mappers/postgres-rating-mapper.js";
+import { rating } from "../schema.js";
 
 export class PostgresRatingRepository implements RatingRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -61,6 +63,31 @@ export class PostgresRatingRepository implements RatingRepository {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
         "PostgresRatingRepository.findManyByUserId",
+        error,
+      );
+    }
+  }
+
+  async save(ratingAgg: Rating): Promise<void> {
+    const ratingRow: RatingRow = PostgresRatingMapper.toRow(ratingAgg);
+
+    try {
+      await this.db.transaction(async (tx) => {
+        await tx
+          .delete(rating)
+          .where(
+            and(
+              eq(rating.user_id, ratingRow.user_id),
+              eq(rating.product_id, ratingRow.product_id),
+            ),
+          );
+
+        await tx.insert(rating).values(ratingRow);
+      });
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresRatingRepository.save",
         error,
       );
     }
