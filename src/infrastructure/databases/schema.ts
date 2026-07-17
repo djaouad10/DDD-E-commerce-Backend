@@ -400,7 +400,6 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
 });
 
 // Relations
-
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -494,3 +493,5 @@ export type DrizzleCartItemSelect = InferSelectModel<typeof cartItem>;
 export type DrizzleRatingSelect = InferSelectModel<typeof rating>;
 
 export type DrizzleUserSelect = InferSelectModel<typeof user>;
+
+export type DrizzleOutboxSelect = InferSelectModel<typeof outbox>;
