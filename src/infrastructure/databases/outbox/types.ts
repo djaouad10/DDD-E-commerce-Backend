@@ -33,7 +33,7 @@ export type OutboxDomainEventRow = Omit<
 };
 
 // Used only by the processor worker
-export type UpdateOutboxJobParams =
+export type UpdateOutboxRowParams =
   | { id: string; status: typeof OutboxStatus.COMPLETED; processedAt: Date }
   | {
       id: string;
@@ -47,5 +47,5 @@ export type UpdateOutboxJobParams =
       status: typeof OutboxStatus.PENDING;
       attempts: number;
       scheduledAt: Date;
-      errorMessage: string;
+      errorMessage?: string;
     };
