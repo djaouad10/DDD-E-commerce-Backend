@@ -492,3 +492,5 @@ export type DrizzleFileSelect = InferSelectModel<typeof file>;
 export type DrizzleCartItemSelect = InferSelectModel<typeof cartItem>;
 
 export type DrizzleRatingSelect = InferSelectModel<typeof rating>;
+
+export type DrizzleUserSelect = InferSelectModel<typeof user>;
