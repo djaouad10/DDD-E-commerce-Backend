@@ -13,6 +13,7 @@ import {
   OutboxStatus,
   type OutboxDomainEventRow,
   type OutboxJobRow,
+  type UpdateOutboxRowParams,
 } from "../outbox/types.js";
 import type {
   DomainEvent,
@@ -139,6 +140,22 @@ export class PostgresOutboxRepository implements OutboxRepository {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
         "PostgresOutboxRepository.getPendingEvents",
+        error,
+      );
+    }
+  }
+
+  async updateRow(params: UpdateOutboxRowParams): Promise<void> {
+    const { id: rowId, ...updateParams } = params;
+    try {
+      await this.db
+        .update(outbox)
+        .set(updateParams)
+        .where(eq(outbox.id, rowId));
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresOutboxRepository.updateRow",
         error,
       );
     }
