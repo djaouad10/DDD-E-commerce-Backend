@@ -29,4 +29,26 @@ export class PostgresCartRepository implements CartRepository {
       );
     }
   }
+
+  async save(cart: Cart): Promise<void> {
+    const cartItemsRows: CartItemRow[] = PostgresCartMapper.toRows(cart);
+
+    try {
+      await this.db.transaction(async (tx) => {
+        // delete all cartItems for this user
+        await tx
+          .delete(cartItem)
+          .where(eq(cartItem.user_id, cart.userId.value));
+
+        // insert new cartItems
+        await tx.insert(cartItem).values(cartItemsRows);
+      });
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresCartRepository.save",
+        error,
+      );
+    }
+  }
 }
