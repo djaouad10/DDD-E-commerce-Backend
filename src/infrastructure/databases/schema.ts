@@ -347,6 +347,9 @@ export const rating = pgTable(
     comment: varchar("comment", { length: 1000 }),
     is_approved: boolean("is_approved").notNull().default(false),
     created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at")
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (t) => [
     primaryKey({ columns: [t.user_id, t.product_id] }),
@@ -487,3 +490,5 @@ export type DrizzleVariationSelect = InferSelectModel<typeof variation>;
 export type DrizzleFileSelect = InferSelectModel<typeof file>;
 
 export type DrizzleCartItemSelect = InferSelectModel<typeof cartItem>;
+
+export type DrizzleRatingSelect = InferSelectModel<typeof rating>;

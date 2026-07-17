@@ -113,6 +113,7 @@ CREATE TABLE "rating" (
 	"comment" varchar(1000),
 	"is_approved" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp NOT NULL,
 	CONSTRAINT "rating_user_id_product_id_pk" PRIMARY KEY("user_id","product_id")
 );
 --> statement-breakpoint
