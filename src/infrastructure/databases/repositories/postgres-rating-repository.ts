@@ -70,20 +70,17 @@ export class PostgresRatingRepository implements RatingRepository {
 
   async save(ratingAgg: Rating): Promise<void> {
     const ratingRow: RatingRow = PostgresRatingMapper.toRow(ratingAgg);
+    // remove the created_at field so it doesn't get overwritten by the onConflict
+    const { created_at, ...ratingRowToUpsert } = ratingRow;
 
     try {
-      await this.db.transaction(async (tx) => {
-        await tx
-          .delete(rating)
-          .where(
-            and(
-              eq(rating.user_id, ratingRow.user_id),
-              eq(rating.product_id, ratingRow.product_id),
-            ),
-          );
-
-        await tx.insert(rating).values(ratingRow);
-      });
+      await this.db
+        .insert(rating)
+        .values(ratingRow)
+        .onConflictDoUpdate({
+          target: [rating.user_id, rating.product_id],
+          set: ratingRowToUpsert,
+        });
     } catch (error) {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
