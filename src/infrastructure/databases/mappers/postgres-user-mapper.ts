@@ -11,6 +11,7 @@ export class PostgresUserMapper {
       userRow.name,
       userRow.email,
       userRow.role,
+      userRow.emailVerified,
       userRow.image,
       !!userRow.banned,
       userRow.createdAt,
@@ -18,5 +19,21 @@ export class PostgresUserMapper {
       userRow.banReason ?? undefined,
       userRow.banExpires ?? undefined,
     );
+  }
+
+  static toRow(user: User): UserRow {
+    return {
+      id: user.id.value,
+      name: user.getName(),
+      email: user.email,
+      role: user.role,
+      emailVerified: user.getEmailVerified(),
+      image: user.getImage(),
+      banned: user.isBanned(),
+      banReason: user.getBanReason(),
+      banExpires: user.getBanExpires(),
+      createdAt: user.getCreatedAt(),
+      updatedAt: user.getUpdatedAt(),
+    };
   }
 }
