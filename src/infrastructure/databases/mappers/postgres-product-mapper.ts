@@ -88,7 +88,7 @@ export class PostgresProductMapper {
     };
   }
 
-  static toVariationRow(product: Product): VariationRow[] {
+  static toVariationRows(product: Product): VariationRow[] {
     return product.getVariations().map((v) => ({
       id: v.id.value,
       product_id: product.id.value,
@@ -102,7 +102,7 @@ export class PostgresProductMapper {
     }));
   }
 
-  static toFileRow(product: Product): FileRow[] {
+  static toFileRows(product: Product): FileRow[] {
     return product.getImages().map((f) => ({
       id: f.id.value,
       product_id: product.id.value,
