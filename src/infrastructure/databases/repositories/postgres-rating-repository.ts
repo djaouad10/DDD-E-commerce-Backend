@@ -92,4 +92,23 @@ export class PostgresRatingRepository implements RatingRepository {
       );
     }
   }
+
+  async delete(userId: UserId, productId: ProductId): Promise<void> {
+    try {
+      await this.db
+        .delete(rating)
+        .where(
+          and(
+            eq(rating.user_id, userId.value),
+            eq(rating.product_id, productId.value),
+          ),
+        );
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresRatingRepository.delete",
+        error,
+      );
+    }
+  }
 }
