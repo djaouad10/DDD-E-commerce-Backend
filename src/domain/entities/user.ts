@@ -20,7 +20,7 @@ export class User {
     private _name: string,
     readonly email: string,
     readonly role: UserRole,
-    private _image: string,
+    private _image: string | null,
     readonly createdAt: Date,
     private _updatedAt: Date,
     private _banned: boolean,
@@ -33,7 +33,7 @@ export class User {
     name: string,
     email: string,
     role: UserRole,
-    image: string,
+    image: string | null,
     banned: boolean,
     banReason?: string,
     banExpires?: Date,
@@ -66,7 +66,7 @@ export class User {
     name: string,
     email: string,
     role: UserRole,
-    image: string,
+    image: string | null,
     banned: boolean,
     createdAt: Date,
     updatedAt: Date,
@@ -100,7 +100,7 @@ export class User {
     this.recordThat(new UserProfileUpdated(this.id.value, ["name"]));
   }
 
-  updateImage(newImage: string): void {
+  updateImage(newImage: string | null): void {
     this._image = newImage;
     this._updatedAt = new Date();
 
@@ -141,7 +141,7 @@ export class User {
     return this._name;
   }
 
-  getImage(): string {
+  getImage(): string | null {
     return this._image;
   }
 
