@@ -1,7 +1,7 @@
 import type { Order } from "#/domain/entities/order.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import type { OrderId } from "#/domain/value-objects/order-id.js";
-import { db } from "#/infrastructure/config/database.js";
+import { type DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { eq } from "drizzle-orm";
 import { order, orderItem } from "../schema.js";
 import {
@@ -13,10 +13,12 @@ import {
 import { DatabaseError } from "#/shared/errors/domain-error.js";
 
 export class PostgresOrderRepository implements OrderRepository {
+  constructor(private db: DrizzleDBClient) {}
+
   async find(orderId: OrderId): Promise<Order | null> {
     try {
       const orderWithItemsRow: OrderWithItemsRow | undefined =
-        await db.query.order.findFirst({
+        await this.db.query.order.findFirst({
           where: eq(order.id, orderId.value),
           with: { order_items: true },
         });
@@ -40,7 +42,7 @@ export class PostgresOrderRepository implements OrderRepository {
 
     try {
       const manyOrdersWithItemsRows: OrderWithItemsRow[] =
-        await db.query.order.findMany({
+        await this.db.query.order.findMany({
           where: (order, { inArray }) =>
             inArray(
               order.id,
@@ -69,7 +71,7 @@ export class PostgresOrderRepository implements OrderRepository {
     const { created_at, ...orderRowToUpsert } = orderRow;
 
     try {
-      await db.transaction(async (tx) => {
+      await this.db.transaction(async (tx) => {
         await tx
           .insert(order)
           .values(orderRow)
@@ -96,7 +98,7 @@ export class PostgresOrderRepository implements OrderRepository {
   async delete(id: OrderId): Promise<void> {
     try {
       // order items will be deleted automatically (on delete cascade)
-      await db.delete(order).where(eq(order.id, id.value));
+      await this.db.delete(order).where(eq(order.id, id.value));
     } catch (error) {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",

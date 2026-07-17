@@ -8,13 +8,15 @@ import {
   type CategoryRow,
 } from "../mappers/postgres-category-mapper.js";
 import { category } from "../schema.js";
-import { db } from "#/infrastructure/config/database.js";
+import { type DrizzleDBClient } from "#/infrastructure/config/database.js";
 
 export class PostgresCategoryRepository implements CategoryRepository {
+  constructor(private db: DrizzleDBClient) {}
+
   async find(id: CategoryId): Promise<Category | null> {
     try {
       const categoryRow: CategoryRow | undefined =
-        await db.query.category.findFirst({
+        await this.db.query.category.findFirst({
           where: eq(category.id, id.value),
         });
 
@@ -34,7 +36,8 @@ export class PostgresCategoryRepository implements CategoryRepository {
 
   async findMany(): Promise<Category[]> {
     try {
-      const categoriesRows: CategoryRow[] = await db.query.category.findMany();
+      const categoriesRows: CategoryRow[] =
+        await this.db.query.category.findMany();
       return categoriesRows.map(PostgresCategoryMapper.toDomain);
     } catch (error) {
       throw new DatabaseError(
@@ -51,7 +54,7 @@ export class PostgresCategoryRepository implements CategoryRepository {
       PostgresCategoryMapper.toRow(categoryEntity);
 
     try {
-      await db
+      await this.db
         .insert(category)
         .values(categoryRow)
         .onConflictDoUpdate({
@@ -69,7 +72,7 @@ export class PostgresCategoryRepository implements CategoryRepository {
 
   async delete(id: CategoryId): Promise<void> {
     try {
-      await db.delete(category).where(eq(category.id, id.value));
+      await this.db.delete(category).where(eq(category.id, id.value));
     } catch (error) {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
