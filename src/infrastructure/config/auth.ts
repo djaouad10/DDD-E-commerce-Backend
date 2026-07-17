@@ -5,6 +5,7 @@ import { env } from "./env.js";
 import { db } from "./database.js";
 import { getUserById } from "../databases/utils.js";
 import { UserRole } from "#/domain/entities/user.js";
+import { UserId } from "#/domain/value-objects/user-id.js";
 
 const customSessionPlugin = customSession(async ({ user: myUser }) => {
   const dbUser = await getUserById(myUser.id);
@@ -21,6 +22,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+
   socialProviders: {
     google: {
       clientId: env.GOOGLE_CLIENT_ID,
@@ -47,7 +49,7 @@ export const auth = betterAuth({
         const cleanUuid = uuid.replace(/-/g, "");
 
         if (model === "user") {
-          return `usr_${cleanUuid}`;
+          return UserId.generate().value;
         }
 
         return cleanUuid;
