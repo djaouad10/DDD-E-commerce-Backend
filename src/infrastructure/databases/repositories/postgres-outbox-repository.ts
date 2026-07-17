@@ -8,10 +8,15 @@ import type {
 } from "#/infrastructure/config/database.js";
 import { DatabaseError } from "#/shared/errors/domain-error.js";
 import { outbox } from "../schema.js";
-import { OutboxCategory, OutboxStatus } from "../outbox/types.js";
+import {
+  OutboxCategory,
+  OutboxStatus,
+  type OutboxJobRow,
+} from "../outbox/types.js";
 import type { DomainEvent } from "#/domain/events/domain-event.js";
 import { generateOutboxId } from "../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
+import { and, eq, lte } from "drizzle-orm";
 
 export class PostgresOutboxRepository implements OutboxRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -69,6 +74,38 @@ export class PostgresOutboxRepository implements OutboxRepository {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
         "PostgresOutboxRepository.saveEvents",
+        error,
+      );
+    }
+  }
+
+  // Methods used by infrastructure workers, NOT part of the application interface:
+
+  async getPendingJobs(limit = 100): Promise<OutboxJobRow[]> {
+    try {
+      const outboxJobRows = await this.db.query.outbox.findMany({
+        where: and(
+          eq(outbox.category, OutboxCategory.OUTBOX_JOB),
+          eq(outbox.status, OutboxStatus.PENDING),
+
+          lte(outbox.scheduledAt, new Date()),
+        ),
+        orderBy: (outbox, { asc }) => [
+          asc(outbox.scheduledAt),
+          asc(outbox.created_at),
+        ],
+        limit,
+      });
+
+      return outboxJobRows.map((row) => ({
+        ...row,
+        category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobRow type
+        event_type: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
+      }));
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresOutboxRepository.getPendingJobs",
         error,
       );
     }
