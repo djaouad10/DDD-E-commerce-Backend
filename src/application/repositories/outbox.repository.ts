@@ -17,7 +17,6 @@ export type OutboxAction = (typeof OutboxAction)[keyof typeof OutboxAction];
 export interface OutboxRepository {
   // called by application services inside the same transaction as aggregate saves
   saveJob(params: {
-    id: string;
     action: OutboxAction;
     payload: Record<string, unknown>;
     scheduledAt?: Date; // optional, defaults to now
