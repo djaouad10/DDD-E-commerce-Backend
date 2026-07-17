@@ -5,5 +5,5 @@ export type CartRepository = {
   findByUserId: (userId: UserId) => Promise<Cart>; // it doesn't return Promise<Cart | null>, because if a user passed the auth check then he exists in the DB, so he either has an empty cart or a cart with items
 
   save: (cart: Cart) => Promise<void>;
-  delete: (id: UserId) => Promise<void>;
+  delete: (userId: UserId) => Promise<void>;
 };

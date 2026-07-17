@@ -41,12 +41,26 @@ export class PostgresCartRepository implements CartRepository {
           .where(eq(cartItem.user_id, cart.userId.value));
 
         // insert new cartItems
-        await tx.insert(cartItem).values(cartItemsRows);
+        if (cartItemsRows.length > 0) {
+          await tx.insert(cartItem).values(cartItemsRows);
+        }
       });
     } catch (error) {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
         "PostgresCartRepository.save",
+        error,
+      );
+    }
+  }
+
+  async delete(userId: UserId): Promise<void> {
+    try {
+      await this.db.delete(cartItem).where(eq(cartItem.user_id, userId.value));
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresCartRepository.delete",
         error,
       );
     }
