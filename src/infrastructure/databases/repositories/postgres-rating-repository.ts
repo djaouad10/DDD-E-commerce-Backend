@@ -2,7 +2,10 @@ import type { Rating } from "#/domain/entities/rating.js";
 import type { RatingRepository } from "#/domain/repositories/rating.repository.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
+import type {
+  DrizzleDBClient,
+  DrizzleTransactionClient,
+} from "#/infrastructure/config/database.js";
 import { DatabaseError } from "#/shared/errors/domain-error.js";
 import { and, eq } from "drizzle-orm";
 import {
@@ -10,6 +13,7 @@ import {
   type RatingRow,
 } from "../mappers/postgres-rating-mapper.js";
 import { rating } from "../schema.js";
+import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
 export class PostgresRatingRepository implements RatingRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -68,13 +72,15 @@ export class PostgresRatingRepository implements RatingRepository {
     }
   }
 
-  async save(ratingAgg: Rating): Promise<void> {
+  async save(ratingAgg: Rating, tx?: TransactionClient): Promise<void> {
+    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+
     const ratingRow: RatingRow = PostgresRatingMapper.toRow(ratingAgg);
     // remove the created_at field so it doesn't get overwritten by the onConflict
     const { created_at, ...ratingRowToUpsert } = ratingRow;
 
     try {
-      await this.db
+      await db
         .insert(rating)
         .values(ratingRow)
         .onConflictDoUpdate({
@@ -90,9 +96,15 @@ export class PostgresRatingRepository implements RatingRepository {
     }
   }
 
-  async delete(userId: UserId, productId: ProductId): Promise<void> {
+  async delete(
+    userId: UserId,
+    productId: ProductId,
+    tx?: TransactionClient,
+  ): Promise<void> {
+    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+
     try {
-      await this.db
+      await db
         .delete(rating)
         .where(
           and(

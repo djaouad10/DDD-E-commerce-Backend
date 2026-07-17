@@ -1,7 +1,10 @@
 import type { Order } from "#/domain/entities/order.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import type { OrderId } from "#/domain/value-objects/order-id.js";
-import { type DrizzleDBClient } from "#/infrastructure/config/database.js";
+import {
+  type DrizzleDBClient,
+  type DrizzleTransactionClient,
+} from "#/infrastructure/config/database.js";
 import { eq } from "drizzle-orm";
 import { order, orderItem } from "../schema.js";
 import {
@@ -11,6 +14,7 @@ import {
   type OrderWithItemsRow,
 } from "../mappers/postgres-order-mapper.js";
 import { DatabaseError } from "#/shared/errors/domain-error.js";
+import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
 export class PostgresOrderRepository implements OrderRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -61,7 +65,9 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
-  async save(orderAgg: Order): Promise<void> {
+  async save(orderAgg: Order, tx?: TransactionClient): Promise<void> {
+    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+
     // had to name it orderAgg because order is a reserved keyword for the schema table
     const orderRow: OrderRow = PostgresOrderMapper.toRow(orderAgg);
     const orderItemsRows: OrderItemRow[] =
@@ -71,7 +77,7 @@ export class PostgresOrderRepository implements OrderRepository {
     const { created_at, ...orderRowToUpsert } = orderRow;
 
     try {
-      await this.db.transaction(async (tx) => {
+      await db.transaction(async (tx) => {
         await tx
           .insert(order)
           .values(orderRow)
@@ -95,10 +101,12 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
-  async delete(id: OrderId): Promise<void> {
+  async delete(id: OrderId, tx?: TransactionClient): Promise<void> {
+    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+
     try {
       // order items will be deleted automatically (on delete cascade)
-      await this.db.delete(order).where(eq(order.id, id.value));
+      await db.delete(order).where(eq(order.id, id.value));
     } catch (error) {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",

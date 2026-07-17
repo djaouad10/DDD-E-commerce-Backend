@@ -1,7 +1,10 @@
 import type { Product } from "#/domain/entities/product.js";
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
+import type {
+  DrizzleDBClient,
+  DrizzleTransactionClient,
+} from "#/infrastructure/config/database.js";
 import { DatabaseError } from "#/shared/errors/domain-error.js";
 import { avg, eq, inArray } from "drizzle-orm";
 import {
@@ -10,6 +13,7 @@ import {
 } from "../mappers/postgres-product-mapper.js";
 import { file, product, rating, variation } from "../schema.js";
 import type { Slug } from "#/domain/value-objects/slug.js";
+import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
 export class PostgresProductRepository implements ProductRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -138,7 +142,9 @@ export class PostgresProductRepository implements ProductRepository {
     }
   }
 
-  async save(productAgg: Product): Promise<void> {
+  async save(productAgg: Product, tx?: TransactionClient): Promise<void> {
+    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+
     // the variations deletion will cascade to orderItems, which have an on delete restrict constraints on variationId column, so this opeation could fail
     // so should I check for this here, or should I check for this in application layer, so if the code ever reaches the product.save you know no orderItem is connected to a variation of this product
 
@@ -151,7 +157,7 @@ export class PostgresProductRepository implements ProductRepository {
     // onConflictDoUpdate will update the createdAt timestamp, so we don't include it in the "set" clause
     const { created_at, ...productRowToUpsert } = productRow;
     try {
-      await this.db.transaction(async (tx) => {
+      await db.transaction(async (tx) => {
         const [_, existingVariationIds] = await Promise.all([
           tx
             .insert(product)
@@ -225,11 +231,13 @@ export class PostgresProductRepository implements ProductRepository {
     }
   }
 
-  async delete(id: ProductId): Promise<void> {
+  async delete(id: ProductId, tx?: TransactionClient): Promise<void> {
+    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+
     try {
       // this should be called after making sure there are no orderItems connected to this product in application layer
       // variations and files will be deleted automatically (on delete cascade)
-      await this.db.delete(product).where(eq(product.id, id.value));
+      await db.delete(product).where(eq(product.id, id.value));
     } catch (error) {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",

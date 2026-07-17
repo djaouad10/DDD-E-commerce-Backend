@@ -8,7 +8,11 @@ import {
   type CategoryRow,
 } from "../mappers/postgres-category-mapper.js";
 import { category } from "../schema.js";
-import { type DrizzleDBClient } from "#/infrastructure/config/database.js";
+import {
+  type DrizzleDBClient,
+  type DrizzleTransactionClient,
+} from "#/infrastructure/config/database.js";
+import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
 export class PostgresCategoryRepository implements CategoryRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -48,13 +52,15 @@ export class PostgresCategoryRepository implements CategoryRepository {
     }
   }
 
-  async save(categoryEntity: Category): Promise<void> {
+  async save(categoryEntity: Category, tx?: TransactionClient): Promise<void> {
+    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+
     // named it categoryEntity because category is a reserved keyword
     const categoryRow: CategoryRow =
       PostgresCategoryMapper.toRow(categoryEntity);
 
     try {
-      await this.db
+      await db
         .insert(category)
         .values(categoryRow)
         .onConflictDoUpdate({
@@ -70,9 +76,11 @@ export class PostgresCategoryRepository implements CategoryRepository {
     }
   }
 
-  async delete(id: CategoryId): Promise<void> {
+  async delete(id: CategoryId, tx?: TransactionClient): Promise<void> {
+    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+
     try {
-      await this.db.delete(category).where(eq(category.id, id.value));
+      await db.delete(category).where(eq(category.id, id.value));
     } catch (error) {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
