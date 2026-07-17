@@ -9,9 +9,13 @@ import {
   type UserRow,
 } from "../mappers/postgres-user-mapper.js";
 import { user } from "../schema.js";
+import type { Auth } from "#/infrastructure/config/auth.js";
 
 export class PostgresUserRepository implements UserRepository {
-  constructor(private db: DrizzleDBClient) {}
+  constructor(
+    private db: DrizzleDBClient,
+    private auth: Auth,
+  ) {}
   async find(id: UserId): Promise<User | null> {
     try {
       const userRow: UserRow | undefined = await this.db.query.user.findFirst({
@@ -47,6 +51,24 @@ export class PostgresUserRepository implements UserRepository {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
         "PostgresUserRepository.findMany",
+        error,
+      );
+    }
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    try {
+      const userRow: UserRow | undefined = await this.db.query.user.findFirst({
+        where: eq(user.email, email),
+      });
+
+      if (!userRow) return null;
+
+      return PostgresUserMapper.toDomain(userRow);
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresUserRepository.findByEmail",
         error,
       );
     }
