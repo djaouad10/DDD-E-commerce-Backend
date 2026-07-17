@@ -9,12 +9,10 @@ import {
   type UserRow,
 } from "../mappers/postgres-user-mapper.js";
 import { user } from "../schema.js";
-import type { Auth } from "#/infrastructure/config/auth.js";
 
 export class PostgresUserRepository implements UserRepository {
   constructor(
     private db: DrizzleDBClient,
-    private auth: Auth,
   ) {}
   async find(id: UserId): Promise<User | null> {
     try {

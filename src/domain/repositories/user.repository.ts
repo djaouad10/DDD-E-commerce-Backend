@@ -5,6 +5,4 @@ export type UserRepository = {
   find: (id: UserId) => Promise<User | null>;
   findByEmail: (email: string) => Promise<User | null>;
   findMany: (ids: UserId[]) => Promise<User[]>;
-  save: (user: User) => Promise<void>;
-  delete: (id: UserId) => Promise<void>;
 };
