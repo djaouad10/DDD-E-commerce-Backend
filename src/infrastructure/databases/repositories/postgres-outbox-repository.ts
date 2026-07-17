@@ -11,9 +11,13 @@ import { outbox } from "../schema.js";
 import {
   OutboxCategory,
   OutboxStatus,
+  type OutboxDomainEventRow,
   type OutboxJobRow,
 } from "../outbox/types.js";
-import type { DomainEvent } from "#/domain/events/domain-event.js";
+import type {
+  DomainEvent,
+  DomainEventType,
+} from "#/domain/events/domain-event.js";
 import { generateOutboxId } from "../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { and, eq, lte } from "drizzle-orm";
@@ -106,6 +110,35 @@ export class PostgresOutboxRepository implements OutboxRepository {
       throw new DatabaseError(
         error instanceof Error ? error.message : "Unknown database error",
         "PostgresOutboxRepository.getPendingJobs",
+        error,
+      );
+    }
+  }
+
+  async getPendingEvents(limit = 100): Promise<OutboxDomainEventRow[]> {
+    try {
+      const outboxDomainEventRows = await this.db.query.outbox.findMany({
+        where: and(
+          eq(outbox.category, OutboxCategory.DOMAIN_EVENT),
+          eq(outbox.status, OutboxStatus.PENDING),
+          lte(outbox.scheduledAt, new Date()),
+        ),
+        orderBy: (outbox, { asc }) => [
+          asc(outbox.scheduledAt),
+          asc(outbox.created_at),
+        ],
+        limit,
+      });
+
+      return outboxDomainEventRows.map((row) => ({
+        ...row,
+        category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventRow type
+        event_type: row.event_type as DomainEventType, // this cast is safe because we know the event_type is a valid DomainEventType when the category is DOMAIN_EVENT
+      }));
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresOutboxRepository.getPendingEvents",
         error,
       );
     }
