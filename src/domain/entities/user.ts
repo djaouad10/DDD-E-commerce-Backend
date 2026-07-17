@@ -20,6 +20,7 @@ export class User {
     private _name: string,
     readonly email: string,
     readonly role: UserRole,
+    private _emailVerified: boolean,
     private _image: string | null,
     readonly createdAt: Date,
     private _updatedAt: Date,
@@ -34,6 +35,7 @@ export class User {
     email: string,
     role: UserRole,
     image: string | null,
+    emailVerified: boolean,
     banned: boolean,
     banReason?: string,
     banExpires?: Date,
@@ -47,6 +49,7 @@ export class User {
       name,
       email,
       role,
+      emailVerified,
       image,
       now,
       now,
@@ -66,6 +69,7 @@ export class User {
     name: string,
     email: string,
     role: UserRole,
+    emailVerified: boolean,
     image: string | null,
     banned: boolean,
     createdAt: Date,
@@ -80,6 +84,7 @@ export class User {
       name,
       email,
       role,
+      emailVerified,
       image,
       createdAt,
       updatedAt,
@@ -149,6 +154,25 @@ export class User {
     return this._banned;
   }
 
+  getBanReason(): string | null {
+    return this._banReason;
+  }
+
+  getBanExpires(): Date | null {
+    return this._banExpires;
+  }
+
+  getUpdatedAt(): Date {
+    return this._updatedAt;
+  }
+
+  getCreatedAt(): Date {
+    return this.createdAt;
+  }
+
+  getEmailVerified(): boolean {
+    return this._emailVerified;
+  }
   // mappers
   toSnapshot(): UserSnapshot {
     // construct a public, serilizable, user facing object
