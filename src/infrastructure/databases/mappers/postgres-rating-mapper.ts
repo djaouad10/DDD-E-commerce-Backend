@@ -17,4 +17,16 @@ export class PostgresRatingMapper {
       ratingRow.updated_at,
     );
   }
+
+  static toRow(rating: Rating): RatingRow {
+    return {
+      user_id: rating.userId.value,
+      product_id: rating.productId.value,
+      rating: rating.getRating(),
+      comment: rating.getComment(),
+      is_approved: rating.isApproved(),
+      created_at: rating.getCreatedAt(),
+      updated_at: rating.getUpdatedAt(),
+    };
+  }
 }
