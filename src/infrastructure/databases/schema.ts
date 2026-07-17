@@ -485,3 +485,5 @@ export type DrizzleProductSelect = InferSelectModel<typeof product>;
 export type DrizzleVariationSelect = InferSelectModel<typeof variation>;
 
 export type DrizzleFileSelect = InferSelectModel<typeof file>;
+
+export type DrizzleCartItemSelect = InferSelectModel<typeof cartItem>;
