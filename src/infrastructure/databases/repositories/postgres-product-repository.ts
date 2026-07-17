@@ -224,4 +224,18 @@ export class PostgresProductRepository implements ProductRepository {
       );
     }
   }
+
+  async delete(id: ProductId): Promise<void> {
+    try {
+      // this should be called after making sure there are no orderItems connected to this product in application layer
+      // variations and files will be deleted automatically (on delete cascade)
+      await this.db.delete(product).where(eq(product.id, id.value));
+    } catch (error) {
+      throw new DatabaseError(
+        error instanceof Error ? error.message : "Unknown database error",
+        "PostgresProductRepository.delete",
+        error,
+      );
+    }
+  }
 }
