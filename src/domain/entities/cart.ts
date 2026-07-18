@@ -14,7 +14,8 @@ export class Cart {
   private _events: DomainEvent[] = [];
 
   private constructor(
-    readonly id: CartId,
+    
+    readonly id: CartId, // for equality checks or event sourcing since it's regenrated on every load, rely on userId instead
     readonly userId: UserId,
     private _items: CartItem[],
     private _updatedAt: Date,
