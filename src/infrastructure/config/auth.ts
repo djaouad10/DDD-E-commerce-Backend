@@ -3,12 +3,14 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { admin, customSession } from "better-auth/plugins";
 import { env } from "./env.js";
 import { db } from "./database.js";
-import { getUserById } from "../databases/utils.js";
 import { UserRole } from "#/domain/entities/user.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
+import { PostgresUserRepository } from "../databases/repositories/postgres-user-repository.js";
+
+const userRepo = new PostgresUserRepository(db);
 
 const customSessionPlugin = customSession(async ({ user: myUser }) => {
-  const dbUser = await getUserById(myUser.id);
+  const dbUser = await userRepo.find(UserId.of(myUser.id));
 
   return {
     user: {
