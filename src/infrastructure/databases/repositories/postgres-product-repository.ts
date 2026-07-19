@@ -14,41 +14,64 @@ import { file, product, rating, variation } from "../schema.js";
 import type { Slug } from "#/domain/value-objects/slug.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "../utils.js";
+import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresProductRepository implements ProductRepository {
+  private readonly logger = createLogger("PostgresProductRepository");
+
   constructor(private db: DrizzleDBClient) {}
 
   async find(id: ProductId): Promise<Product | null> {
+    this.logger.debug("find called", { id: id.value });
+
     try {
-      // get product with variations and files
+      // get product row with variations and files
       const productWithVariationsAndFilesRow:
         | ProductWithVariationsAndFilesRow
-        | undefined = await this.db.query.product.findFirst({
-        where: eq(product.id, id.value),
-        with: { variations: true, images: true },
-      });
+        | undefined = await this.logger.measure(
+        "db.query.product.findFirst",
+        () =>
+          this.db.query.product.findFirst({
+            where: eq(product.id, id.value),
+            with: { variations: true, images: true },
+          }),
+      );
 
       // if product not found return null
       if (!productWithVariationsAndFilesRow) {
+        this.logger.debug("product not found", { id: id.value });
         return null;
       }
 
       // get average rating of product
-      const [ratingResult] = await this.db
-        .select({
-          productId: rating.product_id,
-          averageRating: avg(rating.rating).mapWith(Number),
-        })
-        .from(rating)
-        .where(eq(rating.product_id, id.value))
-        .groupBy(rating.product_id);
+      const [ratingResult] = await this.logger.measure(
+        "db.select.from.rating",
+        () =>
+          this.db
+            .select({
+              productId: rating.product_id,
+              averageRating: avg(rating.rating).mapWith(Number),
+            })
+            .from(rating)
+            .where(eq(rating.product_id, id.value))
+            .groupBy(rating.product_id),
+      );
 
       // reconstitute product aggregate and return it
-      return PostgresProductMapper.toDomain(
+      const productToReturn = PostgresProductMapper.toDomain(
         productWithVariationsAndFilesRow,
         ratingResult?.averageRating ?? null,
       );
+
+      this.logger.debug("find completed", {
+        id: id.value,
+        product: productToReturn.toSnapshot(),
+      });
+
+      return productToReturn;
     } catch (error) {
+      this.logger.error("find failed", error as Error, { id: id.value });
+
       handleDrizzleErrors(error, "PostgresProductRepository.find");
     }
   }
