@@ -9,19 +9,41 @@ import {
 } from "../mappers/postgres-user-mapper.js";
 import { user } from "../schema.js";
 import { handleDrizzleErrors } from "../utils.js";
+import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresUserRepository implements UserRepository {
+  private logger = createLogger("PostgresUserRepository");
+
   constructor(private db: DrizzleDBClient) {}
   async find(id: UserId): Promise<User | null> {
+    this.logger.debug("find called", { id: id.value });
+
     try {
-      const userRow: UserRow | undefined = await this.db.query.user.findFirst({
-        where: eq(user.id, id.value),
+      const userRow: UserRow | undefined = await this.logger.measure(
+        "db.query.user.findFirst",
+        () =>
+          this.db.query.user.findFirst({
+            where: eq(user.id, id.value),
+          }),
+      );
+
+      if (!userRow) {
+        this.logger.debug("user not found", { id: id.value });
+
+        return null;
+      }
+
+      const userToReturn = PostgresUserMapper.toDomain(userRow);
+
+      this.logger.debug("find completed", {
+        id: id.value,
+        user: userToReturn.toSnapshot(),
       });
 
-      if (!userRow) return null;
-
-      return PostgresUserMapper.toDomain(userRow);
+      return userToReturn;
     } catch (error) {
+      this.logger.error("find failed", error as Error, { id: id.value });
+
       handleDrizzleErrors(error, "PostgresUserRepository.find");
     }
   }
