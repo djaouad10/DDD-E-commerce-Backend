@@ -36,7 +36,7 @@ export class PostgresCartRepository implements CartRepository {
 
       this.logger.debug("findByUserId completed", {
         userId: userId.value,
-        itemsCount: cart.getItems().length,
+        itemsCount: cart.toSnapshot(),
       });
 
       return cart;

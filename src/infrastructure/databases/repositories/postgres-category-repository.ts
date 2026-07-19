@@ -45,7 +45,7 @@ export class PostgresCategoryRepository implements CategoryRepository {
 
       this.logger.debug("find completed", {
         id: id.value,
-        category: categoryToReturn,
+        category: categoryToReturn.toSnapshot(),
       });
 
       // return category
