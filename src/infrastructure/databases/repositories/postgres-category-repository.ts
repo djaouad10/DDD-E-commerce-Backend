@@ -82,22 +82,32 @@ export class PostgresCategoryRepository implements CategoryRepository {
     }
   }
 
-  async save(categoryEntity: Category, tx?: TransactionClient): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+  async save(categoryEntity: Category, tx: TransactionClient): Promise<void> {
+    this.logger.debug("save called", { id: categoryEntity.id.value });
+
+    const db = tx as DrizzleTransactionClient;
 
     // named it categoryEntity because category is a reserved keyword
     const categoryRow: CategoryRow =
       PostgresCategoryMapper.toRow(categoryEntity);
 
     try {
-      await db
-        .insert(category)
-        .values(categoryRow)
-        .onConflictDoUpdate({
-          target: [category.id],
-          set: categoryRow,
-        });
+      await this.logger.measure("db.insertOrUpdate", () =>
+        db
+          .insert(category)
+          .values(categoryRow)
+          .onConflictDoUpdate({
+            target: [category.id],
+            set: categoryRow,
+          }),
+      );
+
+      this.logger.debug("save completed", { id: categoryEntity.id.value });
     } catch (error) {
+      this.logger.error("save failed", error as Error, {
+        id: categoryEntity.id.value,
+      });
+
       handleDrizzleErrors(error, "PostgresCategoryRepository.save");
     }
   }
