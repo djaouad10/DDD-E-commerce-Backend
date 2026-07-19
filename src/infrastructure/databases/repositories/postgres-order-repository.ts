@@ -19,6 +19,7 @@ import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresOrderRepository implements OrderRepository {
   private logger = createLogger("PostgresOrderRepository");
+
   constructor(private db: DrizzleDBClient) {}
 
   async find(orderId: OrderId): Promise<Order | null> {
@@ -92,8 +93,10 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
-  async save(orderAgg: Order, tx?: TransactionClient): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+  async save(orderAgg: Order, tx: TransactionClient): Promise<void> {
+    this.logger.debug("save called", { id: orderAgg.id.value });
+
+    const db = tx as DrizzleTransactionClient;
 
     // had to name it orderAgg because order is a reserved keyword for the schema table
     const orderRow: OrderRow = PostgresOrderMapper.toRow(orderAgg);
@@ -104,22 +107,33 @@ export class PostgresOrderRepository implements OrderRepository {
     const { created_at, ...orderRowToUpsert } = orderRow;
 
     try {
-      await db.transaction(async (tx) => {
-        await tx
+      // already in a transaction orchestrated by application service
+      await this.logger.measure("db.insert(order)", () =>
+        db
           .insert(order)
           .values(orderRow)
           .onConflictDoUpdate({
             target: [order.id],
             set: orderRowToUpsert,
-          });
+          }),
+      );
 
-        await tx.delete(orderItem).where(eq(orderItem.orderId, orderRow.id));
+      await this.logger.measure("db.delete(orderItem)", () =>
+        db.delete(orderItem).where(eq(orderItem.orderId, orderRow.id)),
+      );
 
-        if (orderItemsRows.length > 0) {
-          await tx.insert(orderItem).values(orderItemsRows);
-        }
-      });
+      if (orderItemsRows.length > 0) {
+        await this.logger.measure("db.insert(orderItem)", () =>
+          db.insert(orderItem).values(orderItemsRows),
+        );
+      }
+
+      this.logger.debug("save completed", { id: orderAgg.id.value });
     } catch (error) {
+      this.logger.error("save failed", error as Error, {
+        id: orderAgg.id.value,
+      });
+
       handleDrizzleErrors(error, "PostgresOrderRepository.save");
     }
   }
