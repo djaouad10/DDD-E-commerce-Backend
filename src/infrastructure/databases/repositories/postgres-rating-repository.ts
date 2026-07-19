@@ -99,13 +99,29 @@ export class PostgresRatingRepository implements RatingRepository {
   }
 
   async findManyByUserId(userId: UserId): Promise<Rating[]> {
+    this.logger.debug("findManyByUserId called", { userId: userId.value });
+
     try {
-      const ratingRows: RatingRow[] = await this.db.query.rating.findMany({
-        where: (rating, { eq }) => eq(rating.user_id, userId.value),
+      const ratingRows: RatingRow[] = await this.logger.measure(
+        "db.query.rating.findMany",
+        () =>
+          this.db.query.rating.findMany({
+            where: (rating, { eq }) => eq(rating.user_id, userId.value),
+          }),
+      );
+
+      const ratingsToReturn = ratingRows.map(PostgresRatingMapper.toDomain);
+
+      this.logger.debug("findManyByUserId completed", {
+        ratingsCount: ratingsToReturn.length,
       });
 
-      return ratingRows.map(PostgresRatingMapper.toDomain);
+      return ratingsToReturn;
     } catch (error) {
+      this.logger.error("findManyByUserId failed", error as Error, {
+        userId: userId.value,
+      });
+
       handleDrizzleErrors(error, "PostgresRatingRepository.findManyByUserId");
     }
   }
