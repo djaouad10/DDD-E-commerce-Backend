@@ -187,13 +187,19 @@ export class PostgresOutboxRepository implements OutboxRepository {
   }
 
   async updateRow(params: UpdateOutboxRowParams): Promise<void> {
+    this.logger.debug("updateRow called", { id: params.id });
+
     const { id: rowId, ...updateParams } = params;
+
     try {
-      await this.db
-        .update(outbox)
-        .set(updateParams)
-        .where(eq(outbox.id, rowId));
+      await this.logger.measure("db.update(outbox)", () =>
+        this.db.update(outbox).set(updateParams).where(eq(outbox.id, rowId)),
+      );
+
+      this.logger.debug("updateRow completed", { id: params.id });
     } catch (error) {
+      this.logger.error("updateRow failed", error as Error, { id: params.id });
+
       handleDrizzleErrors(error, "PostgresOutboxRepository.updateRow");
     }
   }
