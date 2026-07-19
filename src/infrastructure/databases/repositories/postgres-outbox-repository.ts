@@ -22,8 +22,11 @@ import { generateOutboxId } from "../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { and, eq, lte } from "drizzle-orm";
 import { handleDrizzleErrors } from "../utils.js";
+import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresOutboxRepository implements OutboxRepository {
+  private logger = createLogger("PostgresOutboxRepository");
+
   constructor(private db: DrizzleDBClient) {}
   async saveJob(
     params: {
@@ -33,19 +36,29 @@ export class PostgresOutboxRepository implements OutboxRepository {
     },
     tx?: TransactionClient,
   ): Promise<void> {
+    this.logger.debug("saveJob called", { action: params.action });
+
     const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
 
     try {
-      await db.insert(outbox).values({
-        id: generateOutboxId(),
-        category: OutboxCategory.OUTBOX_JOB,
-        event_type: params.action,
-        payload: params.payload,
-        status: OutboxStatus.PENDING,
-        attempts: 0,
-        scheduledAt: params.scheduledAt ?? new Date(),
-      });
+      await this.logger.measure("db.insert(outbox)", () =>
+        db.insert(outbox).values({
+          id: generateOutboxId(),
+          category: OutboxCategory.OUTBOX_JOB,
+          event_type: params.action,
+          payload: params.payload,
+          status: OutboxStatus.PENDING,
+          attempts: 0,
+          scheduledAt: params.scheduledAt ?? new Date(),
+        }),
+      );
+
+      this.logger.debug("saveJob completed", { action: params.action });
     } catch (error) {
+      this.logger.error("saveJob failed", error as Error, {
+        action: params.action,
+      });
+
       handleDrizzleErrors(error, "PostgresOutboxRepository.saveJob");
     }
   }
