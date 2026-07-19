@@ -135,43 +135,64 @@ export class PostgresProductRepository implements ProductRepository {
   }
 
   async findMany(ids: ProductId[]): Promise<Product[]> {
-    if (ids.length === 0) return [];
+    this.logger.debug("findMany called");
+
+    if (ids.length === 0) {
+      this.logger.debug("findMany completed");
+
+      return [];
+    }
+
     try {
       // get products with their variations and files
       const productWithVariationsAndFilesRow:
         | ProductWithVariationsAndFilesRow[]
-        | undefined = await this.db.query.product.findMany({
-        where: (product, { inArray }) =>
-          inArray(
-            product.id,
-            ids.map((id) => id.value),
-          ),
-        with: { variations: true, images: true },
-      });
+        | undefined = await this.logger.measure(
+        "db.query.product.findMany",
+        () =>
+          this.db.query.product.findMany({
+            where: (product, { inArray }) =>
+              inArray(
+                product.id,
+                ids.map((id) => id.value),
+              ),
+            with: { variations: true, images: true },
+          }),
+      );
 
       // get average rating of products
-      const ratings = await this.db
-        .select({
-          productId: rating.product_id,
-          avg: avg(rating.rating).mapWith(Number),
-        })
-        .from(rating)
-        .where(
-          inArray(
-            rating.product_id,
-            ids.map((id) => id.value),
-          ),
-        )
-        .groupBy(rating.product_id);
+      const ratings = await this.logger.measure("db.select.from.rating", () =>
+        this.db
+          .select({
+            productId: rating.product_id,
+            avg: avg(rating.rating).mapWith(Number),
+          })
+          .from(rating)
+          .where(
+            inArray(
+              rating.product_id,
+              ids.map((id) => id.value),
+            ),
+          )
+          .groupBy(rating.product_id),
+      );
 
       // create a map of productId to average rating
       const ratingMap = new Map(ratings.map((r) => [r.productId, r.avg]));
 
       // reconstitute products aggregates and return them
-      return productWithVariationsAndFilesRow.map((row) =>
+      const productsToReturn = productWithVariationsAndFilesRow.map((row) =>
         PostgresProductMapper.toDomain(row, ratingMap.get(row.id) ?? null),
       );
+
+      this.logger.debug("findMany completed", {
+        productsCount: productsToReturn.length,
+      });
+
+      return productsToReturn;
     } catch (error) {
+      this.logger.error("findMany failed", error as Error);
+
       handleDrizzleErrors(error, "PostgresProductRepository.findMany");
     }
   }
