@@ -59,13 +59,13 @@ export class PostgresCartRepository implements CartRepository {
 
     try {
       // delete all cartItems for this user
-      await this.logger.measure("tx.delete", () =>
+      await this.logger.measure("db.delete", () =>
         db.delete(cartItem).where(eq(cartItem.user_id, cart.userId.value)),
       );
 
       // insert new cartItems
       if (cartItemsRows.length > 0) {
-        await this.logger.measure("tx.insert", () =>
+        await this.logger.measure("db.insert", () =>
           db.insert(cartItem).values(cartItemsRows),
         );
       }
@@ -80,12 +80,20 @@ export class PostgresCartRepository implements CartRepository {
     }
   }
 
-  async delete(userId: UserId, tx?: TransactionClient): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+  async delete(userId: UserId, tx: TransactionClient): Promise<void> {
+    this.logger.debug("delete called", { userId: userId.value });
+
+    const db = tx as DrizzleTransactionClient;
 
     try {
-      await db.delete(cartItem).where(eq(cartItem.user_id, userId.value));
+      await this.logger.measure("db.delete", () =>
+        db.delete(cartItem).where(eq(cartItem.user_id, userId.value)),
+      );
     } catch (error) {
+      this.logger.error("delete failed", error as Error, {
+        userId: userId.value,
+      });
+
       handleDrizzleErrors(error, "PostgresCartRepository.delete");
     }
   }
