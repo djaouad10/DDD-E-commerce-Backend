@@ -106,27 +106,41 @@ export class PostgresOutboxRepository implements OutboxRepository {
   // Methods used by infrastructure workers, NOT part of the application interface:
 
   async getPendingJobs(limit = 100): Promise<OutboxJobRow[]> {
+    this.logger.debug("getPendingJobs called");
+
     try {
-      const outboxJobRows = await this.db.query.outbox.findMany({
-        where: and(
-          eq(outbox.category, OutboxCategory.OUTBOX_JOB),
-          eq(outbox.status, OutboxStatus.PENDING),
+      const outboxJobRows = await this.logger.measure(
+        "db.query.outbox.findMany",
+        () =>
+          this.db.query.outbox.findMany({
+            where: and(
+              eq(outbox.category, OutboxCategory.OUTBOX_JOB),
+              eq(outbox.status, OutboxStatus.PENDING),
 
-          lte(outbox.scheduledAt, new Date()),
-        ),
-        orderBy: (outbox, { asc }) => [
-          asc(outbox.scheduledAt),
-          asc(outbox.created_at),
-        ],
-        limit,
-      });
+              lte(outbox.scheduledAt, new Date()),
+            ),
+            orderBy: (outbox, { asc }) => [
+              asc(outbox.scheduledAt),
+              asc(outbox.created_at),
+            ],
+            limit,
+          }),
+      );
 
-      return outboxJobRows.map((row) => ({
+      const outboxJobRowsToReturn = outboxJobRows.map((row) => ({
         ...row,
         category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobRow type
         event_type: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
       }));
+
+      this.logger.debug("getPendingJobs completed", {
+        jobsCount: outboxJobRowsToReturn.length,
+      });
+
+      return outboxJobRowsToReturn;
     } catch (error) {
+      this.logger.error("getPendingJobs failed", error as Error);
+
       handleDrizzleErrors(error, "PostgresOutboxRepository.getPendingJobs");
     }
   }
