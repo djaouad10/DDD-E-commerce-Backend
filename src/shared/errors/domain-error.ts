@@ -4,7 +4,8 @@ type ErrorCodes =
   | "INSUFFICIENT_INVENTORY"
   | "UNAUTHORIZED"
   | "DATABASE_ERROR"
-  | "EXTERNAL_API_ERROR";
+  | "EXTERNAL_API_ERROR"
+  | "CONFLICT";
 
 export abstract class DomainError extends Error {
   abstract readonly code: ErrorCodes;
@@ -60,6 +61,19 @@ export class UnauthorizedError extends DomainError {
 
   constructor(action: string, userId: string) {
     super(`Not authorized to ${action}`, { action, userId });
+  }
+}
+
+export class ConflictError extends DomainError {
+  readonly code = "CONFLICT";
+  readonly statusCode = 409;
+
+  constructor(resource: string, identifier: string, reason: string) {
+    super(`${resource} with identifier '${identifier}' conflicts: ${reason}`, {
+      resource,
+      identifier,
+      reason,
+    });
   }
 }
 
