@@ -168,18 +168,35 @@ export class PostgresRatingRepository implements RatingRepository {
     productId: ProductId,
     tx?: TransactionClient,
   ): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+    this.logger.debug("delete called", {
+      userId: userId.value,
+      productId: productId.value,
+    });
+
+    const db = tx as DrizzleTransactionClient;
 
     try {
-      await db
-        .delete(rating)
-        .where(
-          and(
-            eq(rating.user_id, userId.value),
-            eq(rating.product_id, productId.value),
+      await this.logger.measure("db.delete(rating)", () =>
+        db
+          .delete(rating)
+          .where(
+            and(
+              eq(rating.user_id, userId.value),
+              eq(rating.product_id, productId.value),
+            ),
           ),
-        );
+      );
+
+      this.logger.debug("delete completed", {
+        userId: userId.value,
+        productId: productId.value,
+      });
     } catch (error) {
+      this.logger.error("delete failed", error as Error, {
+        userId: userId.value,
+        productId: productId.value,
+      });
+
       handleDrizzleErrors(error, "PostgresRatingRepository.delete");
     }
   }
