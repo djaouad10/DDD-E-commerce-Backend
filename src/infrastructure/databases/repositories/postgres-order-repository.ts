@@ -138,13 +138,21 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
-  async delete(id: OrderId, tx?: TransactionClient): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+  async delete(id: OrderId, tx: TransactionClient): Promise<void> {
+    this.logger.debug("delete called", { id: id.value });
+
+    const db = tx as DrizzleTransactionClient;
 
     try {
       // order items will be deleted automatically (on delete cascade)
-      await db.delete(order).where(eq(order.id, id.value));
+      await this.logger.measure("db.delete(order)", () =>
+        db.delete(order).where(eq(order.id, id.value)),
+      );
+
+      this.logger.debug("delete completed", { id: id.value });
     } catch (error) {
+      this.logger.error("delete failed", error as Error, { id: id.value });
+
       handleDrizzleErrors(error, "PostgresOrderRepository.delete");
     }
   }
