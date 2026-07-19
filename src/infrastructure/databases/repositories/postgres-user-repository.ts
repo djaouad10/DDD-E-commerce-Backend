@@ -85,15 +85,34 @@ export class PostgresUserRepository implements UserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
+    this.logger.debug("findByEmail called", { email: email });
+
     try {
-      const userRow: UserRow | undefined = await this.db.query.user.findFirst({
-        where: eq(user.email, email),
+      const userRow: UserRow | undefined = await this.logger.measure(
+        "db.query.user.findFirst",
+        () =>
+          this.db.query.user.findFirst({
+            where: eq(user.email, email),
+          }),
+      );
+
+      if (!userRow) {
+        this.logger.debug("user not found", { email: email });
+
+        return null;
+      }
+
+      const userToReturn = PostgresUserMapper.toDomain(userRow);
+
+      this.logger.debug("findByEmail completed", {
+        email: email,
+        user: userToReturn.toSnapshot(),
       });
 
-      if (!userRow) return null;
-
-      return PostgresUserMapper.toDomain(userRow);
+      return userToReturn;
     } catch (error) {
+      this.logger.error("findByEmail failed", error as Error, { email: email });
+
       handleDrizzleErrors(error, "PostgresUserRepository.findByEmail");
     }
   }
