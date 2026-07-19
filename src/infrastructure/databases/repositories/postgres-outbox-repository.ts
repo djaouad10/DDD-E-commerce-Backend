@@ -6,7 +6,6 @@ import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { DatabaseError } from "#/shared/errors/domain-error.js";
 import { outbox } from "../schema.js";
 import {
   OutboxCategory,
@@ -22,6 +21,7 @@ import type {
 import { generateOutboxId } from "../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { and, eq, lte } from "drizzle-orm";
+import { handleDrizzleErrors } from "../utils.js";
 
 export class PostgresOutboxRepository implements OutboxRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -46,11 +46,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
         scheduledAt: params.scheduledAt ?? new Date(),
       });
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOutboxRepository.saveJob",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresOutboxRepository.saveJob");
     }
   }
 
@@ -76,11 +72,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
     try {
       await db.insert(outbox).values(outboxRows);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOutboxRepository.saveEvents",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresOutboxRepository.saveEvents");
     }
   }
 
@@ -108,11 +100,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
         event_type: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
       }));
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOutboxRepository.getPendingJobs",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresOutboxRepository.getPendingJobs");
     }
   }
 
@@ -137,11 +125,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
         event_type: row.event_type as DomainEventType, // this cast is safe because we know the event_type is a valid DomainEventType when the category is DOMAIN_EVENT
       }));
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOutboxRepository.getPendingEvents",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresOutboxRepository.getPendingEvents");
     }
   }
 
@@ -153,11 +137,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
         .set(updateParams)
         .where(eq(outbox.id, rowId));
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOutboxRepository.updateRow",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresOutboxRepository.updateRow");
     }
   }
 }

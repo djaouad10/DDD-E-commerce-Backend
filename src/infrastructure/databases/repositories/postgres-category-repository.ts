@@ -1,7 +1,6 @@
 import type { Category } from "#/domain/entities/category.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
 import type { CategoryId } from "#/domain/value-objects/category-id.js";
-import { DatabaseError } from "#/shared/errors/domain-error.js";
 import { eq } from "drizzle-orm";
 import {
   PostgresCategoryMapper,
@@ -13,6 +12,7 @@ import {
   type DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
+import { handleDrizzleErrors } from "../utils.js";
 
 export class PostgresCategoryRepository implements CategoryRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -30,11 +30,7 @@ export class PostgresCategoryRepository implements CategoryRepository {
 
       return PostgresCategoryMapper.toDomain(categoryRow);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresCategoryRepository.find",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresCategoryRepository.find");
     }
   }
 
@@ -44,11 +40,7 @@ export class PostgresCategoryRepository implements CategoryRepository {
         await this.db.query.category.findMany();
       return categoriesRows.map(PostgresCategoryMapper.toDomain);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresCategoryRepository.findMany",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresCategoryRepository.findMany");
     }
   }
 
@@ -68,11 +60,7 @@ export class PostgresCategoryRepository implements CategoryRepository {
           set: categoryRow,
         });
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresCategoryRepository.save",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresCategoryRepository.save");
     }
   }
 
@@ -82,11 +70,7 @@ export class PostgresCategoryRepository implements CategoryRepository {
     try {
       await db.delete(category).where(eq(category.id, id.value));
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresCategoryRepository.delete",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresCategoryRepository.delete");
     }
   }
 }

@@ -5,7 +5,6 @@ import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { DatabaseError } from "#/shared/errors/domain-error.js";
 import { avg, eq, inArray } from "drizzle-orm";
 import {
   PostgresProductMapper,
@@ -14,6 +13,7 @@ import {
 import { file, product, rating, variation } from "../schema.js";
 import type { Slug } from "#/domain/value-objects/slug.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
+import { handleDrizzleErrors } from "../utils.js";
 
 export class PostgresProductRepository implements ProductRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -49,11 +49,7 @@ export class PostgresProductRepository implements ProductRepository {
         ratingResult?.averageRating ?? null,
       );
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresProductRepository.find",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresProductRepository.find");
     }
   }
 
@@ -88,11 +84,7 @@ export class PostgresProductRepository implements ProductRepository {
         ratingResult?.averageRating ?? null,
       );
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresProductRepository.findBySlug",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresProductRepository.findBySlug");
     }
   }
 
@@ -134,11 +126,7 @@ export class PostgresProductRepository implements ProductRepository {
         PostgresProductMapper.toDomain(row, ratingMap.get(row.id) ?? null),
       );
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresProductRepository.findMany",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresProductRepository.findMany");
     }
   }
 
@@ -223,11 +211,7 @@ export class PostgresProductRepository implements ProductRepository {
         await Promise.all(upserts);
       });
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresProductRepository.save",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresProductRepository.save");
     }
   }
 
@@ -239,11 +223,7 @@ export class PostgresProductRepository implements ProductRepository {
       // variations and files will be deleted automatically (on delete cascade)
       await db.delete(product).where(eq(product.id, id.value));
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresProductRepository.delete",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresProductRepository.delete");
     }
   }
 }

@@ -5,7 +5,6 @@ import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { DatabaseError } from "#/shared/errors/domain-error.js";
 import { eq } from "drizzle-orm";
 import {
   PostgresCartMapper,
@@ -13,6 +12,7 @@ import {
 } from "../mappers/postgres-cart-mapper.js";
 import { cartItem } from "../schema.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
+import { handleDrizzleErrors } from "../utils.js";
 
 export class PostgresCartRepository implements CartRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -26,11 +26,7 @@ export class PostgresCartRepository implements CartRepository {
 
       return PostgresCartMapper.toDomain(cartItemsRows, userId.value);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresCartRepository.findByUserId",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresCartRepository.findByUserId");
     }
   }
 
@@ -52,11 +48,7 @@ export class PostgresCartRepository implements CartRepository {
         }
       });
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresCartRepository.save",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresCartRepository.save");
     }
   }
 
@@ -66,11 +58,7 @@ export class PostgresCartRepository implements CartRepository {
     try {
       await db.delete(cartItem).where(eq(cartItem.user_id, userId.value));
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresCartRepository.delete",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresCartRepository.delete");
     }
   }
 }

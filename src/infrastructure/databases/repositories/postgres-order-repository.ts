@@ -13,8 +13,8 @@ import {
   type OrderRow,
   type OrderWithItemsRow,
 } from "../mappers/postgres-order-mapper.js";
-import { DatabaseError } from "#/shared/errors/domain-error.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
+import { handleDrizzleErrors } from "../utils.js";
 
 export class PostgresOrderRepository implements OrderRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -33,11 +33,7 @@ export class PostgresOrderRepository implements OrderRepository {
 
       return PostgresOrderMapper.toDomain(orderWithItemsRow);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOrderRepository.find",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresOrderRepository.find");
     }
   }
 
@@ -57,11 +53,7 @@ export class PostgresOrderRepository implements OrderRepository {
 
       return manyOrdersWithItemsRows.map(PostgresOrderMapper.toDomain);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOrderRepository.findMany",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresCategoryRepository.findMany");
     }
   }
 
@@ -93,11 +85,7 @@ export class PostgresOrderRepository implements OrderRepository {
         }
       });
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOrderRepository.save",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresOrderRepository.save");
     }
   }
 
@@ -108,11 +96,7 @@ export class PostgresOrderRepository implements OrderRepository {
       // order items will be deleted automatically (on delete cascade)
       await db.delete(order).where(eq(order.id, id.value));
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresOrderRepository.delete",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresOrderRepository.delete");
     }
   }
 }

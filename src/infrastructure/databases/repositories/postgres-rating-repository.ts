@@ -6,7 +6,6 @@ import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { DatabaseError } from "#/shared/errors/domain-error.js";
 import { and, eq } from "drizzle-orm";
 import {
   PostgresRatingMapper,
@@ -14,6 +13,7 @@ import {
 } from "../mappers/postgres-rating-mapper.js";
 import { rating } from "../schema.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
+import { handleDrizzleErrors } from "../utils.js";
 
 export class PostgresRatingRepository implements RatingRepository {
   constructor(private db: DrizzleDBClient) {}
@@ -32,11 +32,7 @@ export class PostgresRatingRepository implements RatingRepository {
 
       return PostgresRatingMapper.toDomain(ratingRow);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresRatingRepository.find",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresRatingRepository.find");
     }
   }
 
@@ -48,10 +44,9 @@ export class PostgresRatingRepository implements RatingRepository {
 
       return ratingRows.map(PostgresRatingMapper.toDomain);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresRatingRepository.findManyByProductId",
+      handleDrizzleErrors(
         error,
+        "PostgresRatingRepository.findManyByProductId",
       );
     }
   }
@@ -64,11 +59,7 @@ export class PostgresRatingRepository implements RatingRepository {
 
       return ratingRows.map(PostgresRatingMapper.toDomain);
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresRatingRepository.findManyByUserId",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresRatingRepository.findManyByUserId");
     }
   }
 
@@ -88,11 +79,7 @@ export class PostgresRatingRepository implements RatingRepository {
           set: ratingRowToUpsert,
         });
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresRatingRepository.save",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresRatingRepository.save");
     }
   }
 
@@ -113,11 +100,7 @@ export class PostgresRatingRepository implements RatingRepository {
           ),
         );
     } catch (error) {
-      throw new DatabaseError(
-        error instanceof Error ? error.message : "Unknown database error",
-        "PostgresRatingRepository.delete",
-        error,
-      );
+      handleDrizzleErrors(error, "PostgresRatingRepository.delete");
     }
   }
 }
