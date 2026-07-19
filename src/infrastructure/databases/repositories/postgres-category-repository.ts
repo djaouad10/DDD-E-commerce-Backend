@@ -58,11 +58,26 @@ export class PostgresCategoryRepository implements CategoryRepository {
   }
 
   async findMany(): Promise<Category[]> {
+    this.logger.debug("findMany called");
+
     try {
-      const categoriesRows: CategoryRow[] =
-        await this.db.query.category.findMany();
-      return categoriesRows.map(PostgresCategoryMapper.toDomain);
+      const categoriesRows: CategoryRow[] = await this.logger.measure(
+        "db.query.category.findMany",
+        () => this.db.query.category.findMany(),
+      );
+
+      const categoriesToReturn = categoriesRows.map(
+        PostgresCategoryMapper.toDomain,
+      );
+
+      this.logger.debug("findMany completed", {
+        categoriesCount: categoriesToReturn.length,
+      });
+
+      return categoriesToReturn;
     } catch (error) {
+      this.logger.error("findMany failed", error as Error);
+
       handleDrizzleErrors(error, "PostgresCategoryRepository.findMany");
     }
   }
