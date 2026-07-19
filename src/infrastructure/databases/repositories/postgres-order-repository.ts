@@ -15,24 +15,41 @@ import {
 } from "../mappers/postgres-order-mapper.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "../utils.js";
+import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresOrderRepository implements OrderRepository {
+  private logger = createLogger("PostgresOrderRepository");
   constructor(private db: DrizzleDBClient) {}
 
   async find(orderId: OrderId): Promise<Order | null> {
+    this.logger.debug("find called", { id: orderId.value });
+
     try {
       const orderWithItemsRow: OrderWithItemsRow | undefined =
-        await this.db.query.order.findFirst({
-          where: eq(order.id, orderId.value),
-          with: { order_items: true },
-        });
+        await this.logger.measure("db.query.order.findFirst", () =>
+          this.db.query.order.findFirst({
+            where: eq(order.id, orderId.value),
+            with: { order_items: true },
+          }),
+        );
 
       if (!orderWithItemsRow) {
+        this.logger.debug("order not found", { id: orderId.value });
+
         return null;
       }
 
-      return PostgresOrderMapper.toDomain(orderWithItemsRow);
+      const orderToReturn = PostgresOrderMapper.toDomain(orderWithItemsRow);
+
+      this.logger.debug("find completed", {
+        id: orderId.value,
+        order: orderToReturn.toSnapshot(),
+      });
+
+      return orderToReturn;
     } catch (error) {
+      this.logger.error("find failed", error as Error, { id: orderId.value });
+
       handleDrizzleErrors(error, "PostgresOrderRepository.find");
     }
   }
