@@ -49,19 +49,37 @@ export class PostgresUserRepository implements UserRepository {
   }
 
   async findMany(ids: UserId[]): Promise<User[]> {
-    if (ids.length === 0) return [];
+    this.logger.debug("findMany called");
+
+    if (ids.length === 0) {
+      this.logger.debug("findMany completed");
+
+      return [];
+    }
 
     try {
-      const userRows: UserRow[] = await this.db.query.user.findMany({
-        where: (user, { inArray }) =>
-          inArray(
-            user.id,
-            ids.map((id) => id.value),
-          ),
+      const userRows: UserRow[] = await this.logger.measure(
+        "db.query.user.findMany",
+        () =>
+          this.db.query.user.findMany({
+            where: (user, { inArray }) =>
+              inArray(
+                user.id,
+                ids.map((id) => id.value),
+              ),
+          }),
+      );
+
+      const usersToReturn = userRows.map(PostgresUserMapper.toDomain);
+
+      this.logger.debug("findMany completed", {
+        usersCount: usersToReturn.length,
       });
 
-      return userRows.map(PostgresUserMapper.toDomain);
+      return usersToReturn;
     } catch (error) {
+      this.logger.error("findMany failed", error as Error);
+
       handleDrizzleErrors(error, "PostgresUserRepository.findMany");
     }
   }
