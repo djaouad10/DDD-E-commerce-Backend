@@ -13,23 +13,46 @@ import {
 } from "#/infrastructure/config/database.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "../utils.js";
+import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresCategoryRepository implements CategoryRepository {
+  private logger = createLogger("PostgresCategoryRepository");
+
   constructor(private db: DrizzleDBClient) {}
 
   async find(id: CategoryId): Promise<Category | null> {
-    try {
-      const categoryRow: CategoryRow | undefined =
-        await this.db.query.category.findFirst({
-          where: eq(category.id, id.value),
-        });
+    this.logger.debug("find called", { id: id.value });
 
+    try {
+      // fetch category row from db
+      const categoryRow: CategoryRow | undefined = await this.logger.measure(
+        "db.query.category.findFirst",
+        () =>
+          this.db.query.category.findFirst({
+            where: eq(category.id, id.value),
+          }),
+      );
+
+      // if category row not found return null
       if (!categoryRow) {
+        this.logger.debug("category not found", { id: id.value });
+
         return null;
       }
 
-      return PostgresCategoryMapper.toDomain(categoryRow);
+      // if category row found map it to domain
+      const categoryToReturn = PostgresCategoryMapper.toDomain(categoryRow);
+
+      this.logger.debug("find completed", {
+        id: id.value,
+        category: categoryToReturn,
+      });
+
+      // return category
+      return categoryToReturn;
     } catch (error) {
+      this.logger.error("find failed", error as Error, { id: id.value });
+
       handleDrizzleErrors(error, "PostgresCategoryRepository.find");
     }
   }
