@@ -77,36 +77,59 @@ export class PostgresProductRepository implements ProductRepository {
   }
 
   async findBySlug(slug: Slug): Promise<Product | null> {
+    this.logger.debug("findBySlug called", { slug: slug.value });
+
     try {
       // get product with variations and files
       const productWithVariationsAndFilesRow:
         | ProductWithVariationsAndFilesRow
-        | undefined = await this.db.query.product.findFirst({
-        where: eq(product.slug, slug.value),
-        with: { variations: true, images: true },
-      });
+        | undefined = await this.logger.measure(
+        "db.query.product.findFirst",
+        () =>
+          this.db.query.product.findFirst({
+            where: eq(product.slug, slug.value),
+            with: { variations: true, images: true },
+          }),
+      );
 
       // if product not found return null
       if (!productWithVariationsAndFilesRow) {
+        this.logger.debug("product not found", { slug: slug.value });
+
         return null;
       }
 
       // get average rating of product
-      const [ratingResult] = await this.db
-        .select({
-          productId: rating.product_id,
-          averageRating: avg(rating.rating).mapWith(Number),
-        })
-        .from(rating)
-        .where(eq(rating.product_id, productWithVariationsAndFilesRow.id))
-        .groupBy(rating.product_id);
+      const [ratingResult] = await this.logger.measure(
+        "db.select.from.rating",
+        () =>
+          this.db
+            .select({
+              productId: rating.product_id,
+              averageRating: avg(rating.rating).mapWith(Number),
+            })
+            .from(rating)
+            .where(eq(rating.product_id, productWithVariationsAndFilesRow.id))
+            .groupBy(rating.product_id),
+      );
 
       // reconstitute product aggregate and return it
-      return PostgresProductMapper.toDomain(
+      const productToReturn = PostgresProductMapper.toDomain(
         productWithVariationsAndFilesRow,
         ratingResult?.averageRating ?? null,
       );
+
+      this.logger.debug("findBySlug completed", {
+        slug: slug.value,
+        product: productToReturn.toSnapshot(),
+      });
+
+      return productToReturn;
     } catch (error) {
+      this.logger.error("findBySlug failed", error as Error, {
+        slug: slug.value,
+      });
+
       handleDrizzleErrors(error, "PostgresProductRepository.findBySlug");
     }
   }
