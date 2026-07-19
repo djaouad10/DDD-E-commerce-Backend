@@ -50,23 +50,32 @@ export class PostgresCartRepository implements CartRepository {
   }
 
   async save(cart: Cart, tx: TransactionClient): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+    this.logger.debug("save called", { userId: cart.userId.value });
+
+    // transaction is orchestrated by application service
+    const db = tx as DrizzleTransactionClient;
 
     const cartItemsRows: CartItemRow[] = PostgresCartMapper.toRows(cart);
 
     try {
-      await db.transaction(async (tx) => {
-        // delete all cartItems for this user
-        await tx
-          .delete(cartItem)
-          .where(eq(cartItem.user_id, cart.userId.value));
+      // delete all cartItems for this user
+      await this.logger.measure("tx.delete", () =>
+        db.delete(cartItem).where(eq(cartItem.user_id, cart.userId.value)),
+      );
 
-        // insert new cartItems
-        if (cartItemsRows.length > 0) {
-          await tx.insert(cartItem).values(cartItemsRows);
-        }
-      });
+      // insert new cartItems
+      if (cartItemsRows.length > 0) {
+        await this.logger.measure("tx.insert", () =>
+          db.insert(cartItem).values(cartItemsRows),
+        );
+      }
+
+      this.logger.debug("save completed", { userId: cart.userId.value });
     } catch (error) {
+      this.logger.error("save failed", error as Error, {
+        userId: cart.userId.value,
+      });
+
       handleDrizzleErrors(error, "PostgresCartRepository.save");
     }
   }
