@@ -67,7 +67,13 @@ export class PostgresOutboxRepository implements OutboxRepository {
     events: DomainEvent[],
     tx?: TransactionClient,
   ): Promise<void> {
-    if (events.length === 0) return;
+    this.logger.debug("saveEvents called", { eventsCount: events.length });
+
+    if (events.length === 0) {
+      this.logger.debug("saveEvents completed");
+
+      return;
+    }
 
     const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
 
@@ -83,8 +89,16 @@ export class PostgresOutboxRepository implements OutboxRepository {
     }));
 
     try {
-      await db.insert(outbox).values(outboxRows);
+      await this.logger.measure("db.insert(outbox)", () =>
+        db.insert(outbox).values(outboxRows),
+      );
+
+      this.logger.debug("saveEvents completed", { eventsCount: events.length });
     } catch (error) {
+      this.logger.error("saveEvents failed", error as Error, {
+        eventsCount: events.length,
+      });
+
       handleDrizzleErrors(error, "PostgresOutboxRepository.saveEvents");
     }
   }
