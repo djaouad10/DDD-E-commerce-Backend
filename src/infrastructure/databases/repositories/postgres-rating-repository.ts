@@ -14,24 +14,53 @@ import {
 import { rating } from "../schema.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "../utils.js";
+import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresRatingRepository implements RatingRepository {
+  private readonly logger = createLogger("PostgresRatingRepository");
+
   constructor(private db: DrizzleDBClient) {}
   async find(userId: UserId, productId: ProductId): Promise<Rating | null> {
+    this.logger.debug("find called", {
+      userId: userId.value,
+      productId: productId.value,
+    });
+
     try {
-      const ratingRow: RatingRow | undefined =
-        await this.db.query.rating.findFirst({
-          where: (rating, { and, eq }) =>
-            and(
-              eq(rating.user_id, userId.value),
-              eq(rating.product_id, productId.value),
-            ),
+      const ratingRow: RatingRow | undefined = await this.logger.measure(
+        "db.query.rating.findFirst",
+        () =>
+          this.db.query.rating.findFirst({
+            where: (rating, { and, eq }) =>
+              and(
+                eq(rating.user_id, userId.value),
+                eq(rating.product_id, productId.value),
+              ),
+          }),
+      );
+
+      if (!ratingRow) {
+        this.logger.debug("rating not found", {
+          userId: userId.value,
+          productId: productId.value,
         });
 
-      if (!ratingRow) return null;
+        return null;
+      }
 
-      return PostgresRatingMapper.toDomain(ratingRow);
+      const ratingToReturn = PostgresRatingMapper.toDomain(ratingRow);
+
+      this.logger.debug("find completed", {
+        rating: ratingToReturn.toSnapshot(),
+      });
+
+      return ratingToReturn;
     } catch (error) {
+      this.logger.error("find failed", error as Error, {
+        userId: userId.value,
+        productId: productId.value,
+      });
+
       handleDrizzleErrors(error, "PostgresRatingRepository.find");
     }
   }
