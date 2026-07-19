@@ -10,8 +10,6 @@ export class Category {
   private constructor(
     readonly id: CategoryId,
     private _name: string,
-    private readonly _createdAt: Date,
-    private _updatedAt: Date,
   ) {}
 
   //   factories
@@ -24,16 +22,10 @@ export class Category {
       );
     }
 
-    const now = new Date();
-    return new Category(CategoryId.generate(), name, now, now);
+    return new Category(CategoryId.generate(), name);
   }
 
-  static reconstitute(
-    id: CategoryId,
-    name: string,
-    createdAt: Date,
-    updatedAt: Date,
-  ): Category {
+  static reconstitute(id: CategoryId, name: string): Category {
     // validation
     if (name.length < 3) {
       throw new ValidationError(
@@ -42,7 +34,7 @@ export class Category {
       );
     }
 
-    return new Category(id, name, createdAt, updatedAt);
+    return new Category(id, name);
   }
 
   // command methods
@@ -56,20 +48,11 @@ export class Category {
     }
 
     this._name = name;
-    this._updatedAt = new Date();
   }
 
   // query methods
   getName(): string {
     return this._name;
-  }
-
-  getCreatedAt(): Date {
-    return this._createdAt;
-  }
-
-  getUpdatedAt(): Date {
-    return this._updatedAt;
   }
 
   // event methods

@@ -56,7 +56,7 @@ describe("Cart Aggregate", () => {
     test("when provided with a valid CartId, it should return a Cart instance with the provided CartId", () => {
       // Arrange & Act
       const cartId = CartId.generate();
-      const cart = Cart.reconstitute(cartId, UserId.generate(), [], new Date());
+      const cart = Cart.reconstitute(cartId, UserId.generate(), []);
 
       // Assert
       expect(cart).toBeInstanceOf(Cart);
@@ -65,12 +65,7 @@ describe("Cart Aggregate", () => {
 
     test("when cart is reconstituted with no items, it should return a Cart instance with a generated CartId", () => {
       // Arrange & Act
-      const cart = Cart.reconstitute(
-        CartId.generate(),
-        UserId.generate(),
-        [],
-        new Date(),
-      );
+      const cart = Cart.reconstitute(CartId.generate(), UserId.generate(), []);
 
       // Assert
       expect(cart).toBeInstanceOf(Cart);
@@ -79,12 +74,9 @@ describe("Cart Aggregate", () => {
 
     test("when cart is reconstituted with at least one item, it should return a Cart instance with a generated CartId", () => {
       // Arrange & Act
-      const cart = Cart.reconstitute(
-        CartId.generate(),
-        UserId.generate(),
-        [CartItem.create(VariationId.generate(), 3)],
-        new Date(),
-      );
+      const cart = Cart.reconstitute(CartId.generate(), UserId.generate(), [
+        CartItem.create(VariationId.generate(), 3),
+      ]);
 
       // Assert
       expect(cart).toBeInstanceOf(Cart);
@@ -103,12 +95,7 @@ describe("Cart Aggregate", () => {
 
       // Act & Assert
       expect(() =>
-        Cart.reconstitute(
-          CartId.generate(),
-          UserId.generate(),
-          items,
-          new Date(),
-        ),
+        Cart.reconstitute(CartId.generate(), UserId.generate(), items),
       ).toThrow(ValidationError);
     });
   });

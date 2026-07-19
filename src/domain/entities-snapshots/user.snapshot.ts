@@ -5,7 +5,7 @@ export type UserSnapshot = {
   name: string;
   email: string;
   role: UserRole;
-  image: string;
+  image: string | null;
   banned: boolean;
   createdAt: string;
 };

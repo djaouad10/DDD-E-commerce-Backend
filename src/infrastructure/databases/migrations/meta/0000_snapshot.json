@@ -1,5 +1,5 @@
 {
-  "id": "4a9ac3f4-11e6-4de6-9b09-eda7a96b5193",
+  "id": "9830958f-f414-4957-9e50-cd84b8f3cf14",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -951,6 +951,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {

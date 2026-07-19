@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, type InferSelectModel } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -347,6 +347,9 @@ export const rating = pgTable(
     comment: varchar("comment", { length: 1000 }),
     is_approved: boolean("is_approved").notNull().default(false),
     created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at")
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (t) => [
     primaryKey({ columns: [t.user_id, t.product_id] }),
@@ -397,7 +400,6 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
 });
 
 // Relations
-
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -473,3 +475,23 @@ export const ratingRelations = relations(rating, ({ one }) => ({
     references: [product.id],
   }),
 }));
+
+export type DrizzleOrderSelect = InferSelectModel<typeof order>;
+
+export type DrizzleOrderItemSelect = InferSelectModel<typeof orderItem>;
+
+export type DrizzleCategorySelect = InferSelectModel<typeof category>;
+
+export type DrizzleProductSelect = InferSelectModel<typeof product>;
+
+export type DrizzleVariationSelect = InferSelectModel<typeof variation>;
+
+export type DrizzleFileSelect = InferSelectModel<typeof file>;
+
+export type DrizzleCartItemSelect = InferSelectModel<typeof cartItem>;
+
+export type DrizzleRatingSelect = InferSelectModel<typeof rating>;
+
+export type DrizzleUserSelect = InferSelectModel<typeof user>;
+
+export type DrizzleOutboxSelect = InferSelectModel<typeof outbox>;

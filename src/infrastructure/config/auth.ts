@@ -3,11 +3,14 @@ import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { admin, customSession } from "better-auth/plugins";
 import { env } from "./env.js";
 import { db } from "./database.js";
-import { getUserById } from "../databases/utils.js";
 import { UserRole } from "#/domain/entities/user.js";
+import { UserId } from "#/domain/value-objects/user-id.js";
+import { PostgresUserRepository } from "../databases/repositories/postgres-user-repository.js";
+
+const userRepo = new PostgresUserRepository(db);
 
 const customSessionPlugin = customSession(async ({ user: myUser }) => {
-  const dbUser = await getUserById(myUser.id);
+  const dbUser = await userRepo.find(UserId.of(myUser.id));
 
   return {
     user: {
@@ -21,6 +24,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+
   socialProviders: {
     google: {
       clientId: env.GOOGLE_CLIENT_ID,
@@ -47,7 +51,7 @@ export const auth = betterAuth({
         const cleanUuid = uuid.replace(/-/g, "");
 
         if (model === "user") {
-          return `usr_${cleanUuid}`;
+          return UserId.generate().value;
         }
 
         return cleanUuid;
