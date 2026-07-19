@@ -305,13 +305,21 @@ export class PostgresProductRepository implements ProductRepository {
   }
 
   async delete(id: ProductId, tx?: TransactionClient): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+    this.logger.debug("delete called", { id: id.value });
+
+    const db = tx as DrizzleTransactionClient;
 
     try {
       // this should be called after making sure there are no orderItems connected to this product in application layer
       // variations and files will be deleted automatically (on delete cascade)
-      await db.delete(product).where(eq(product.id, id.value));
+      await this.logger.measure("db.delete(product)", () =>
+        db.delete(product).where(eq(product.id, id.value)),
+      );
+
+      this.logger.debug("delete completed", { id: id.value });
     } catch (error) {
+      this.logger.error("delete failed", error as Error, { id: id.value });
+
       handleDrizzleErrors(error, "PostgresProductRepository.delete");
     }
   }
