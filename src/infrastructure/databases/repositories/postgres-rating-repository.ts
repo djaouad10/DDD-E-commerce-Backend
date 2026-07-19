@@ -126,22 +126,39 @@ export class PostgresRatingRepository implements RatingRepository {
     }
   }
 
-  async save(ratingAgg: Rating, tx?: TransactionClient): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+  async save(ratingAgg: Rating, tx: TransactionClient): Promise<void> {
+    this.logger.debug("save called", {
+      productId: ratingAgg.productId.value,
+      userId: ratingAgg.userId.value,
+    });
+
+    const db = tx as DrizzleTransactionClient;
 
     const ratingRow: RatingRow = PostgresRatingMapper.toRow(ratingAgg);
     // remove the created_at field so it doesn't get overwritten by the onConflict
     const { created_at, ...ratingRowToUpsert } = ratingRow;
 
     try {
-      await db
-        .insert(rating)
-        .values(ratingRow)
-        .onConflictDoUpdate({
-          target: [rating.user_id, rating.product_id],
-          set: ratingRowToUpsert,
-        });
+      await this.logger.measure("db.insert(rating)", () =>
+        db
+          .insert(rating)
+          .values(ratingRow)
+          .onConflictDoUpdate({
+            target: [rating.user_id, rating.product_id],
+            set: ratingRowToUpsert,
+          }),
+      );
+
+      this.logger.debug("save completed", {
+        productId: ratingAgg.productId.value,
+        userId: ratingAgg.userId.value,
+      });
     } catch (error) {
+      this.logger.error("save failed", error as Error, {
+        productId: ratingAgg.productId.value,
+        userId: ratingAgg.userId.value,
+      });
+
       handleDrizzleErrors(error, "PostgresRatingRepository.save");
     }
   }
