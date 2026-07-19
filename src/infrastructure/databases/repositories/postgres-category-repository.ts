@@ -112,12 +112,20 @@ export class PostgresCategoryRepository implements CategoryRepository {
     }
   }
 
-  async delete(id: CategoryId, tx?: TransactionClient): Promise<void> {
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+  async delete(id: CategoryId, tx: TransactionClient): Promise<void> {
+    this.logger.debug("delete called", { id: id.value });
+
+    const db = tx as DrizzleTransactionClient;
 
     try {
-      await db.delete(category).where(eq(category.id, id.value));
+      await this.logger.measure("db.delete", () =>
+        db.delete(category).where(eq(category.id, id.value)),
+      );
+
+      this.logger.debug("delete completed", { id: id.value });
     } catch (error) {
+      this.logger.error("delete failed", error as Error, { id: id.value });
+
       handleDrizzleErrors(error, "PostgresCategoryRepository.delete");
     }
   }
