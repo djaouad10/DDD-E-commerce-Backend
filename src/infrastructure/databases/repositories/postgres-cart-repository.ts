@@ -13,19 +13,38 @@ import {
 import { cartItem } from "../schema.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "../utils.js";
+import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresCartRepository implements CartRepository {
+  private logger = createLogger("PostgresCartRepository");
   constructor(private db: DrizzleDBClient) {}
 
   async findByUserId(userId: UserId): Promise<Cart> {
-    try {
-      const cartItemsRows: CartItemRow[] =
-        await this.db.query.cartItem.findMany({
-          where: eq(cartItem.user_id, userId.value),
-        });
+    this.logger.debug("findByUserId called", { userId: userId.value });
 
-      return PostgresCartMapper.toDomain(cartItemsRows, userId.value);
+    try {
+      const cartItemsRows: CartItemRow[] = await this.logger.measure(
+        "db.query.cartItem.findMany",
+        () => {
+          return this.db.query.cartItem.findMany({
+            where: eq(cartItem.user_id, userId.value),
+          });
+        },
+      );
+
+      const cart = PostgresCartMapper.toDomain(cartItemsRows, userId.value);
+
+      this.logger.debug("findByUserId completed", {
+        userId: userId.value,
+        itemsCount: cart.getItems().length,
+      });
+
+      return cart;
     } catch (error) {
+      this.logger.error("findByUserId failed", error as Error, {
+        userId: userId.value,
+      });
+
       handleDrizzleErrors(error, "PostgresCartRepository.findByUserId");
     }
   }
