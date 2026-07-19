@@ -55,21 +55,39 @@ export class PostgresOrderRepository implements OrderRepository {
   }
 
   async findMany(ids: OrderId[]): Promise<Order[]> {
-    if (ids.length === 0) return [];
+    this.logger.debug("findMany called");
+
+    if (ids.length === 0) {
+      this.logger.debug("findMany completed");
+
+      return [];
+    }
 
     try {
       const manyOrdersWithItemsRows: OrderWithItemsRow[] =
-        await this.db.query.order.findMany({
-          where: (order, { inArray }) =>
-            inArray(
-              order.id,
-              ids.map((id) => id.value),
-            ),
-          with: { order_items: true },
-        });
+        await this.logger.measure("db.query.order.findMany", () =>
+          this.db.query.order.findMany({
+            where: (order, { inArray }) =>
+              inArray(
+                order.id,
+                ids.map((id) => id.value),
+              ),
+            with: { order_items: true },
+          }),
+        );
 
-      return manyOrdersWithItemsRows.map(PostgresOrderMapper.toDomain);
+      const ordersToReturn = manyOrdersWithItemsRows.map(
+        PostgresOrderMapper.toDomain,
+      );
+
+      this.logger.debug("findMany completed", {
+        ordersCount: ordersToReturn.length,
+      });
+
+      return ordersToReturn;
     } catch (error) {
+      this.logger.error("findMany failed", error as Error);
+
       handleDrizzleErrors(error, "PostgresCategoryRepository.findMany");
     }
   }
