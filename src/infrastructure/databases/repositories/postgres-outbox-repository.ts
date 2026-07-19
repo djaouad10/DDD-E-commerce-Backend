@@ -146,26 +146,42 @@ export class PostgresOutboxRepository implements OutboxRepository {
   }
 
   async getPendingEvents(limit = 100): Promise<OutboxDomainEventRow[]> {
+    this.logger.debug("getPendingEvents called");
+
     try {
-      const outboxDomainEventRows = await this.db.query.outbox.findMany({
-        where: and(
-          eq(outbox.category, OutboxCategory.DOMAIN_EVENT),
-          eq(outbox.status, OutboxStatus.PENDING),
-          lte(outbox.scheduledAt, new Date()),
-        ),
-        orderBy: (outbox, { asc }) => [
-          asc(outbox.scheduledAt),
-          asc(outbox.created_at),
-        ],
-        limit,
+      const outboxDomainEventRows = await this.logger.measure(
+        "db.query.outbox.findMany",
+        () =>
+          this.db.query.outbox.findMany({
+            where: and(
+              eq(outbox.category, OutboxCategory.DOMAIN_EVENT),
+              eq(outbox.status, OutboxStatus.PENDING),
+              lte(outbox.scheduledAt, new Date()),
+            ),
+            orderBy: (outbox, { asc }) => [
+              asc(outbox.scheduledAt),
+              asc(outbox.created_at),
+            ],
+            limit,
+          }),
+      );
+
+      const outboxDomainEventRowsToReturn = outboxDomainEventRows.map(
+        (row) => ({
+          ...row,
+          category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventRow type
+          event_type: row.event_type as DomainEventType, // this cast is safe because we know the event_type is a valid DomainEventType when the category is DOMAIN_EVENT
+        }),
+      );
+
+      this.logger.debug("getPendingEvents completed", {
+        eventsCount: outboxDomainEventRowsToReturn.length,
       });
 
-      return outboxDomainEventRows.map((row) => ({
-        ...row,
-        category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventRow type
-        event_type: row.event_type as DomainEventType, // this cast is safe because we know the event_type is a valid DomainEventType when the category is DOMAIN_EVENT
-      }));
+      return outboxDomainEventRowsToReturn;
     } catch (error) {
+      this.logger.error("getPendingEvents failed", error as Error);
+
       handleDrizzleErrors(error, "PostgresOutboxRepository.getPendingEvents");
     }
   }
