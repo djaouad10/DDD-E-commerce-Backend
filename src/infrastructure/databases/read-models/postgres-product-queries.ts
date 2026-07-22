@@ -384,4 +384,41 @@ export class PostgresProductQueries implements ProductQueries {
       handleDrizzleErrors(error, "PostgresProductQueries.findVariation");
     }
   }
+
+  async findVariations(productId: ProductId): Promise<VariationDTO[]> {
+    this.logger.debug("findVariations called", { productId });
+
+    try {
+      const variationsRows = await this.logger.measure(
+        "db.query.variation.findMany",
+        () =>
+          this.db.query.variation.findMany({
+            where: (variation, { eq }) =>
+              eq(variation.product_id, productId.value),
+          }),
+      );
+
+      const variationsToReturn: VariationDTO[] = variationsRows.map((v) => ({
+        id: v.id,
+        size: v.size,
+        color: v.color,
+        totalQty: v.total_qty,
+        reservedQty: v.reserved_qty,
+        availableQty: v.total_qty - v.reserved_qty,
+        isInStock: v.total_qty - v.reserved_qty > 0,
+        weightInGrams: { weight: v.weight_in_grams, unit: "g" },
+        createdAt: v.created_at.toISOString(),
+        updatedAt: v.updated_at.toISOString(),
+      }));
+
+      this.logger.debug("findVariations completed", {
+        variationsCount: variationsToReturn.length,
+      });
+
+      return variationsToReturn;
+    } catch (error) {
+      this.logger.error("findVariations failed", error as Error, { productId });
+      handleDrizzleErrors(error, "PostgresProductQueries.findVariations");
+    }
+  }
 }
