@@ -1,0 +1,140 @@
+import type { ProductSearchDTO } from "#/application/dto/product.dto.js";
+import type {
+  ProductQueries,
+  ProductSearchCriteria,
+} from "#/application/read-models/product.queries.js";
+import type { ProductId } from "#/domain/value-objects/product-id.js";
+import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
+import { createLogger } from "#/shared/logging/logger.js";
+import { avg, inArray, sql } from "drizzle-orm";
+import { handleDrizzleErrors } from "../utils.js";
+import { rating } from "../schema.js";
+
+export class PostgresProductQueries implements ProductQueries {
+  private logger = createLogger("PostgresProductQueries");
+
+  constructor(private db: DrizzleDBClient) {}
+
+  async search(
+    criteria: ProductSearchCriteria,
+  ): Promise<{ products: ProductSearchDTO[]; nextCursor?: string | undefined }> {
+    this.logger.debug("search called", { criteria });
+
+    try {
+      const productRows = await this.logger.measure(
+        "db.query.product.findMany",
+        () =>
+          this.db.query.product.findMany({
+            where: (product, { eq, gt, and, lte, gte }) => {
+              const conditions = [];
+
+              if (criteria.categoryId) {
+                conditions.push(
+                  eq(product.categoryId, criteria.categoryId.value),
+                );
+              }
+
+              if (criteria.cursor) {
+                conditions.push(gt(product.id, criteria.cursor.value));
+              }
+
+              const effectivePrice = sql<number>`COALESCE(${product.discount_price}, ${product.price})`;
+
+              if (criteria.max_price) {
+                conditions.push(lte(effectivePrice, criteria.max_price.amount));
+              }
+
+              if (criteria.min_price) {
+                conditions.push(gte(effectivePrice, criteria.min_price.amount));
+              }
+
+              return and(...conditions);
+            },
+            orderBy: (product, { asc }) => [asc(product.id)],
+            limit: criteria.limit + 1,
+            columns: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+              brand: true,
+              material: true,
+              price: true,
+              discount_price: true,
+              categoryId: true,
+              created_at: true,
+              updated_at: true,
+            },
+            with: {
+              category: true,
+              images: true,
+            },
+          }),
+      );
+
+      const ratings = await this.logger.measure("db.select.from.rating", () =>
+        this.db
+          .select({
+            productId: rating.product_id,
+            avg: avg(rating.rating).mapWith(Number),
+          })
+          .from(rating)
+          .where(
+            inArray(
+              rating.product_id,
+              productRows.map((row) => row.id),
+            ),
+          )
+          .groupBy(rating.product_id),
+      );
+
+      const ratingMap = new Map(ratings.map((r) => [r.productId, r.avg]));
+
+      const hasNextPage = productRows.length > criteria.limit;
+
+      const rowsToReturn = hasNextPage
+        ? productRows.slice(0, criteria.limit)
+        : productRows;
+
+      const productsToReturn: ProductSearchDTO[] = rowsToReturn.map((row) => {
+        const mainImage = row.images.find((i) => i.is_main)!;
+        return {
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          description: row.description,
+          brand: row.brand,
+          material: row.material,
+          price: {
+            amount: row.price,
+            currency: "DZD",
+          },
+          discountedPrice: row.discount_price
+            ? {
+                amount: row.discount_price,
+                currency: "DZD",
+              }
+            : null,
+          category: row.category,
+          mainImage: {
+            name: mainImage.name,
+            url: mainImage.public_url,
+          },
+          averageRating: ratingMap.get(row.id) ?? null,
+          createdAt: row.created_at.toISOString(),
+          updatedAt: row.updated_at.toISOString(),
+        };
+      });
+
+      const nextCursor = hasNextPage ? rowsToReturn[rowsToReturn.length - 1]!.id : undefined;
+
+      this.logger.debug("search completed", { products: productsToReturn });
+
+      return { products: productsToReturn, nextCursor };
+    } catch (error) {
+      this.logger.error("search failed", error as Error, { criteria });
+
+      handleDrizzleErrors(error, "PostgresProductQueries.search");
+    }
+  }
+}

@@ -24,7 +24,10 @@ export type ProductQueries = {
   // doesn't require an aggregate
   search: (
     criteria: ProductSearchCriteria,
-  ) => Promise<{ products: ProductSearchDTO[]; nextCursor?: ProductId }>;
+  ) => Promise<{
+    products: ProductSearchDTO[];
+    nextCursor?: string | undefined;
+  }>;
 
   // requires an aggregate
   getStaticData: (productId: ProductId) => Promise<ProductStaticDataDTO[]>;
@@ -33,7 +36,10 @@ export type ProductQueries = {
   getLowStock: (
     limit: number,
     cursor?: ProductId,
-  ) => Promise<{ products: ProductLowStockDTO[]; nextCursor?: ProductId }>;
+  ) => Promise<{
+    products: ProductLowStockDTO[];
+    nextCursor?: string | undefined;
+  }>;
 
   // doesn't require an aggregate
   findVariations: (productId: ProductId) => Promise<VariationDTO[]>;
