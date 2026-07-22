@@ -9,12 +9,16 @@ import type {
 } from "#/application/read-models/product.queries.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { avg, eq, inArray, sql } from "drizzle-orm";
+import { and, avg, eq, inArray, sql } from "drizzle-orm";
 import { handleDrizzleErrors } from "../utils.js";
-import { rating, variation } from "../schema.js";
+import { cartItem, rating, variation } from "../schema.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
-import type { VariationDTO } from "#/application/dto/variation.dto.js";
+import type {
+  VariationDTO,
+  VariationWithCartItemDTO,
+} from "#/application/dto/variation.dto.js";
 import type { VariationId } from "#/domain/value-objects/variation-id.js";
+import type { UserId } from "#/domain/value-objects/user-id.js";
 
 export class PostgresProductQueries implements ProductQueries {
   private logger = createLogger("PostgresProductQueries");
@@ -419,6 +423,74 @@ export class PostgresProductQueries implements ProductQueries {
     } catch (error) {
       this.logger.error("findVariations failed", error as Error, { productId });
       handleDrizzleErrors(error, "PostgresProductQueries.findVariations");
+    }
+  }
+
+  async findVariationsWithCartItems(
+    productId: ProductId,
+    userId: UserId,
+  ): Promise<VariationWithCartItemDTO[]> {
+    this.logger.debug("findVariationsWithCartItems called", {
+      productId: productId.value,
+      userId: userId.value,
+    });
+
+    try {
+      const rows = await this.logger.measure(
+        "db.select.variations.leftJoin.cartItem",
+        () =>
+          this.db
+            .select({
+              id: variation.id,
+              productId: variation.product_id,
+              size: variation.size,
+              color: variation.color,
+              totalQty: variation.total_qty,
+              reservedQty: variation.reserved_qty,
+              weightInGrams: variation.weight_in_grams,
+              createdAt: variation.created_at,
+              updatedAt: variation.updated_at,
+              cartItemId: cartItem.id,
+            })
+            .from(variation)
+            .leftJoin(
+              cartItem,
+              and(
+                eq(cartItem.variation_id, variation.id),
+                eq(cartItem.user_id, userId.value),
+              ),
+            )
+            .where(eq(variation.product_id, productId.value)),
+      );
+
+      const results: VariationWithCartItemDTO[] = rows.map((row) => ({
+        id: row.id,
+        size: row.size,
+        color: row.color,
+        totalQty: row.totalQty,
+        reservedQty: row.reservedQty,
+        availableQty: row.totalQty - row.reservedQty,
+        isInStock: row.totalQty - row.reservedQty > 0,
+        weightInGrams: { weight: row.weightInGrams, unit: "g" },
+        createdAt: row.createdAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString(),
+        cartItemId: row.cartItemId ?? undefined,
+      }));
+
+      this.logger.debug("findVariationsWithCartItems completed", {
+        count: results.length,
+      });
+
+      return results;
+    } catch (error) {
+      this.logger.error("findVariationsWithCartItems failed", error as Error, {
+        productId: productId.value,
+        userId: userId.value,
+      });
+      handleDrizzleErrors(
+        error,
+        "PostgresProductQueries.findVariationsWithCartItems",
+      );
     }
   }
 }
