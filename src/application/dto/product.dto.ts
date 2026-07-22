@@ -1,6 +1,7 @@
 import type { MoneySnapshot } from "#/domain/entities-snapshots/money.snapshot.js";
 import type { CategoryDTO } from "./category.dto.js";
 import type { ImageDTO } from "./file.dto.js";
+import type { VariationSearchDTO } from "./variation.dto.js";
 
 export type ProductSearchDTO = ProductStaticDataDTO & {};
 
@@ -32,11 +33,6 @@ export type VariationDTO = {
   createdAt: string;
   updatedAt: string;
 };
-
-export type VariationSearchDTO = Omit<
-  VariationDTO,
-  "weightInGrams" | "createdAt" | "updatedAt"
->;
 
 export type ProductLowStockDTO = {
   id: string;

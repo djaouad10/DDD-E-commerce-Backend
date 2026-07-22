@@ -12,6 +12,8 @@ import { avg, inArray, sql } from "drizzle-orm";
 import { handleDrizzleErrors } from "../utils.js";
 import { rating, variation } from "../schema.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
+import type { VariationDTO } from "#/application/dto/variation.dto.js";
+import type { VariationId } from "#/domain/value-objects/variation-id.js";
 
 export class PostgresProductQueries implements ProductQueries {
   private logger = createLogger("PostgresProductQueries");
@@ -265,6 +267,51 @@ export class PostgresProductQueries implements ProductQueries {
         cursor,
       });
       handleDrizzleErrors(error, "PostgresProductQueries.getLowStock");
+    }
+  }
+
+  async findVariation(variationId: VariationId): Promise<VariationDTO | null> {
+    this.logger.debug("findVariation called", { variationId });
+
+    try {
+      const variationRow = await this.logger.measure(
+        "db.query.variation.findFirst",
+        () =>
+          this.db.query.variation.findFirst({
+            where: (variation, { eq }) => eq(variation.id, variationId.value),
+          }),
+      );
+
+      if (!variationRow) {
+        this.logger.debug("variation not found", { variationId });
+
+        return null;
+      }
+
+      this.logger.debug("findVariation completed", {
+        variationId,
+        variationRow,
+      });
+
+      const variationToReturn: VariationDTO = {
+        id: variationRow.id,
+        size: variationRow.size,
+        color: variationRow.color,
+        totalQty: variationRow.total_qty,
+        reservedQty: variationRow.reserved_qty,
+        availableQty: variationRow.total_qty - variationRow.reserved_qty,
+        isInStock: variationRow.total_qty - variationRow.reserved_qty > 0,
+        weightInGrams: { weight: variationRow.weight_in_grams, unit: "g" },
+        createdAt: variationRow.created_at.toISOString(),
+        updatedAt: variationRow.updated_at.toISOString(),
+      };
+
+      return variationToReturn;
+    } catch (error) {
+      this.logger.error("findVariation failed", error as Error, {
+        variationId,
+      });
+      handleDrizzleErrors(error, "PostgresProductQueries.findVariation");
     }
   }
 }
