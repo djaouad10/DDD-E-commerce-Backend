@@ -22,9 +22,7 @@ export type ProductSearchCriteria = {
 
 export type ProductQueries = {
   // doesn't require an aggregate
-  search: (
-    criteria: ProductSearchCriteria,
-  ) => Promise<{
+  search: (criteria: ProductSearchCriteria) => Promise<{
     products: ProductSearchDTO[];
     nextCursor?: string | undefined;
   }>;
@@ -35,6 +33,7 @@ export type ProductQueries = {
   // doesn't require an aggregate
   getLowStock: (
     limit: number,
+    threshold: number,
     cursor?: ProductId,
   ) => Promise<{
     products: ProductLowStockDTO[];

@@ -20,4 +20,29 @@ export type ProductStaticDataDTO = {
   updatedAt: string;
 };
 
-export type ProductLowStockDTO = ProductStaticDataDTO & {};
+export type VariationDTO = {
+  id: string;
+  size: string;
+  color: string;
+  totalQty: number;
+  reservedQty: number;
+  availableQty: number;
+  isInStock: boolean;
+  weightInGrams: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type VariationSearchDTO = Omit<
+  VariationDTO,
+  "weightInGrams" | "createdAt" | "updatedAt"
+>;
+
+export type ProductLowStockDTO = {
+  id: string;
+  name: string;
+  slug: string;
+  category: CategoryDTO | null;
+  mainImage: ImageDTO;
+  lowStockVariations: VariationSearchDTO[];
+};

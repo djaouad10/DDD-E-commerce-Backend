@@ -6,12 +6,12 @@ import type {
   ProductQueries,
   ProductSearchCriteria,
 } from "#/application/read-models/product.queries.js";
-import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { avg, inArray, sql } from "drizzle-orm";
 import { handleDrizzleErrors } from "../utils.js";
-import { rating } from "../schema.js";
+import { rating, variation } from "../schema.js";
+import type { ProductId } from "#/domain/value-objects/product-id.js";
 
 export class PostgresProductQueries implements ProductQueries {
   private logger = createLogger("PostgresProductQueries");
@@ -147,6 +147,124 @@ export class PostgresProductQueries implements ProductQueries {
       this.logger.error("search failed", error as Error, { criteria });
 
       handleDrizzleErrors(error, "PostgresProductQueries.search");
+    }
+  }
+
+  async getLowStock(
+    limit: number,
+    threshold: number,
+    cursor?: ProductId,
+  ): Promise<{
+    products: ProductLowStockDTO[];
+    nextCursor?: string | undefined;
+  }> {
+    this.logger.debug("getLowStock called", { limit, threshold });
+
+    try {
+      const productRows = await this.logger.measure(
+        "db.query.product.findMany",
+        () =>
+          this.db.query.product.findMany({
+            where: (product, { gt, exists, and, eq }) => {
+              const conditions = [
+                // Only products that have at least one low-stock variation
+                exists(
+                  this.db
+                    .select()
+                    .from(variation)
+                    .where(
+                      and(
+                        eq(variation.product_id, product.id),
+                        sql`${variation.total_qty} - ${variation.reserved_qty} <= ${threshold}`,
+                      ),
+                    ),
+                ),
+              ];
+
+              if (cursor) {
+                conditions.push(gt(product.id, cursor.value));
+              }
+
+              return and(...conditions);
+            },
+
+            orderBy: (product, { asc }) => [asc(product.id)],
+            limit: limit + 1,
+            columns: {
+              id: true,
+              name: true,
+              slug: true,
+              categoryId: true,
+            },
+            with: {
+              category: true,
+              images: true,
+              // Only fetch the low-stock variations
+              variations: {
+                where: (v, { sql }) =>
+                  sql`${v.total_qty} - ${v.reserved_qty} <= ${threshold}`,
+                columns: {
+                  id: true,
+                  size: true,
+                  color: true,
+                  total_qty: true,
+                  reserved_qty: true,
+                },
+              },
+            },
+          }),
+      );
+
+      if (productRows.length === 0) {
+        return { products: [] };
+      }
+
+      const hasNextPage = productRows.length > limit;
+      const rowsToReturn = hasNextPage
+        ? productRows.slice(0, limit)
+        : productRows;
+
+      const productsToReturn: ProductLowStockDTO[] = rowsToReturn.map((row) => {
+        const mainImage = row.images.find((i) => i.is_main)!;
+
+        return {
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          category: row.category,
+          mainImage: {
+            name: mainImage.name,
+            url: mainImage.public_url,
+          },
+          lowStockVariations: row.variations.map((v) => ({
+            size: v.size,
+            color: v.color,
+            id: v.id,
+            totalQty: v.total_qty,
+            reservedQty: v.reserved_qty,
+            availableQty: v.total_qty - v.reserved_qty,
+            isInStock: v.total_qty - v.reserved_qty > 0,
+          })),
+        };
+      });
+
+      const nextCursor = hasNextPage
+        ? rowsToReturn[rowsToReturn.length - 1]!.id
+        : undefined;
+
+      this.logger.debug("getLowStock completed", {
+        count: productsToReturn.length,
+        hasNextPage,
+      });
+
+      return { products: productsToReturn, nextCursor };
+    } catch (error) {
+      this.logger.error("getLowStock failed", error as Error, {
+        limit,
+        threshold,
+        cursor,
+      });
+      handleDrizzleErrors(error, "PostgresProductQueries.getLowStock");
     }
   }
 }
