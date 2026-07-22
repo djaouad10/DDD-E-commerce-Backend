@@ -1,6 +1,7 @@
 import type {
   ProductLowStockDTO,
   ProductSearchDTO,
+  ProductStaticDataDTO,
 } from "#/application/dto/product.dto.js";
 import type {
   ProductQueries,
@@ -8,7 +9,7 @@ import type {
 } from "#/application/read-models/product.queries.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { avg, inArray, sql } from "drizzle-orm";
+import { avg, eq, inArray, sql } from "drizzle-orm";
 import { handleDrizzleErrors } from "../utils.js";
 import { rating, variation } from "../schema.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
@@ -270,6 +271,75 @@ export class PostgresProductQueries implements ProductQueries {
     }
   }
 
+  async getStaticData(
+    productId: ProductId,
+  ): Promise<ProductStaticDataDTO | null> {
+    this.logger.debug("getStaticData called", { productId });
+
+    try {
+      const [productRow, [productRating]] = await Promise.all([
+        this.logger.measure("db.query.product.findFirst", () =>
+          this.db.query.product.findFirst({
+            where: (product, { eq }) => eq(product.id, productId.value),
+            with: {
+              category: true,
+              images: true,
+            },
+          }),
+        ),
+        this.logger.measure("db.select.from.rating", () =>
+          this.db
+            .select({
+              productId: rating.product_id,
+              averageRating: avg(rating.rating).mapWith(Number),
+            })
+            .from(rating)
+            .where(eq(rating.product_id, productId.value))
+            .groupBy(rating.product_id),
+        ),
+      ]);
+
+      if (!productRow) {
+        this.logger.debug("product not found", { productId });
+
+        return null;
+      }
+
+      const mainImage = productRow.images.find((i) => i.is_main)!;
+
+      const productToReturn: ProductStaticDataDTO = {
+        id: productRow.id,
+        name: productRow.name,
+        slug: productRow.slug,
+        description: productRow.description,
+        brand: productRow.brand,
+        material: productRow.material,
+        price: { amount: productRow.price, currency: "DZD" },
+        discountedPrice: productRow.discount_price
+          ? { amount: productRow.discount_price, currency: "DZD" }
+          : null,
+        category: productRow.category,
+        averageRating: productRating?.averageRating ?? null,
+        mainImage: {
+          name: mainImage.name,
+          url: mainImage.public_url,
+        },
+        createdAt: productRow.created_at.toISOString(),
+        updatedAt: productRow.updated_at.toISOString(),
+      };
+
+      this.logger.debug("getStaticData completed", {
+        product: productToReturn,
+      });
+
+      return productToReturn;
+    } catch (error) {
+      this.logger.error("getStaticData failed", error as Error, { productId });
+
+      handleDrizzleErrors(error, "PostgresProductQueries.getStaticData");
+    }
+  }
+
   async findVariation(variationId: VariationId): Promise<VariationDTO | null> {
     this.logger.debug("findVariation called", { variationId });
 
@@ -288,11 +358,6 @@ export class PostgresProductQueries implements ProductQueries {
         return null;
       }
 
-      this.logger.debug("findVariation completed", {
-        variationId,
-        variationRow,
-      });
-
       const variationToReturn: VariationDTO = {
         id: variationRow.id,
         size: variationRow.size,
@@ -305,6 +370,11 @@ export class PostgresProductQueries implements ProductQueries {
         createdAt: variationRow.created_at.toISOString(),
         updatedAt: variationRow.updated_at.toISOString(),
       };
+
+      this.logger.debug("findVariation completed", {
+        variationId,
+        variationRow,
+      });
 
       return variationToReturn;
     } catch (error) {

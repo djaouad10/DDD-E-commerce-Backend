@@ -28,7 +28,7 @@ export type ProductQueries = {
   }>;
 
   // requires an aggregate
-  getStaticData: (productId: ProductId) => Promise<ProductStaticDataDTO[]>;
+  getStaticData: (productId: ProductId) => Promise<ProductStaticDataDTO | null>;
 
   // doesn't require an aggregate
   getLowStock: (
