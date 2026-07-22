@@ -51,3 +51,15 @@ export type OrderDTO = {
 };
 
 // add a less explicit type for search results,... etc.
+
+export type OrderSearchResultDTO = {
+  id: string;
+  userId: string;
+  trackingNumber: string | null;
+  status: OrderStatus;
+  shippingStatus: string | null;
+  shippingPriceAtOrderTime: MoneySnapshot;
+  selectedShippingProvider: ShippingProvider;
+  createdAt: string;
+  updatedAt: string;
+};
