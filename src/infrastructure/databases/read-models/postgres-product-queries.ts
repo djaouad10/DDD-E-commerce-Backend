@@ -1,4 +1,7 @@
-import type { ProductSearchDTO } from "#/application/dto/product.dto.js";
+import type {
+  ProductLowStockDTO,
+  ProductSearchDTO,
+} from "#/application/dto/product.dto.js";
 import type {
   ProductQueries,
   ProductSearchCriteria,
@@ -15,9 +18,10 @@ export class PostgresProductQueries implements ProductQueries {
 
   constructor(private db: DrizzleDBClient) {}
 
-  async search(
-    criteria: ProductSearchCriteria,
-  ): Promise<{ products: ProductSearchDTO[]; nextCursor?: string | undefined }> {
+  async search(criteria: ProductSearchCriteria): Promise<{
+    products: ProductSearchDTO[];
+    nextCursor?: string | undefined;
+  }> {
     this.logger.debug("search called", { criteria });
 
     try {
@@ -71,6 +75,10 @@ export class PostgresProductQueries implements ProductQueries {
             },
           }),
       );
+
+      if (productRows.length === 0) {
+        return { products: [], nextCursor: undefined };
+      }
 
       const ratings = await this.logger.measure("db.select.from.rating", () =>
         this.db
@@ -126,9 +134,13 @@ export class PostgresProductQueries implements ProductQueries {
         };
       });
 
-      const nextCursor = hasNextPage ? rowsToReturn[rowsToReturn.length - 1]!.id : undefined;
+      const nextCursor = hasNextPage
+        ? rowsToReturn[rowsToReturn.length - 1]!.id
+        : undefined;
 
-      this.logger.debug("search completed", { products: productsToReturn });
+      this.logger.debug("search completed", {
+        productsCount: productsToReturn.length,
+      });
 
       return { products: productsToReturn, nextCursor };
     } catch (error) {
