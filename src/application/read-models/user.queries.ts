@@ -11,5 +11,5 @@ export type UserSearchCriteria = {
 export type UserQueries = {
   search: (
     criteria: UserSearchCriteria,
-  ) => Promise<{ users: UserDTO[]; nextCursor?: string }>;
+  ) => Promise<{ users: UserDTO[]; nextCursor?: string | undefined }>;
 };
