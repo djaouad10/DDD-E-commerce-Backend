@@ -49,7 +49,7 @@ export class PostgresUserQueries implements UserQueries {
         ? userRows.slice(0, criteria.limit)
         : userRows;
 
-      const usersToReturn = rowsToReturn.map((user) => ({
+      const usersToReturn: UserDTO[] = rowsToReturn.map((user) => ({
         id: user.id,
         name: user.name,
         email: user.email,
