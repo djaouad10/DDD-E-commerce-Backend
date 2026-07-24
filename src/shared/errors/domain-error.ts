@@ -5,7 +5,8 @@ type ErrorCodes =
   | "UNAUTHORIZED"
   | "DATABASE_ERROR"
   | "GATEWAY_ERROR"
-  | "CONFLICT";
+  | "CONFLICT"
+  | "BAD_REQUEST";
 
 export abstract class DomainError extends Error {
   abstract readonly code: ErrorCodes;
@@ -27,6 +28,15 @@ export class ValidationError extends DomainError {
 
   constructor(field: string, reason: string) {
     super(`Invalid ${field}: ${reason}`, { field, reason });
+  }
+}
+
+export class BadRequestError extends DomainError {
+  readonly code = "BAD_REQUEST";
+  readonly statusCode = 400;
+
+  constructor(message: string, details?: Record<string, unknown>) {
+    super(message, details ?? {});
   }
 }
 
