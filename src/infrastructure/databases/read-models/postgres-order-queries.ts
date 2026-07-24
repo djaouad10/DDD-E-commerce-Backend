@@ -1,5 +1,6 @@
 import type { OrderSearchResultDTO } from "#/application/dto/order.dto.js";
 import type {
+  OrderCursor,
   OrderQueries,
   OrderSearchCriteria,
 } from "#/application/read-models/order.queries.js";
@@ -14,7 +15,7 @@ export class PostgresOrderQueries implements OrderQueries {
 
   async search(criteria: OrderSearchCriteria): Promise<{
     orders: OrderSearchResultDTO[];
-    nextCursor?: { orderId: string; createdAt: Date } | undefined;
+    nextCursor?: OrderCursor | undefined;
   }> {
     this.logger.debug("search called", { criteria });
 
@@ -87,7 +88,7 @@ export class PostgresOrderQueries implements OrderQueries {
         }),
       );
 
-      const nextCursor = hasNextPage
+      const nextCursor: OrderCursor | undefined = hasNextPage
         ? {
             orderId: rowsToReturn[limit - 1]!.id,
             createdAt: rowsToReturn[limit - 1]!.created_at,
