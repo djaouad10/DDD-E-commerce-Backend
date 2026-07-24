@@ -125,7 +125,7 @@ export class PostgresProductQueries implements ProductQueries {
         : productRows;
 
       const productsToReturn: ProductSearchDTO[] = rowsToReturn.map((row) => {
-        const mainImage = row.images.find((i) => i.is_main)!;
+        const mainImage = row.images.find((i) => i.is_main);
         return {
           id: row.id,
           name: row.name,
@@ -144,10 +144,12 @@ export class PostgresProductQueries implements ProductQueries {
               }
             : null,
           category: row.category,
-          mainImage: {
-            name: mainImage.name,
-            url: mainImage.public_url,
-          },
+          mainImage: mainImage
+            ? {
+                name: mainImage.name,
+                url: mainImage.public_url,
+              }
+            : null,
           averageRating: ratingMap.get(row.id) ?? null,
           createdAt: row.created_at.toISOString(),
           updatedAt: row.updated_at.toISOString(),
@@ -261,17 +263,19 @@ export class PostgresProductQueries implements ProductQueries {
         : productRows;
 
       const productsToReturn: ProductLowStockDTO[] = rowsToReturn.map((row) => {
-        const mainImage = row.images.find((i) => i.is_main)!;
+        const mainImage = row.images.find((i) => i.is_main);
 
         return {
           id: row.id,
           name: row.name,
           slug: row.slug,
           category: row.category,
-          mainImage: {
-            name: mainImage.name,
-            url: mainImage.public_url,
-          },
+          mainImage: mainImage
+            ? {
+                name: mainImage.name,
+                url: mainImage.public_url,
+              }
+            : null,
           lowStockVariations: row.variations.map((v) => ({
             size: v.size,
             color: v.color,
@@ -341,7 +345,7 @@ export class PostgresProductQueries implements ProductQueries {
         return null;
       }
 
-      const mainImage = productRow.images.find((i) => i.is_main)!;
+      const mainImage = productRow.images.find((i) => i.is_main);
 
       const productToReturn: ProductStaticDataDTO = {
         id: productRow.id,
@@ -356,10 +360,12 @@ export class PostgresProductQueries implements ProductQueries {
           : null,
         category: productRow.category,
         averageRating: productRating?.averageRating ?? null,
-        mainImage: {
-          name: mainImage.name,
-          url: mainImage.public_url,
-        },
+        mainImage: mainImage
+          ? {
+              name: mainImage.name,
+              url: mainImage.public_url,
+            }
+          : null,
         createdAt: productRow.created_at.toISOString(),
         updatedAt: productRow.updated_at.toISOString(),
       };

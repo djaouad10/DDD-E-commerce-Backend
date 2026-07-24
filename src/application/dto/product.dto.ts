@@ -16,7 +16,7 @@ export type ProductStaticDataDTO = {
   discountedPrice: MoneySnapshot | null;
   category: CategoryDTO | null;
   averageRating: number | null;
-  mainImage: ImageDTO;
+  mainImage: ImageDTO | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -39,6 +39,6 @@ export type ProductLowStockDTO = {
   name: string;
   slug: string;
   category: CategoryDTO | null;
-  mainImage: ImageDTO;
+  mainImage: ImageDTO | null;
   lowStockVariations: VariationSearchDTO[];
 };
