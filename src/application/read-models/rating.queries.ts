@@ -1,12 +1,14 @@
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
+import type { RatingDTO } from "../dto/rating.dto.js";
 
-type RatingCursor = {
-  userId: UserId;
-  productId: ProductId;
+export type RatingCursor = {
+  userId: string;
+  productId: string;
+  createdAt: Date;
 };
 
-type RatingSearchCriteria = {
+export type RatingSearchCriteria = {
   limit: number;
   productId?: ProductId;
   cursor?: RatingCursor;
@@ -14,9 +16,10 @@ type RatingSearchCriteria = {
 };
 
 export type RatingQueries = {
-  search(
-    criteria: RatingSearchCriteria,
-  ): Promise<{ ratings: RatingDTO[]; nextCursor?: RatingCursor }>;
+  search(criteria: RatingSearchCriteria): Promise<{
+    ratings: RatingDTO[];
+    nextCursor?: RatingCursor | undefined;
+  }>;
 
-  find: (userId: UserId, productId: ProductId) => Promise<RatingDTO>;
+  find: (userId: UserId, productId: ProductId) => Promise<RatingDTO | null>;
 };

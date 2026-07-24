@@ -1,6 +1,7 @@
 import type { CategoryId } from "#/domain/value-objects/category-id.js";
 import type { Money } from "#/domain/value-objects/money.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
+import type { UserId } from "#/domain/value-objects/user-id.js";
 import type { VariationId } from "#/domain/value-objects/variation-id.js";
 import type {
   ProductLowStockDTO,
@@ -12,39 +13,43 @@ import type {
   VariationWithCartItemDTO,
 } from "../dto/variation.dto.js";
 
+export type ProductCursor = { productId: string; createdAt: Date };
+
 export type ProductSearchCriteria = {
   limit: number;
   categoryId?: CategoryId;
-  cursor?: ProductId;
+  cursor?: ProductCursor;
   max_price?: Money;
   min_price?: Money;
 };
 
 export type ProductQueries = {
-  // doesn't require an aggregate
-  search: (
-    criteria: ProductSearchCriteria,
-  ) => Promise<{ products: ProductSearchDTO[]; nextCursor?: ProductId }>;
+  search: (criteria: ProductSearchCriteria) => Promise<{
+    products: ProductSearchDTO[];
+    nextCursor?: ProductCursor | undefined;
+  }>;
 
   // requires an aggregate
-  getStaticData: (productId: ProductId) => Promise<ProductStaticDataDTO[]>;
+  getStaticData: (productId: ProductId) => Promise<ProductStaticDataDTO | null>;
 
-  // doesn't require an aggregate
   getLowStock: (
     limit: number,
-    cursor?: ProductId,
-  ) => Promise<{ products: ProductLowStockDTO[]; nextCursor?: ProductId }>;
+    threshold: number,
+    cursor?: ProductCursor,
+  ) => Promise<{
+    products: ProductLowStockDTO[];
+    nextCursor?: ProductCursor | undefined;
+  }>;
 
-  // doesn't require an aggregate
   findVariations: (productId: ProductId) => Promise<VariationDTO[]>;
 
   // doesn't require an aggregate
   findVariationsWithCartItems: (
     productId: ProductId,
+    userId: UserId,
   ) => // each variation of the product and any cart itemId associated with it in current user's cart
   // we need it to check if the variation is already in cart within single product page so we can disable the add to cart button
   Promise<VariationWithCartItemDTO[]>;
 
-  // doesn't require an aggregate
   findVariation: (variationId: VariationId) => Promise<VariationDTO | null>;
 };
