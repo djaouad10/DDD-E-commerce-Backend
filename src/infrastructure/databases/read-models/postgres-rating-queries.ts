@@ -15,7 +15,10 @@ export class PostgresRatingQueries implements RatingQueries {
   constructor(private db: DrizzleDBClient) {}
 
   async find(userId: UserId, productId: ProductId): Promise<RatingDTO | null> {
-    this.logger.debug("find called", { userId: userId.value, productId });
+    this.logger.debug("find called", {
+      userId: userId.value,
+      productId: productId.value,
+    });
 
     try {
       const ratingRow = await this.logger.measure(
@@ -74,7 +77,7 @@ export class PostgresRatingQueries implements RatingQueries {
         "db.query.rating.findMany",
         () =>
           this.db.query.rating.findMany({
-            where: (rating, { and, eq, gt }) => {
+            where: (rating, { and, eq, gt, or }) => {
               const conditions = [];
 
               if (isApproved !== undefined) {
@@ -87,12 +90,17 @@ export class PostgresRatingQueries implements RatingQueries {
 
               if (cursor) {
                 conditions.push(
-                  and(
+                  or(
                     gt(rating.product_id, cursor.productId.value),
-                    gt(rating.user_id, cursor.userId.value),
+                    and(
+                      eq(rating.product_id, cursor.productId.value),
+                      gt(rating.user_id, cursor.userId.value),
+                    ),
                   ),
                 );
               }
+
+              return conditions.length > 0 ? and(...conditions) : undefined;
             },
             limit: limit + 1,
             orderBy: (rating, { asc }) => [
