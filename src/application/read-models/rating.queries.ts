@@ -1,5 +1,6 @@
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
+import type { RatingDTO } from "../dto/rating.dto.js";
 
 type RatingCursor = {
   userId: UserId;
@@ -18,5 +19,5 @@ export type RatingQueries = {
     criteria: RatingSearchCriteria,
   ): Promise<{ ratings: RatingDTO[]; nextCursor?: RatingCursor }>;
 
-  find: (userId: UserId, productId: ProductId) => Promise<RatingDTO>;
+  find: (userId: UserId, productId: ProductId) => Promise<RatingDTO | null>;
 };
