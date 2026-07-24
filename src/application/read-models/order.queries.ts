@@ -1,5 +1,4 @@
 import type { OrderStatus } from "#/domain/entities/order.js";
-import type { OrderId } from "#/domain/value-objects/order-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
 import type { OrderSearchResultDTO } from "../dto/order.dto.js";
 
@@ -7,15 +6,12 @@ export type OrderSearchCriteria = {
   userId: UserId;
   limit: number;
   status?: OrderStatus;
-  cursor?: OrderId;
+  cursor?: { orderId: string; createdAt: Date };
 };
 
 export type OrderQueries = {
-  // it does require aggregates loading
-  search: (
-    criteria: OrderSearchCriteria,
-  ) => Promise<{
+  search: (criteria: OrderSearchCriteria) => Promise<{
     orders: OrderSearchResultDTO[];
-    nextCursor?: string | undefined;
+    nextCursor?: { orderId: string; createdAt: Date } | undefined;
   }>;
 };

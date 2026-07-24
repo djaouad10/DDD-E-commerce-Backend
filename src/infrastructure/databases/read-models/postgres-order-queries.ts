@@ -14,7 +14,7 @@ export class PostgresOrderQueries implements OrderQueries {
 
   async search(criteria: OrderSearchCriteria): Promise<{
     orders: OrderSearchResultDTO[];
-    nextCursor?: string | undefined;
+    nextCursor?: { orderId: string; createdAt: Date } | undefined;
   }> {
     this.logger.debug("search called", { criteria });
 
@@ -25,20 +25,32 @@ export class PostgresOrderQueries implements OrderQueries {
         "db.query.order.findMany",
         () =>
           this.db.query.order.findMany({
-            where: (order, { eq, gt, and }) => {
-              const conditions = [eq(order.user_id, userId.value)];
+            where: (order, { eq, gt, and, or }) => {
+              // build conditions directly no array push with or() since the or clause returns a sql<unknown> | undefined, while "and, get,... etc." return sql<unknown>, so we can't push them to the same array
 
-              if (cursor) {
-                conditions.push(gt(order.id, cursor.value));
+              const userFilter = eq(order.user_id, userId.value);
+              const statusFilter = status
+                ? eq(order.status, status)
+                : undefined;
+
+              if (!cursor) {
+                return and(userFilter, statusFilter);
               }
 
-              if (status) {
-                conditions.push(eq(order.status, status));
-              }
-
-              return and(...conditions);
+              return and(
+                statusFilter,
+                userFilter,
+                // composite cursor pagination means you use one attribute mainly as the cursor and the other attribute as a tie breaker when more than one row has the same value of the main attribute
+                or(
+                  gt(order.created_at, cursor.createdAt),
+                  and(
+                    eq(order.created_at, cursor.createdAt),
+                    gt(order.id, cursor.orderId),
+                  ),
+                ),
+              );
             },
-            orderBy: (order, { asc }) => [asc(order.id)],
+            orderBy: (order, { asc }) => [asc(order.created_at), asc(order.id)],
             limit: limit + 1,
             columns: {
               id: true,
@@ -75,7 +87,12 @@ export class PostgresOrderQueries implements OrderQueries {
         }),
       );
 
-      const nextCursor = hasNextPage ? rowsToReturn[limit - 1]!.id : undefined;
+      const nextCursor = hasNextPage
+        ? {
+            orderId: rowsToReturn[limit - 1]!.id,
+            createdAt: rowsToReturn[limit - 1]!.created_at,
+          }
+        : undefined;
 
       this.logger.debug("search completed", {
         ordersCount: ordersToReturn.length,
