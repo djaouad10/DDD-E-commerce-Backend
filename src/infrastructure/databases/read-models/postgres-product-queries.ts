@@ -4,6 +4,7 @@ import type {
   ProductStaticDataDTO,
 } from "#/application/dto/product.dto.js";
 import type {
+  ProductCursor,
   ProductQueries,
   ProductSearchCriteria,
 } from "#/application/read-models/product.queries.js";
@@ -27,7 +28,7 @@ export class PostgresProductQueries implements ProductQueries {
 
   async search(criteria: ProductSearchCriteria): Promise<{
     products: ProductSearchDTO[];
-    nextCursor?: string | undefined;
+    nextCursor?: ProductCursor | undefined;
   }> {
     this.logger.debug("search called", { criteria });
 
@@ -36,17 +37,13 @@ export class PostgresProductQueries implements ProductQueries {
         "db.query.product.findMany",
         () =>
           this.db.query.product.findMany({
-            where: (product, { eq, gt, and, lte, gte }) => {
+            where: (product, { eq, gt, and, lte, gte, or }) => {
               const conditions = [];
 
               if (criteria.categoryId) {
                 conditions.push(
                   eq(product.categoryId, criteria.categoryId.value),
                 );
-              }
-
-              if (criteria.cursor) {
-                conditions.push(gt(product.id, criteria.cursor.value));
               }
 
               const effectivePrice = sql<number>`COALESCE(${product.discount_price}, ${product.price})`;
@@ -59,9 +56,25 @@ export class PostgresProductQueries implements ProductQueries {
                 conditions.push(gte(effectivePrice, criteria.min_price.amount));
               }
 
-              return and(...conditions);
+              if (!criteria.cursor) {
+                return and(...conditions);
+              }
+
+              return and(
+                ...conditions,
+                or(
+                  gt(product.created_at, criteria.cursor.createdAt),
+                  and(
+                    eq(product.created_at, criteria.cursor.createdAt),
+                    gt(product.id, criteria.cursor.productId),
+                  ),
+                ),
+              );
             },
-            orderBy: (product, { asc }) => [asc(product.id)],
+            orderBy: (product, { asc }) => [
+              asc(product.created_at),
+              asc(product.id),
+            ],
             limit: criteria.limit + 1,
             columns: {
               id: true,
@@ -141,8 +154,11 @@ export class PostgresProductQueries implements ProductQueries {
         };
       });
 
-      const nextCursor = hasNextPage
-        ? rowsToReturn[rowsToReturn.length - 1]!.id
+      const nextCursor: ProductCursor | undefined = hasNextPage
+        ? {
+            productId: rowsToReturn[rowsToReturn.length - 1]!.id,
+            createdAt: rowsToReturn[rowsToReturn.length - 1]!.created_at,
+          }
         : undefined;
 
       this.logger.debug("search completed", {
@@ -160,10 +176,10 @@ export class PostgresProductQueries implements ProductQueries {
   async getLowStock(
     limit: number,
     threshold: number,
-    cursor?: ProductId,
+    cursor?: ProductCursor,
   ): Promise<{
     products: ProductLowStockDTO[];
-    nextCursor?: string | undefined;
+    nextCursor?: ProductCursor | undefined;
   }> {
     this.logger.debug("getLowStock called", { limit, threshold });
 
@@ -172,7 +188,7 @@ export class PostgresProductQueries implements ProductQueries {
         "db.query.product.findMany",
         () =>
           this.db.query.product.findMany({
-            where: (product, { gt, exists, and, eq }) => {
+            where: (product, { gt, exists, and, eq, or }) => {
               const conditions = [
                 // Only products that have at least one low-stock variation
                 exists(
@@ -188,20 +204,33 @@ export class PostgresProductQueries implements ProductQueries {
                 ),
               ];
 
-              if (cursor) {
-                conditions.push(gt(product.id, cursor.value));
+              if (!cursor) {
+                return and(...conditions);
               }
 
-              return and(...conditions);
+              return and(
+                ...conditions,
+                or(
+                  gt(product.created_at, cursor.createdAt),
+                  and(
+                    eq(product.created_at, cursor.createdAt),
+                    gt(product.id, cursor.productId),
+                  ),
+                ),
+              );
             },
 
-            orderBy: (product, { asc }) => [asc(product.id)],
+            orderBy: (product, { asc }) => [
+              asc(product.created_at),
+              asc(product.id),
+            ],
             limit: limit + 1,
             columns: {
               id: true,
               name: true,
               slug: true,
               categoryId: true,
+              created_at: true,
             },
             with: {
               category: true,
@@ -255,8 +284,11 @@ export class PostgresProductQueries implements ProductQueries {
         };
       });
 
-      const nextCursor = hasNextPage
-        ? rowsToReturn[rowsToReturn.length - 1]!.id
+      const nextCursor: ProductCursor | undefined = hasNextPage
+        ? {
+            productId: rowsToReturn[rowsToReturn.length - 1]!.id,
+            createdAt: rowsToReturn[rowsToReturn.length - 1]!.created_at,
+          }
         : undefined;
 
       this.logger.debug("getLowStock completed", {
