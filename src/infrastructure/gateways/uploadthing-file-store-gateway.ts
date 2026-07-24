@@ -55,4 +55,34 @@ export class UploadthingFileStoreGateway implements FileStoreGateway {
 
     return url;
   }
+
+  async getPrivateFileReadUrl(
+    key: string,
+    expiresInSeconds?: number,
+  ): Promise<string> {
+    this.logger.debug(`getPrivateFileReadUrl called`, {
+      key,
+      expiresInSeconds,
+    });
+
+    try {
+      const res = await this.utApi.generateSignedURL(key, {
+        ...(expiresInSeconds && { expiresIn: expiresInSeconds }),
+      });
+
+      this.logger.debug(`getPrivateFileReadUrl completed`, { key });
+
+      return res.ufsUrl;
+    } catch (error) {
+      this.logger.error(`getPrivateFileReadUrl failed`, error as Error, {
+        key,
+        expiresInSeconds,
+      });
+
+      handleUploadThingErrors(
+        error,
+        "UploadthingFileStoreGateway.getPrivateFileReadUrl",
+      );
+    }
+  }
 }
