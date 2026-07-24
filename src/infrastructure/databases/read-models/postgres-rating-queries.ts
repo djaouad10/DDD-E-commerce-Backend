@@ -1,5 +1,8 @@
 import type { RatingDTO } from "#/application/dto/rating.dto.js";
-import type { RatingQueries } from "#/application/read-models/rating.queries.js";
+import type {
+  RatingQueries,
+  RatingSearchCriteria,
+} from "#/application/read-models/rating.queries.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
@@ -55,6 +58,80 @@ export class PostgresRatingQueries implements RatingQueries {
       });
 
       handleDrizzleErrors(error, "PostgresRatingQueries.find");
+    }
+  }
+
+  async search(criteria: RatingSearchCriteria): Promise<{
+    ratings: RatingDTO[];
+    nextCursor?: { userId: string; productId: string } | undefined;
+  }> {
+    this.logger.debug("search called", { criteria });
+
+    try {
+      const { limit, isApproved, cursor, productId } = criteria;
+
+      const ratingRows = await this.logger.measure(
+        "db.query.rating.findMany",
+        () =>
+          this.db.query.rating.findMany({
+            where: (rating, { and, eq, gt }) => {
+              const conditions = [];
+
+              if (isApproved !== undefined) {
+                conditions.push(eq(rating.is_approved, isApproved));
+              }
+
+              if (productId) {
+                conditions.push(eq(rating.product_id, productId.value));
+              }
+
+              if (cursor) {
+                conditions.push(
+                  and(
+                    gt(rating.product_id, cursor.productId.value),
+                    gt(rating.user_id, cursor.userId.value),
+                  ),
+                );
+              }
+            },
+            limit: limit + 1,
+            orderBy: (rating, { asc }) => [
+              asc(rating.product_id),
+              asc(rating.user_id),
+            ],
+          }),
+      );
+
+      const hasNextPage = ratingRows.length > limit;
+
+      const rowsToReturn = hasNextPage
+        ? ratingRows.slice(0, limit)
+        : ratingRows;
+
+      const ratingsToReturn: RatingDTO[] = rowsToReturn.map((row) => ({
+        userId: row.user_id,
+        productId: row.product_id,
+        rating: row.rating,
+        comment: row.comment,
+        isApproved: row.is_approved,
+        createdAt: row.created_at.toISOString(),
+        updatedAt: row.updated_at.toISOString(),
+      }));
+
+      const nextCursor = hasNextPage
+        ? {
+            productId: rowsToReturn[limit - 1]!.product_id,
+            userId: rowsToReturn[limit - 1]!.user_id,
+          }
+        : undefined;
+
+      this.logger.debug("search completed", { nextCursor });
+
+      return { ratings: ratingsToReturn, nextCursor };
+    } catch (error) {
+      this.logger.error("search failed", error as Error, { criteria });
+
+      handleDrizzleErrors(error, "PostgresRatingQueries.search");
     }
   }
 }
