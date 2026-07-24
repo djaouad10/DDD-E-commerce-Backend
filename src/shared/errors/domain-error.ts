@@ -4,7 +4,7 @@ type ErrorCodes =
   | "INSUFFICIENT_INVENTORY"
   | "UNAUTHORIZED"
   | "DATABASE_ERROR"
-  | "EXTERNAL_API_ERROR"
+  | "GATEWAY_ERROR"
   | "CONFLICT";
 
 export abstract class DomainError extends Error {
@@ -93,8 +93,8 @@ export class DatabaseError extends Error {
   }
 }
 
-export class ExternalApiError extends Error {
-  readonly code = "EXTERNAL_API_ERROR";
+export class GatewayError extends Error {
+  readonly code = "GATEWAY_ERROR";
   readonly statusCode = 502;
   readonly isOperational = false;
 
@@ -102,6 +102,6 @@ export class ExternalApiError extends Error {
     readonly service: string,
     readonly originalError: unknown,
   ) {
-    super(`External service '${service}' failed`);
+    super(`Gateway '${service}' failed`);
   }
 }
