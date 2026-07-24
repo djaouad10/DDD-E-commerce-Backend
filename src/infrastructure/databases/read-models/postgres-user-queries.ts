@@ -1,5 +1,6 @@
 import type { UserDTO } from "#/application/dto/user.dto.js";
 import type {
+  UserCursor,
   UserQueries,
   UserSearchCriteria,
 } from "#/application/read-models/user.queries.js";
@@ -13,21 +14,30 @@ export class PostgresUserQueries implements UserQueries {
   constructor(private db: DrizzleDBClient) {}
   async search(
     criteria: UserSearchCriteria,
-  ): Promise<{ users: UserDTO[]; nextCursor?: string | undefined }> {
+  ): Promise<{ users: UserDTO[]; nextCursor?: UserCursor | undefined }> {
     this.logger.debug("search called", { criteria });
 
     try {
       // add cursor pagination and return next cursor
       const userRows = await this.logger.measure("db.query.user.findMany", () =>
         this.db.query.user.findMany({
-          where: (user, { eq, gt, and }) => {
+          where: (user, { eq, gt, and, or }) => {
             const conditions = [eq(user.role, criteria.role)];
 
-            if (criteria.cursor) {
-              conditions.push(gt(user.id, criteria.cursor.value));
+            if (!criteria.cursor) {
+              return and(...conditions);
             }
 
-            return and(...conditions);
+            return and(
+              ...conditions,
+              or(
+                gt(user.createdAt, criteria.cursor.createdAt),
+                and(
+                  eq(user.createdAt, criteria.cursor.createdAt),
+                  gt(user.id, criteria.cursor.userId),
+                ),
+              ),
+            );
           },
           orderBy: (user, { asc }) => [asc(user.id)],
           limit: criteria.limit + 1,
@@ -59,8 +69,11 @@ export class PostgresUserQueries implements UserQueries {
         createdAt: user.createdAt.toISOString(),
       }));
 
-      const nextCursor = hasNextPage
-        ? rowsToReturn[rowsToReturn.length - 1]!.id
+      const nextCursor: UserCursor | undefined = hasNextPage
+        ? {
+            userId: rowsToReturn[rowsToReturn.length - 1]!.id,
+            createdAt: rowsToReturn[rowsToReturn.length - 1]!.createdAt,
+          }
         : undefined;
 
       this.logger.debug("search completed", {
