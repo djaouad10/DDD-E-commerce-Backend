@@ -1,5 +1,6 @@
 import type { RatingDTO } from "#/application/dto/rating.dto.js";
 import type {
+  RatingCursor,
   RatingQueries,
   RatingSearchCriteria,
 } from "#/application/read-models/rating.queries.js";
@@ -66,7 +67,7 @@ export class PostgresRatingQueries implements RatingQueries {
 
   async search(criteria: RatingSearchCriteria): Promise<{
     ratings: RatingDTO[];
-    nextCursor?: { userId: string; productId: string } | undefined;
+    nextCursor?: RatingCursor | undefined;
   }> {
     this.logger.debug("search called", { criteria });
 
@@ -88,19 +89,27 @@ export class PostgresRatingQueries implements RatingQueries {
                 conditions.push(eq(rating.product_id, productId.value));
               }
 
-              if (cursor) {
-                conditions.push(
-                  or(
-                    gt(rating.product_id, cursor.productId.value),
-                    and(
-                      eq(rating.product_id, cursor.productId.value),
-                      gt(rating.user_id, cursor.userId.value),
-                    ),
-                  ),
-                );
+              if (!cursor) {
+                return conditions.length > 0 ? and(...conditions) : undefined;
               }
 
-              return conditions.length > 0 ? and(...conditions) : undefined;
+              return and(
+                ...conditions,
+                or(
+                  gt(rating.created_at, cursor.createdAt),
+
+                  and(
+                    eq(rating.created_at, cursor.createdAt),
+                    gt(rating.product_id, cursor.productId),
+                  ),
+
+                  and(
+                    eq(rating.created_at, cursor.createdAt),
+                    eq(rating.product_id, cursor.productId),
+                    gt(rating.user_id, cursor.userId),
+                  ),
+                ),
+              );
             },
             limit: limit + 1,
             orderBy: (rating, { asc }) => [
@@ -126,8 +135,9 @@ export class PostgresRatingQueries implements RatingQueries {
         updatedAt: row.updated_at.toISOString(),
       }));
 
-      const nextCursor = hasNextPage
+      const nextCursor: RatingCursor | undefined = hasNextPage
         ? {
+            createdAt: rowsToReturn[limit - 1]!.created_at,
             productId: rowsToReturn[limit - 1]!.product_id,
             userId: rowsToReturn[limit - 1]!.user_id,
           }
