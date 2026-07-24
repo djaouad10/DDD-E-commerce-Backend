@@ -11,8 +11,11 @@ export type UploadInstructions = {
 };
 
 export type FileStoreGateway = {
-  getPublicUrl: (key: string) => Promise<string>;
-  getReadUrl: (key: string, expiresInSeconds?: number) => Promise<string>; // for private files
+  getPublicFileUrl: (key: string) => string;
+  getPrivateFileReadUrl: (
+    key: string,
+    expiresInSeconds?: number,
+  ) => Promise<string>; // for private files
   delete: (key: string) => Promise<void>;
   deleteMany: (keys: string[]) => Promise<void>;
 
