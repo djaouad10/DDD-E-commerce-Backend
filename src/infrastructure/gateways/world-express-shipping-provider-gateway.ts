@@ -1,5 +1,6 @@
 import type { Order } from "#/domain/entities/order.js";
 import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
+import type { Commune } from "#/domain/value-objects/commune.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import {
   HttpConnectionError,
@@ -94,33 +95,33 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
   }> {
     this.logger.debug("createManyShipments called");
 
+    const reqBody = orders.map((order) => {
+      const orderId = order.id;
+      const shippingDetails = order.getShippingDetails();
+
+      return {
+        reference: orderId.value,
+        nom_client: shippingDetails.getFullName(),
+        telephone: shippingDetails.getFirstPhone(),
+        telephone_2: shippingDetails.getSecondPhone() ?? "",
+        adresse: shippingDetails.getAddress(),
+        code_postal: shippingDetails.getPostalCode(),
+        commune: shippingDetails.getCommune(),
+        code_wilaya: String(shippingDetails.getWilayaCode()),
+        montant: String(order.getTotalOrderPrice().amount),
+        remarque: shippingDetails.getClientNote() ?? "",
+        stock: "0",
+        type: "1",
+        stop_desk: shippingDetails.deliveryType === "TO_DESK" ? "1" : "0",
+        weight: String(order.getTotalWeightInKg().weight),
+        fragile: shippingDetails.getFragile() ? "1" : "0",
+        gps_link: shippingDetails.getGpsLink() ?? "",
+      };
+    });
+
+    const url = `${this.baseUrl}/create/orders`;
+
     try {
-      const reqBody = orders.map((order) => {
-        const orderId = order.id;
-        const shippingDetails = order.getShippingDetails();
-
-        return {
-          reference: orderId.value,
-          nom_client: shippingDetails.getFullName(),
-          telephone: shippingDetails.getFirstPhone(),
-          telephone_2: shippingDetails.getSecondPhone() ?? "",
-          adresse: shippingDetails.getAddress(),
-          code_postal: shippingDetails.getPostalCode(),
-          commune: shippingDetails.getCommune(),
-          code_wilaya: String(shippingDetails.getWilayaCode()),
-          montant: String(order.getTotalOrderPrice().amount),
-          remarque: shippingDetails.getClientNote() ?? "",
-          stock: "0",
-          type: "1",
-          stop_desk: shippingDetails.deliveryType === "TO_DESK" ? "1" : "0",
-          weight: String(order.getTotalWeightInKg().weight),
-          fragile: shippingDetails.getFragile() ? "1" : "0",
-          gps_link: shippingDetails.getGpsLink() ?? "",
-        };
-      });
-
-      const url = `${this.baseUrl}/create/orders`;
-
       const response = await this.logger.measure(
         `httpClient.request(${url})`,
         () =>
@@ -161,6 +162,54 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
       handleWorldExpressErrors(
         error,
         "WorldExpressShippingProviderGateway.createManyShipments",
+      );
+    }
+  }
+
+  async getActiveCommunesOfWilaya(wilayaCode: number): Promise<Commune[]> {
+    this.logger.debug("getActiveCommunesOfWilaya called");
+
+    const searchParams = new URLSearchParams({
+      wilaya_id: String(wilayaCode),
+    });
+
+    const url = `/get/communes?${searchParams.toString()}`;
+
+    try {
+      const reponse = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.request<WEGetCommunesResBody>({
+            url,
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          }),
+      );
+
+      if (!this.isSuccess(reponse.statusCode)) {
+        throw new WorldExpressApiError(reponse.statusCode, reponse.body, url);
+      }
+
+      this.logger.debug("getActiveCommunesOfWilaya completed", {
+        communesCount: reponse.body.length,
+      });
+
+      return reponse.body;
+    } catch (error) {
+      this.logger.error("getActiveCommunesOfWilaya failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.getActiveCommunesOfWilaya",
       );
     }
   }
@@ -211,3 +260,10 @@ type WECreateManyShipmentsResBody = {
     }
   >;
 };
+
+type WEGetCommunesResBody = {
+  nom: string;
+  wilaya_id: number;
+  code_postal: string;
+  has_stop_desk: 1 | 0;
+}[];
