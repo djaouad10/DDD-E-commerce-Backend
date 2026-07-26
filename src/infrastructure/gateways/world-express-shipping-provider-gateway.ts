@@ -226,7 +226,7 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
   async getActiveWilayas(): Promise<Wilaya[]> {
     this.logger.debug("getActiveWilayas called");
 
-    const url = "/get/wilayas";
+    const url = `${this.baseUrl}/get/wilayas`;
 
     try {
       const response = await this.logger.measure(
@@ -265,6 +265,58 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
       handleWorldExpressErrors(
         error,
         "WorldExpressShippingProviderGateway.getActiveWilayas",
+      );
+    }
+  }
+
+  async activateShipment(
+    trackingNumber: string,
+  ): Promise<{ success: boolean }> {
+    this.logger.debug("activateShipment called");
+
+    const searchParams = new URLSearchParams({
+      tracking: trackingNumber,
+      ask_collection: "0",
+    });
+
+    const url = `${this.baseUrl}/valid/order?${searchParams.toString()}`;
+
+    try {
+      const response = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.request<WEActivateShipmentResBody>({
+            url,
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          }),
+      );
+
+      if (!this.isSuccess(response.statusCode)) {
+        throw new WorldExpressApiError(response.statusCode, response.body, url);
+      }
+
+      this.logger.debug("activateShipment completed", {
+        success: response.body.success,
+        message: response.body.message,
+      });
+
+      return { success: response.body.success };
+    } catch (error) {
+      this.logger.error("activateShipment failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.activateShipment",
       );
     }
   }
@@ -327,3 +379,8 @@ type WEGetWilayasResBody = {
   wilaya_id: number;
   wilaya_name: string;
 }[];
+
+type WEActivateShipmentResBody = {
+  success: boolean;
+  message: string;
+};
