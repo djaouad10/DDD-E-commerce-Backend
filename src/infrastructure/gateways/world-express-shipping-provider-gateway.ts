@@ -1,7 +1,8 @@
 import type { Order } from "#/domain/entities/order.js";
 import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
-import type { Commune } from "#/domain/value-objects/commune.js";
+import { Commune } from "#/domain/value-objects/commune.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
+import { Wilaya } from "#/domain/value-objects/wilaya.js";
 import {
   HttpConnectionError,
   HttpTimeoutError,
@@ -196,7 +197,15 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
         communesCount: reponse.body.length,
       });
 
-      return reponse.body;
+      return reponse.body.map(
+        (commune) =>
+          new Commune(
+            commune.nom,
+            wilayaCode,
+            commune.code_postal,
+            commune.has_stop_desk === 1,
+          ),
+      );
     } catch (error) {
       this.logger.error("getActiveCommunesOfWilaya failed", error as Error);
 
@@ -210,6 +219,52 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
       handleWorldExpressErrors(
         error,
         "WorldExpressShippingProviderGateway.getActiveCommunesOfWilaya",
+      );
+    }
+  }
+
+  async getActiveWilayas(): Promise<Wilaya[]> {
+    this.logger.debug("getActiveWilayas called");
+
+    const url = "/get/wilayas";
+
+    try {
+      const response = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.request<WEGetWilayasResBody>({
+            url,
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          }),
+      );
+
+      if (!this.isSuccess(response.statusCode)) {
+        throw new WorldExpressApiError(response.statusCode, response.body, url);
+      }
+
+      this.logger.debug("getActiveWilayas completed", {
+        wilayasCount: response.body.length,
+      });
+
+      return response.body.map(
+        (wilaya) => new Wilaya(wilaya.wilaya_id, wilaya.wilaya_name),
+      );
+    } catch (error) {
+      this.logger.error("getActiveWilayas failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.getActiveWilayas",
       );
     }
   }
@@ -266,4 +321,9 @@ type WEGetCommunesResBody = {
   wilaya_id: number;
   code_postal: string;
   has_stop_desk: 1 | 0;
+}[];
+
+type WEGetWilayasResBody = {
+  wilaya_id: number;
+  wilaya_name: string;
 }[];
