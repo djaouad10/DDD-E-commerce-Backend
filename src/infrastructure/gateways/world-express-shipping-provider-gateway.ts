@@ -321,6 +321,56 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
     }
   }
 
+  async deleteUnshippedShipment(
+    trackingNumber: string,
+  ): Promise<{ success: boolean }> {
+    this.logger.debug("deleteUnshippedShipment called");
+
+    const searchParams = new URLSearchParams({
+      tracking: trackingNumber,
+    });
+
+    const url = `${this.baseUrl}/delete/order?${searchParams.toString()}`;
+
+    try {
+      const response = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.request<WEDeleteUnshippedShipmentResBody>({
+            url,
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          }),
+      );
+
+      if (!this.isSuccess(response.statusCode)) {
+        throw new WorldExpressApiError(response.statusCode, response.body, url);
+      }
+
+      this.logger.debug("deleteUnshippedShipment completed", {
+        success: response.body.delete === "success",
+      });
+
+      return { success: response.body.delete === "success" };
+    } catch (error) {
+      this.logger.error("deleteUnshippedShipment failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.deleteUnshippedShipment",
+      );
+    }
+  }
+
   private isSuccess(status: number): boolean {
     return status >= 200 && status < 300;
   }
@@ -383,4 +433,8 @@ type WEGetWilayasResBody = {
 type WEActivateShipmentResBody = {
   success: boolean;
   message: string;
+};
+
+type WEDeleteUnshippedShipmentResBody = {
+  delete: "success" | "fail";
 };
