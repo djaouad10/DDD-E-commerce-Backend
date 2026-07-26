@@ -1,3 +1,4 @@
+import type { Order } from "../entities/order.js";
 import type { Commune } from "../value-objects/commune.js";
 import type { DeliveryFees } from "../value-objects/delivery-fees.js";
 import type { OrderId } from "../value-objects/order-id.js";
@@ -15,12 +16,6 @@ export type ShipmentItem = {
   sku: string;
   quantity: number;
   weight_in_grams: number;
-};
-
-export type CreateShipmentParams = {
-  orderId: OrderId;
-  items: ShipmentItem[];
-  shippingDetails: ShippingDetails;
 };
 
 export type UpdateUnshippedShipmentParams = {
@@ -42,12 +37,10 @@ export type ShippingProviderGateway = {
 
   getDeliveryFeesOfWilaya: (wilayaId: number) => Promise<DeliveryFees[]>;
 
-  createShipment: (
-    params: CreateShipmentParams,
-  ) => Promise<{ trackingNumber: string }>;
+  createShipment: (order: Order) => Promise<{ trackingNumber: string }>;
 
   createManyShipments: (
-    params: CreateShipmentParams[],
+    orders: Order[],
   ) => Promise<{ orderId: OrderId; trackingNumber: string }[]>;
 
   updateUnShippedShipment: (params: UpdateUnshippedShipmentParams) => Promise<{
