@@ -3,8 +3,6 @@ type ErrorCodes =
   | "NOT_FOUND"
   | "INSUFFICIENT_INVENTORY"
   | "UNAUTHORIZED"
-  | "DATABASE_ERROR"
-  | "GATEWAY_ERROR"
   | "CONFLICT"
   | "BAD_REQUEST";
 
@@ -113,5 +111,40 @@ export class GatewayError extends Error {
     readonly originalError: unknown,
   ) {
     super(`Gateway '${service}' failed`);
+  }
+}
+
+export class HttpTimeoutError extends Error {
+  readonly code = "GATEWAY_TIMEOUT_ERROR";
+  readonly statusCode = 504;
+  readonly isOperational = false;
+
+  constructor(url: string, timeoutMs: number) {
+    super(`Request to ${url} timed out after ${timeoutMs}ms`);
+    this.name = "HttpTimeoutError";
+  }
+}
+
+export class HttpConnectionError extends Error {
+  readonly code = "CONNECTION_ERROR";
+  readonly statusCode = 502;
+  readonly isOperational = false;
+
+  constructor(url: string, cause: unknown) {
+    super(`Failed to connect to ${url}`);
+    this.name = "HttpConnectionError";
+    this.cause = cause;
+  }
+}
+
+export class HttpMalformedResponseError extends Error {
+  readonly code = "MALFORMED_RESPONSE_ERROR";
+  readonly statusCode = 502;
+  readonly isOperational = false;
+
+  constructor(url: string, cause: unknown) {
+    super(`Malformed response from ${url}`);
+    this.name = "HttpMalformedResponseError";
+    this.cause = cause;
   }
 }
