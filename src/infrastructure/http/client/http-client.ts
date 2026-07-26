@@ -4,7 +4,6 @@ export type HttpRequestConfig = {
   headers?: Record<string, string>;
   body?: unknown;
   timeoutMs?: number;
-  retries?: number;
 };
 
 export interface HttpResponse<T = unknown> {
@@ -13,7 +12,21 @@ export interface HttpResponse<T = unknown> {
   body: T;
 }
 
+export type BinaryHttpResponse = {
+  statusCode: number;
+  headers: Record<string, string>;
+  buffer: Buffer;
+  contentType: string;
+  filename?: string | undefined;
+};
+
 export type HttpClient = {
+  /**
+   * Returns the response regardless of status code.
+   * Caller (gateway) is responsible for checking statusCode.
+   * T is the EXPECTED success body shape — error bodies are caller's responsibility.
+   */
   request<T>(config: HttpRequestConfig): Promise<HttpResponse<T>>;
-  requestRaw(config: HttpRequestConfig): Promise<Response>;
+
+  requestBinary(config: HttpRequestConfig): Promise<BinaryHttpResponse>;
 };
