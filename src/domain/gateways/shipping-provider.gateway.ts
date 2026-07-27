@@ -2,10 +2,6 @@ import type { Order, OrderStatus } from "../entities/order.js";
 import type { Commune } from "../value-objects/commune.js";
 import type { DeliveryFees } from "../value-objects/delivery-fees.js";
 import type { OrderId } from "../value-objects/order-id.js";
-import type {
-  DeliveryType,
-  ShippingDetails,
-} from "../value-objects/shipping-details.js";
 import type { TrackingHistory } from "../value-objects/tracking-history.js";
 import type { Wilaya } from "../value-objects/wilaya.js";
 
@@ -15,12 +11,18 @@ export type ShipmentItem = {
   weight_in_grams: number;
 };
 
+export type ShippingLabel = {
+  buffer: Buffer;
+  contentType: string;
+  filename?: string | undefined;
+};
+
 export type ShippingProviderGateway = {
   getActiveWilayas: () => Promise<Wilaya[]>;
 
   getActiveCommunesOfWilaya: (wilayaCode: number) => Promise<Commune[]>;
 
-  getLabelPdfUrl: (trackingNumber: string) => Promise<{ url: string }>;
+  getShippingLabel: (trackingNumber: string) => Promise<ShippingLabel>;
 
   // purpose: tells carrier to start the shipping process for this order
   activateShipment: (trackingNumber: string) => Promise<{ success: boolean }>;

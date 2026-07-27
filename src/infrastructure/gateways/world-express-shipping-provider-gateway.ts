@@ -1,5 +1,8 @@
 import type { Order, OrderStatus } from "#/domain/entities/order.js";
-import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
+import type {
+  ShippingLabel,
+  ShippingProviderGateway,
+} from "#/domain/gateways/shipping-provider.gateway.js";
 import { Commune } from "#/domain/value-objects/commune.js";
 import { DeliveryFees } from "#/domain/value-objects/delivery-fees.js";
 import { Money } from "#/domain/value-objects/money.js";
@@ -669,6 +672,56 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
       handleWorldExpressErrors(
         error,
         "WorldExpressShippingProviderGateway.updateUnShippedShipment",
+      );
+    }
+  }
+
+  async getShippingLabel(trackingNumber: string): Promise<ShippingLabel> {
+    this.logger.debug("getShippingLabel called");
+
+    const searchParams = new URLSearchParams({
+      tracking: trackingNumber,
+    });
+
+    const url = `${this.baseUrl}/get/order/label?${searchParams.toString()}`;
+
+    try {
+      const response = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.requestBinary({
+            url,
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              Accept: "application/pdf",
+            },
+          }),
+      );
+
+      if (!this.isSuccess(response.statusCode)) {
+        throw new WorldExpressApiError(response.statusCode, {}, url);
+      }
+
+      this.logger.debug("getShippingLabel completed", { trackingNumber });
+
+      return {
+        contentType: response.contentType,
+        buffer: response.buffer,
+        filename: response.filename,
+      };
+    } catch (error) {
+      this.logger.error("getShippingLabel failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.getShippingLabel",
       );
     }
   }
