@@ -10,6 +10,7 @@ import {
 } from "#/domain/value-objects/tracking-history.js";
 import { Wilaya } from "#/domain/value-objects/wilaya.js";
 import {
+  BadRequestError,
   HttpConnectionError,
   HttpTimeoutError,
   NotFoundError,
@@ -601,6 +602,73 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
       handleWorldExpressErrors(
         error,
         "WorldExpressShippingProviderGateway.getTrackingHistoryOfShipment",
+      );
+    }
+  }
+
+  async updateUnShippedShipment(order: Order): Promise<{ success: boolean }> {
+    this.logger.debug("updateUnShippedShipment called");
+
+    const trackingNumber = order.getTrackingNumber();
+    if (!trackingNumber) {
+      throw new BadRequestError(
+        "a tracking number is required before you can update the order in the shipping provider",
+      );
+    }
+
+    const searchParams = new URLSearchParams({
+      tracking: trackingNumber,
+      reference: order.id.value,
+      client: order.getShippingDetails().getFullName(),
+      tel: order.getShippingDetails().getFirstPhone(),
+      tel2: order.getShippingDetails().getSecondPhone() ?? "",
+      adresse: order.getShippingDetails().getAddress(),
+      code_postal: order.getShippingDetails().getPostalCode(),
+      commune: order.getShippingDetails().getCommune(),
+      wilaya: String(order.getShippingDetails().getWilayaCode()),
+      remarque: order.getShippingDetails().getClientNote() ?? "",
+      fragile: order.getShippingDetails().getFragile() ? "1" : "0",
+      gps_link: order.getShippingDetails().getGpsLink() ?? "",
+      montant: String(order.getTotalOrderPrice().amount),
+      type: "1", // "delivery"
+    });
+
+    const url = `${this.baseUrl}/update/order?${searchParams.toString()}`;
+
+    try {
+      const response = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.request<{ success: boolean }>({
+            url,
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          }),
+      );
+
+      if (!this.isSuccess(response.statusCode)) {
+        throw new WorldExpressApiError(response.statusCode, response.body, url);
+      }
+
+      this.logger.debug("updateUnShippedShipment completed", {
+        trackingNumber,
+      });
+
+      return response.body;
+    } catch (error) {
+      this.logger.error("updateUnShippedShipment failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.updateUnShippedShipment",
       );
     }
   }

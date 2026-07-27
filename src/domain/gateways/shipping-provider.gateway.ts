@@ -15,13 +15,6 @@ export type ShipmentItem = {
   weight_in_grams: number;
 };
 
-export type UpdateUnshippedShipmentParams = {
-  trackingNumber: string;
-  shippingDetails?: ShippingDetails;
-  phone?: string;
-  deliveryType?: DeliveryType;
-};
-
 export type ShippingProviderGateway = {
   getActiveWilayas: () => Promise<Wilaya[]>;
 
@@ -41,7 +34,7 @@ export type ShippingProviderGateway = {
     created: { orderId: OrderId; trackingNumber: string }[];
   }>;
 
-  updateUnShippedShipment: (params: UpdateUnshippedShipmentParams) => Promise<{
+  updateUnShippedShipment: (order: Order) => Promise<{
     success: boolean;
   }>;
 
