@@ -499,6 +499,44 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
     }
   }
 
+  async getOneShipmentStatus(
+    trackingNumber: string,
+  ): Promise<{ status: OrderStatus }> {
+    this.logger.debug("getOneShipmentStatus called");
+
+    try {
+      const shipmentStatuses = await this.getManyShipmentsStatuses([
+        trackingNumber,
+      ]);
+
+      const status = shipmentStatuses[0]?.status;
+
+      if (!status) {
+        throw new NotFoundError("Shipment", trackingNumber);
+      }
+
+      this.logger.debug("getOneShipmentStatus completed", {
+        trackingNumber,
+      });
+
+      return { status };
+    } catch (error) {
+      this.logger.error("getOneShipmentStatus failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.getOneShipmentStatus",
+      );
+    }
+  }
+
   private translateEcoTrackStatusToOrderStatus(
     status: WEOrderStatus,
   ): OrderStatus {
