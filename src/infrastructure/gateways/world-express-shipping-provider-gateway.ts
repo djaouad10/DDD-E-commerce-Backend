@@ -4,6 +4,10 @@ import { Commune } from "#/domain/value-objects/commune.js";
 import { DeliveryFees } from "#/domain/value-objects/delivery-fees.js";
 import { Money } from "#/domain/value-objects/money.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
+import {
+  OrderTrackingStatus,
+  TrackingHistory,
+} from "#/domain/value-objects/tracking-history.js";
 import { Wilaya } from "#/domain/value-objects/wilaya.js";
 import {
   HttpConnectionError,
@@ -411,6 +415,10 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
 
       this.logger.debug("getDeliveryFeesOfWilaya completed", {
         wilayaId,
+        fees: {
+          homeDeliveryFee: fees.homeDeliveryFee.toSnapshot(),
+          stopDeskFee: fees.stopDeskFee.toSnapshot(),
+        },
       });
 
       return fees;
@@ -469,7 +477,7 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
       for (const [trackingNumber, order] of Object.entries(
         response.body.data,
       )) {
-        const status = this.translateEcoTrackStatusToOrderStatus(order.status);
+        const status = this.translateWEStatusToOrderStatus(order.status);
 
         formattedResult.push({
           status: status,
@@ -537,8 +545,99 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
     }
   }
 
-  private translateEcoTrackStatusToOrderStatus(
-    status: WEOrderStatus,
+  async getTrackingHistoryOfShipment(
+    trackingNumber: string,
+  ): Promise<TrackingHistory[]> {
+    this.logger.debug("getTrackingHistoryOfShipment called");
+
+    const searchParams = new URLSearchParams({
+      tracking: trackingNumber,
+    });
+
+    const url = `${this.baseUrl}/get/tracking/info?${searchParams.toString()}`;
+
+    try {
+      const response = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.request<WEGetTrackingHistoryOfShipmentResBody>({
+            url,
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          }),
+      );
+
+      if (!this.isSuccess(response.statusCode)) {
+        throw new WorldExpressApiError(response.statusCode, response.body, url);
+      }
+
+      const trackingHistory: TrackingHistory[] = response.body.activity.map(
+        (a) =>
+          new TrackingHistory(
+            new Date(a.date),
+            a.time,
+            this.translateWETrackingStatustoOrderTrackingStatus(a.status),
+            a.station,
+          ),
+      );
+
+      this.logger.debug("getTrackingHistoryOfShipment completed", {
+        trackingNumber,
+      });
+
+      return trackingHistory;
+    } catch (error) {
+      this.logger.error("getTrackingHistoryOfShipment failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.getTrackingHistoryOfShipment",
+      );
+    }
+  }
+
+  private translateWETrackingStatustoOrderTrackingStatus(
+    status: WETrackingStatus,
+  ): OrderTrackingStatus {
+    switch (status) {
+      case "order_information_received_by_carrier":
+        return OrderTrackingStatus.ORDER_INFORMATION_RECEIVED_BY_CARRIER;
+      case "picked":
+        return OrderTrackingStatus.PICKED;
+      case "accepted_by_carrier":
+        return OrderTrackingStatus.ATTEMPT_DELIVERY;
+      case "dispatched_to_driver":
+        return OrderTrackingStatus.DISPATCHED_TO_DRIVER;
+      case "attempt_delivery":
+        return OrderTrackingStatus.ATTEMPT_DELIVERY;
+      case "return_asked":
+        return OrderTrackingStatus.RETURN_ASKED;
+      case "return_in_transit":
+        return OrderTrackingStatus.RETURN_IN_TRANSIT;
+      case "Return_received":
+        return OrderTrackingStatus.RETURN_RECEIVED;
+      case "livred":
+        return OrderTrackingStatus.DELIVERED;
+      case "encaissed":
+        return OrderTrackingStatus.DELIVERED;
+      case "payed":
+        return OrderTrackingStatus.PAID;
+      default:
+        return OrderTrackingStatus.ATTEMPT_DELIVERY;
+    }
+  }
+
+  private translateWEStatusToOrderStatus(
+    status: WEShipmentStatus,
   ): OrderStatus {
     switch (status) {
       case "prete_a_expedier":
@@ -695,13 +794,13 @@ type WEStatusActivity = {
   postponed_to: string | null;
 };
 
-type WEOrderStatusCore = {
-  status: WEOrderStatus;
+type WEShipmentStatusCore = {
+  status: WEShipmentStatus;
   order_id: string;
   activity: WEStatusActivity[];
 };
 
-type WEOrderStatusExtras = {
+type WEShipmentStatusExtras = {
   desk_phone?: string;
   desk_commune?: string;
   desk_map_link?: string;
@@ -710,13 +809,43 @@ type WEOrderStatusExtras = {
   estimated_fee?: number;
 };
 
-type WEOrderStatusPayload = WEOrderStatusCore & WEOrderStatusExtras;
+type WEShipmentStatusPayload = WEShipmentStatusCore & WEShipmentStatusExtras;
 
 type WEGetManyShipmentsStatusesResBody = {
-  data: Record<string, WEOrderStatusPayload>;
+  data: Record<string, WEShipmentStatusPayload>;
 };
 
-export type WEOrderStatus =
+type WEActivity = {
+  date: string; // ISO date string
+  time: string; // HH:mm:ss
+  status: WETrackingStatus; // carrier-defined enum (string for now)
+  scanLocation?: string;
+  station?: string;
+};
+
+type WEShipmentBase = {
+  recipientName: string;
+  shippedBy: string;
+  originCity: number;
+  destLocationCity: number;
+  activity: WEActivity[];
+};
+
+type WEShipmentWithStation = WEShipmentBase & {
+  currentStation: string;
+  reasons: string[];
+};
+
+type WEShipmentWithoutStation = WEShipmentBase & {
+  currentStation?: never;
+  reasons?: never;
+};
+
+type WEGetTrackingHistoryOfShipmentResBody =
+  | WEShipmentWithStation
+  | WEShipmentWithoutStation;
+
+export type WEShipmentStatus =
   | "prete_a_expedier"
   | "en_ramassage"
   | "en_preparation_stock"
@@ -737,3 +866,16 @@ export type WEOrderStatus =
   | "retour_archive"
   | "annule"
   | "all";
+
+export type WETrackingStatus =
+  | "order_information_received_by_carrier"
+  | "picked"
+  | "accepted_by_carrier"
+  | "dispatched_to_driver"
+  | "attempt_delivery"
+  | "return_asked"
+  | "return_in_transit"
+  | "Return_received"
+  | "livred"
+  | "encaissed"
+  | "payed";
