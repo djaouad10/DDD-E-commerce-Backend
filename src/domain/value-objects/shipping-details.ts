@@ -1,4 +1,4 @@
-import type { ShippingDetailsDTO } from "#/domain/entities-snapshots/shipping-details.snapshot.js";
+import type { ShippingDetailsSnapshot } from "#/domain/entities-snapshots/shipping-details.snapshot.js";
 
 export const DeliveryType = {
   TO_DESK: "TO_DESK",
@@ -153,7 +153,7 @@ export class ShippingDetails {
     return this.postalCode;
   }
 
-  toSnapshot(): ShippingDetailsDTO {
+  toSnapshot(): ShippingDetailsSnapshot {
     return {
       deliveryType: this.deliveryType,
       fullName: this._fullName,

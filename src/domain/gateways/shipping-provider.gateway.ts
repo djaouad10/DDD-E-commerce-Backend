@@ -1,14 +1,8 @@
+import type { Order, OrderStatus } from "../entities/order.js";
 import type { Commune } from "../value-objects/commune.js";
 import type { DeliveryFees } from "../value-objects/delivery-fees.js";
 import type { OrderId } from "../value-objects/order-id.js";
-import type {
-  DeliveryType,
-  ShippingDetails,
-} from "../value-objects/shipping-details.js";
-import type {
-  OrderTrackingStatus,
-  TrackingHistory,
-} from "../value-objects/tracking-history.js";
+import type { TrackingHistory } from "../value-objects/tracking-history.js";
 import type { Wilaya } from "../value-objects/wilaya.js";
 
 export type ShipmentItem = {
@@ -17,17 +11,10 @@ export type ShipmentItem = {
   weight_in_grams: number;
 };
 
-export type CreateShipmentParams = {
-  orderId: OrderId;
-  items: ShipmentItem[];
-  shippingDetails: ShippingDetails;
-};
-
-export type UpdateUnshippedShipmentParams = {
-  trackingNumber: string;
-  shippingDetails?: ShippingDetails;
-  phone?: string;
-  deliveryType?: DeliveryType;
+export type ShippingLabel = {
+  buffer: Buffer;
+  contentType: string;
+  filename?: string | undefined;
 };
 
 export type ShippingProviderGateway = {
@@ -35,22 +22,21 @@ export type ShippingProviderGateway = {
 
   getActiveCommunesOfWilaya: (wilayaCode: number) => Promise<Commune[]>;
 
-  getLabelPdfUrl: (trackingNumber: string) => Promise<{ url: string }>;
+  getShippingLabel: (trackingNumber: string) => Promise<ShippingLabel>;
 
   // purpose: tells carrier to start the shipping process for this order
   activateShipment: (trackingNumber: string) => Promise<{ success: boolean }>;
 
-  getDeliveryFeesOfWilaya: (wilayaId: number) => Promise<DeliveryFees[]>;
+  getDeliveryFeesOfWilaya: (wilayaId: number) => Promise<DeliveryFees>;
 
-  createShipment: (
-    params: CreateShipmentParams,
-  ) => Promise<{ trackingNumber: string }>;
+  createShipment: (order: Order) => Promise<{ trackingNumber: string }>;
 
-  createManyShipments: (
-    params: CreateShipmentParams[],
-  ) => Promise<{ orderId: OrderId; trackingNumber: string }[]>;
+  createManyShipments: (orders: Order[]) => Promise<{
+    failed: OrderId[];
+    created: { orderId: OrderId; trackingNumber: string }[];
+  }>;
 
-  updateUnShippedShipment: (params: UpdateUnshippedShipmentParams) => Promise<{
+  updateUnShippedShipment: (order: Order) => Promise<{
     success: boolean;
   }>;
 
@@ -64,9 +50,9 @@ export type ShippingProviderGateway = {
 
   getOneShipmentStatus: (
     trackingNumber: string,
-  ) => Promise<{ status: OrderTrackingStatus }>;
+  ) => Promise<{ status: OrderStatus }>;
 
   getManyShipmentsStatuses: (
     trackingNumbers: string[],
-  ) => Promise<{ trackingNumber: string; status: OrderTrackingStatus }[]>;
+  ) => Promise<{ trackingNumber: string; status: OrderStatus }[]>;
 };

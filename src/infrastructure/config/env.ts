@@ -15,6 +15,7 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]),
+    UPLOADTHING_APP_ID: z.string(),
   },
 
   /*

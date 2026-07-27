@@ -8,8 +8,7 @@ import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { handleDrizzleErrors } from "../utils.js";
-
+import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 export class PostgresRatingQueries implements RatingQueries {
   private logger = createLogger("PostgresRatingQueries");
 

@@ -21,7 +21,7 @@ import type {
 import { generateOutboxId } from "../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { and, eq, lte } from "drizzle-orm";
-import { handleDrizzleErrors } from "../utils.js";
+import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresOutboxRepository implements OutboxRepository {

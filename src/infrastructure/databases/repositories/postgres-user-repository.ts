@@ -8,7 +8,7 @@ import {
   type UserRow,
 } from "../mappers/postgres-user-mapper.js";
 import { user } from "../schema.js";
-import { handleDrizzleErrors } from "../utils.js";
+import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresUserRepository implements UserRepository {

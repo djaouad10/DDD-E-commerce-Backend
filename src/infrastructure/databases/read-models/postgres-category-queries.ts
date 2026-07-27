@@ -2,8 +2,7 @@ import type { CategoryDTO } from "#/application/dto/category.dto.js";
 import type { CategoryQueries } from "#/application/read-models/category.queries.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { handleDrizzleErrors } from "../utils.js";
-
+import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 export class PostgresCategoryQueries implements CategoryQueries {
   private logger = createLogger("PostgresCategoryQueries");
 
