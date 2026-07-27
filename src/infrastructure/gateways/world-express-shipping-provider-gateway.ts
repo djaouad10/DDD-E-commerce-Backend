@@ -1,11 +1,14 @@
 import type { Order } from "#/domain/entities/order.js";
 import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
 import { Commune } from "#/domain/value-objects/commune.js";
+import { DeliveryFees } from "#/domain/value-objects/delivery-fees.js";
+import { Money } from "#/domain/value-objects/money.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { Wilaya } from "#/domain/value-objects/wilaya.js";
 import {
   HttpConnectionError,
   HttpTimeoutError,
+  NotFoundError,
 } from "#/shared/errors/domain-error.js";
 import {
   handleWorldExpressErrors,
@@ -371,6 +374,63 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
     }
   }
 
+  async getDeliveryFeesOfWilaya(wilayaId: number): Promise<DeliveryFees> {
+    this.logger.debug("getDeliveryFeesOfWilaya called");
+
+    const url = `${this.baseUrl}/get/fees`;
+
+    try {
+      const response = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.request<WEGetDeliveryFeesResBody>({
+            url,
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          }),
+      );
+
+      if (!this.isSuccess(response.statusCode)) {
+        throw new WorldExpressApiError(response.statusCode, response.body, url);
+      }
+
+      const targetWilaya = response.body.livraison.find(
+        (livraison) => livraison.wilaya_id === wilayaId,
+      );
+
+      if (!targetWilaya) {
+        throw new NotFoundError("Wilaya", String(wilayaId));
+      }
+
+      const fees: DeliveryFees = new DeliveryFees(
+        Money.of(Number(targetWilaya.tarif), "DZD"),
+        Money.of(Number(targetWilaya.tarif_stopdesk), "DZD"),
+      );
+
+      this.logger.debug("getDeliveryFeesOfWilaya completed", {
+        wilayaId,
+      });
+
+      return fees
+    } catch (error) {
+      this.logger.error("getDeliveryFeesOfWilaya failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.getDeliveryFeesOfWilaya",
+      );
+    }
+  }
+
   private isSuccess(status: number): boolean {
     return status >= 200 && status < 300;
   }
@@ -437,4 +497,18 @@ type WEActivateShipmentResBody = {
 
 type WEDeleteUnshippedShipmentResBody = {
   delete: "success" | "fail";
+};
+
+type WEWilayaFees = {
+  wilaya_id: number;
+  tarif: string;
+  tarif_stopdesk: string;
+};
+
+type WEGetDeliveryFeesResBody = {
+  livraison: WEWilayaFees[];
+  pickup: WEWilayaFees[];
+  echange: WEWilayaFees[];
+  recouvrement: WEWilayaFees[];
+  retours: WEWilayaFees[];
 };

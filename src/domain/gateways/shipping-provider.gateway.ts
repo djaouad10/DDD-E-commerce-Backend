@@ -35,13 +35,14 @@ export type ShippingProviderGateway = {
   // purpose: tells carrier to start the shipping process for this order
   activateShipment: (trackingNumber: string) => Promise<{ success: boolean }>;
 
-  getDeliveryFeesOfWilaya: (wilayaId: number) => Promise<DeliveryFees[]>;
+  getDeliveryFeesOfWilaya: (wilayaId: number) => Promise<DeliveryFees>;
 
   createShipment: (order: Order) => Promise<{ trackingNumber: string }>;
 
-  createManyShipments: (
-    orders: Order[],
-  ) => Promise<{ orderId: OrderId; trackingNumber: string }[]>;
+  createManyShipments: (orders: Order[]) => Promise<{
+    failed: OrderId[];
+    created: { orderId: OrderId; trackingNumber: string }[];
+  }>;
 
   updateUnShippedShipment: (params: UpdateUnshippedShipmentParams) => Promise<{
     success: boolean;
