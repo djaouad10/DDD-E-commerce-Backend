@@ -1,4 +1,4 @@
-import type { Order } from "../entities/order.js";
+import type { Order, OrderStatus } from "../entities/order.js";
 import type { Commune } from "../value-objects/commune.js";
 import type { DeliveryFees } from "../value-objects/delivery-fees.js";
 import type { OrderId } from "../value-objects/order-id.js";
@@ -6,10 +6,7 @@ import type {
   DeliveryType,
   ShippingDetails,
 } from "../value-objects/shipping-details.js";
-import type {
-  OrderTrackingStatus,
-  TrackingHistory,
-} from "../value-objects/tracking-history.js";
+import type { TrackingHistory } from "../value-objects/tracking-history.js";
 import type { Wilaya } from "../value-objects/wilaya.js";
 
 export type ShipmentItem = {
@@ -58,9 +55,9 @@ export type ShippingProviderGateway = {
 
   getOneShipmentStatus: (
     trackingNumber: string,
-  ) => Promise<{ status: OrderTrackingStatus }>;
+  ) => Promise<{ status: OrderStatus }>;
 
   getManyShipmentsStatuses: (
     trackingNumbers: string[],
-  ) => Promise<{ trackingNumber: string; status: OrderTrackingStatus }[]>;
+  ) => Promise<{ trackingNumber: string; status: OrderStatus }[]>;
 };

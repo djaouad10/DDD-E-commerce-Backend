@@ -1,4 +1,4 @@
-import type { Order } from "#/domain/entities/order.js";
+import type { Order, OrderStatus } from "#/domain/entities/order.js";
 import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
 import { Commune } from "#/domain/value-objects/commune.js";
 import { DeliveryFees } from "#/domain/value-objects/delivery-fees.js";
@@ -413,7 +413,7 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
         wilayaId,
       });
 
-      return fees
+      return fees;
     } catch (error) {
       this.logger.error("getDeliveryFeesOfWilaya failed", error as Error);
 
@@ -428,6 +428,140 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
         error,
         "WorldExpressShippingProviderGateway.getDeliveryFeesOfWilaya",
       );
+    }
+  }
+
+  async getManyShipmentsStatuses(
+    trackingNumbers: string[],
+  ): Promise<{ trackingNumber: string; status: OrderStatus }[]> {
+    this.logger.debug("getManyShipmentsStatuses called");
+
+    const searchParams = new URLSearchParams({
+      api_token: this.apiKey,
+      status: "all",
+    });
+    searchParams.append("trackings", trackingNumbers.join(","));
+
+    const url = `${this.baseUrl}/get/orders?${searchParams.toString()}`;
+
+    try {
+      const response = await this.logger.measure(
+        `httpClient.request(${url})`,
+        () =>
+          this.httpClient.request<WEGetManyShipmentsStatusesResBody>({
+            url,
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+          }),
+      );
+
+      if (!this.isSuccess(response.statusCode)) {
+        throw new WorldExpressApiError(response.statusCode, response.body, url);
+      }
+
+      const formattedResult: {
+        trackingNumber: string;
+        status: OrderStatus;
+      }[] = [];
+
+      for (const [trackingNumber, order] of Object.entries(
+        response.body.data,
+      )) {
+        const status = this.translateEcoTrackStatusToOrderStatus(order.status);
+
+        formattedResult.push({
+          status: status,
+          trackingNumber,
+        });
+      }
+
+      this.logger.debug("getManyShipmentsStatuses completed", {
+        trackingNumbers,
+      });
+
+      return formattedResult;
+    } catch (error) {
+      this.logger.error("getManyShipmentsStatuses failed", error as Error);
+
+      if (
+        error instanceof HttpTimeoutError ||
+        error instanceof HttpConnectionError
+      ) {
+        throw error;
+      }
+
+      handleWorldExpressErrors(
+        error,
+        "WorldExpressShippingProviderGateway.getManyShipmentsStatuses",
+      );
+    }
+  }
+
+  private translateEcoTrackStatusToOrderStatus(
+    status: WEOrderStatus,
+  ): OrderStatus {
+    switch (status) {
+      case "prete_a_expedier":
+        return "SHIPPING";
+
+      case "en_ramassage":
+        return "SHIPPING";
+
+      case "en_preparation_stock":
+        return "SHIPPING";
+
+      case "vers_hub":
+        return "SHIPPING";
+
+      case "en_hub":
+        return "SHIPPING";
+
+      case "vers_wilaya":
+        return "SHIPPING";
+
+      case "en_preparation":
+        return "SHIPPING";
+
+      case "en_livraison":
+        return "SHIPPING";
+
+      case "suspendu":
+        return "SUSPENDED";
+
+      case "livre_non_encaisse":
+        return "DELIVERED";
+
+      case "encaisse_non_paye":
+        return "DELIVERED";
+
+      case "paiements_prets":
+        return "DELIVERED";
+
+      case "paye_et_archive":
+        return "DELIVERED";
+
+      case "retour_chez_livreur":
+        return "RETURNED";
+
+      case "retour_transit_entrepot":
+        return "RETURNED";
+
+      case "retour_en_traitement":
+        return "RETURNED";
+
+      case "retour_recu":
+        return "RETURNED";
+
+      case "retour_archive":
+        return "RETURNED";
+
+      case "annule":
+        return "CANCELLED";
+
+      default:
+        return "SHIPPING";
     }
   }
 
@@ -512,3 +646,56 @@ type WEGetDeliveryFeesResBody = {
   recouvrement: WEWilayaFees[];
   retours: WEWilayaFees[];
 };
+
+type WEStatusActivity = {
+  reason: string;
+  details: string;
+  station: string;
+  driver: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm:ss
+  postponed_to: string | null;
+};
+
+type WEOrderStatusCore = {
+  status: WEOrderStatus;
+  order_id: string;
+  activity: WEStatusActivity[];
+};
+
+type WEOrderStatusExtras = {
+  desk_phone?: string;
+  desk_commune?: string;
+  desk_map_link?: string;
+  desk_address?: string;
+  driver_phone?: string;
+  estimated_fee?: number;
+};
+
+type WEOrderStatusPayload = WEOrderStatusCore & WEOrderStatusExtras;
+
+type WEGetManyShipmentsStatusesResBody = {
+  data: Record<string, WEOrderStatusPayload>;
+};
+
+export type WEOrderStatus =
+  | "prete_a_expedier"
+  | "en_ramassage"
+  | "en_preparation_stock"
+  | "vers_hub"
+  | "en_hub"
+  | "vers_wilaya"
+  | "en_preparation"
+  | "en_livraison"
+  | "suspendu"
+  | "livre_non_encaisse"
+  | "encaisse_non_paye"
+  | "paiements_prets"
+  | "paye_et_archive"
+  | "retour_chez_livreur"
+  | "retour_transit_entrepot"
+  | "retour_en_traitement"
+  | "retour_recu"
+  | "retour_archive"
+  | "annule"
+  | "all";
