@@ -11,8 +11,7 @@ export const OutboxAction = {
   CREATE_ORDER_IN_SHIPPING_API: "create_order_in_shipping_api",
   DELETE_ORDER_IN_SHIPPING_API: "delete_order_in_shipping_api",
   UPDATE_ORDER_IN_SHIPPING_API: "update_order_in_shipping_api",
-  CREATE_SHIPMENT_SHIPPING_IN_SHIPPING_API:
-    "create_shipment_shipping_in_shipping_api",
+  CREATE_SHIPMENT_IN_SHIPPING_API: "create_shipment_in_shipping_api",
 } as const;
 
 export type OutboxAction = (typeof OutboxAction)[keyof typeof OutboxAction];
