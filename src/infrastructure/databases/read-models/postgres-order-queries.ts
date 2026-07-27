@@ -6,8 +6,7 @@ import type {
 } from "#/application/read-models/order.queries.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { handleDrizzleErrors } from "../utils.js";
-
+import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 export class PostgresOrderQueries implements OrderQueries {
   private logger = createLogger("PostgresOrderQueries");
 

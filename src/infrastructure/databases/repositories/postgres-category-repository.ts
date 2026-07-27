@@ -12,7 +12,7 @@ import {
   type DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
-import { handleDrizzleErrors } from "../utils.js";
+import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresCategoryRepository implements CategoryRepository {
