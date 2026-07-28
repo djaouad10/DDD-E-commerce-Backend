@@ -159,6 +159,20 @@ export class Scope {
   }
 
   /**
+   * Dispose this scope. Call this after every request or job finishes.
+   * Iterates scoped instances and calls their dispose() if they have one.
+   * Does NOT touch singletons.
+   */
+  async dispose(): Promise<void> {
+    for (const instance of this.scopedCache.values()) {
+      if (instance && typeof instance.dispose === "function") {
+        await instance.dispose();
+      }
+    }
+    this.scopedCache.clear();
+  }
+
+  /**
    * Normalize any token to a symbol key for Map storage.
    * Symbol.for('name') always returns the SAME symbol for the same string.
    */
