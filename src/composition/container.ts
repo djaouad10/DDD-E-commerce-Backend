@@ -100,6 +100,13 @@ export class Container {
   }
 
   /**
+   * INTERNAL — called by Scope to look up a token's factory.
+   */
+  getRegistration<T>(token: Token<T>): Registration<T> | undefined {
+    return this.registry.get(this.toKey(token));
+  }
+
+  /**
    * Normalize any token to a symbol key for Map storage.
    * Symbol.for('name') always returns the SAME symbol for the same string.
    */
