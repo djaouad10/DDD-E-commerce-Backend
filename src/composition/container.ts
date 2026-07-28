@@ -1,3 +1,5 @@
+import { DependencyResolutionError } from "#/shared/errors/domain-error.js";
+
 /**
  * a Constructor represents any class that can be instantiated "new".
  ** the T generic means this constructor returns a T instance when called
@@ -74,6 +76,30 @@ export class Container {
   }
 
   /**
+   * INTERNAL — called by Scope when it encounters a singleton token.
+   * Checks singletonCache first. If not there, builds it using the factory.
+   */
+  resolveSingleton<T>(token: Token<T>): T {
+    const key = this.toKey(token);
+
+    const reg = this.registry.get(key);
+
+    if (!reg) throw new DependencyResolutionError(key);
+
+    // if already built and cached? return from cache
+    if (this.singletonCache.has(key)) return this.singletonCache.get(key);
+
+    // if not build it, then cache it
+
+    // when reg.factory call scope.resolve and since this dependecy is a singelton: it will be directly redirected to the parent's resolveSingleton, so we can use a dummy singelton
+    const instance = reg.factory(Scope.dummy);
+
+    this.singletonCache.set(key, instance);
+
+    return instance;
+  }
+
+  /**
    * Normalize any token to a symbol key for Map storage.
    * Symbol.for('name') always returns the SAME symbol for the same string.
    */
@@ -86,5 +112,7 @@ export class Container {
 }
 
 export class Scope {
+  static dummy = new Scope(null as any);
+
   constructor(private parent: Container) {}
 }
