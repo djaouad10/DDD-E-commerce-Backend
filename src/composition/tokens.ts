@@ -1,3 +1,10 @@
+import type { CartQueries } from "#/application/read-models/cart.queries.js";
+import type { CategoryQueries } from "#/application/read-models/category.queries.js";
+import type { OrderQueries } from "#/application/read-models/order.queries.js";
+import type { ProductQueries } from "#/application/read-models/product.queries.js";
+import type { RatingQueries } from "#/application/read-models/rating.queries.js";
+import type { UserQueries } from "#/application/read-models/user.queries.js";
+import type { OutboxRepository } from "#/application/repositories/outbox.repository.js";
 import type { CartRepository } from "#/domain/repositories/cart.repository.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
@@ -34,4 +41,34 @@ export const RATING_REPOSITORY = Symbol("ratingRepository") as symbol & {
 
 export const USER_REPOSITORY = Symbol("userRepository") as symbol & {
   __type: UserRepository;
+};
+
+export const OUTBOX_REPOSITORY = Symbol("outboxRepository") as symbol & {
+  __type: OutboxRepository;
+};
+
+// read model tokens
+
+export const CART_QUERIES = Symbol("cartQueries") as symbol & {
+  __type: CartQueries;
+};
+
+export const CATEGORY_QUERIES = Symbol("categoryQueries") as symbol & {
+  __type: CategoryQueries;
+};
+
+export const ORDER_QUERIES = Symbol("orderQueries") as symbol & {
+  __type: OrderQueries;
+};
+
+export const PRODUCT_QUERIES = Symbol("productQueries") as symbol & {
+  __type: ProductQueries;
+};
+
+export const RATING_QUERIES = Symbol("ratingQueries") as symbol & {
+  __type: RatingQueries;
+};
+
+export const USER_QUERIES = Symbol("userQueries") as symbol & {
+  __type: UserQueries;
 };
