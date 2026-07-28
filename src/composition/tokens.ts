@@ -48,7 +48,6 @@ export const OUTBOX_REPOSITORY = Symbol("outboxRepository") as symbol & {
 };
 
 // read model tokens
-
 export const CART_QUERIES = Symbol("cartQueries") as symbol & {
   __type: CartQueries;
 };
@@ -72,3 +71,5 @@ export const RATING_QUERIES = Symbol("ratingQueries") as symbol & {
 export const USER_QUERIES = Symbol("userQueries") as symbol & {
   __type: UserQueries;
 };
+
+// service tokens:
