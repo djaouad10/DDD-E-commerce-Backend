@@ -119,7 +119,53 @@ export class Container {
 }
 
 export class Scope {
+  /**
+   * A dummy scope used when building singletons.
+   */
   static dummy = new Scope(null as any);
 
+  private scopedCache = new Map<symbol, any>();
+
   constructor(private parent: Container) {}
+
+  /**
+   * Resolve a dependency from this scope.
+   */
+  resolve<T>(token: Token<T>): T {
+    const key = this.toKey(token);
+
+    const reg = this.parent.getRegistration(token);
+
+    if (!reg) throw new DependencyResolutionError(key);
+
+    if (reg.lifecycle === "singleton") {
+      return this.parent.resolveSingleton(token);
+    }
+
+    if (reg.lifecycle === "scoped") {
+      // check scope cache first, if built and cached return it from cache
+      if (this.scopedCache.has(key)) return this.scopedCache.get(key);
+
+      // if not in cache, build and cache
+      const instance = reg.factory(this);
+
+      this.scopedCache.set(key, instance);
+
+      return instance;
+    }
+
+    // if reg.lifecycle === "transient"
+    return reg.factory(this);
+  }
+
+  /**
+   * Normalize any token to a symbol key for Map storage.
+   * Symbol.for('name') always returns the SAME symbol for the same string.
+   */
+  private toKey<T>(token: Token<T>): symbol {
+    if (typeof token === "function") {
+      return Symbol.for(token.name);
+    }
+    return Symbol.for(String(token));
+  }
 }
