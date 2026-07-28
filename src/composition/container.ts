@@ -60,6 +60,7 @@ export class Container {
     const key = this.toKey(token);
 
     this.registry.set(key, { lifecycle: "singleton", factory: () => instance });
+    this.singletonCache.set(key, instance);
 
     return this;
   }
