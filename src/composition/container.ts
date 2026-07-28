@@ -66,6 +66,14 @@ export class Container {
   }
 
   /**
+   * Create a child scope. Call this at the start of every request/job.
+   * The scope gets its own private cache but shares the parent's registry.
+   */
+  createScope() {
+    return new Scope(this);
+  }
+
+  /**
    * Normalize any token to a symbol key for Map storage.
    * Symbol.for('name') always returns the SAME symbol for the same string.
    */
@@ -77,4 +85,6 @@ export class Container {
   }
 }
 
-export class Scope {}
+export class Scope {
+  constructor(private parent: Container) {}
+}
