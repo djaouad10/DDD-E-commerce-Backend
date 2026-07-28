@@ -53,6 +53,18 @@ export class Container {
   }
 
   /**
+   * Register a pre-built instance as a singleton.
+   * Use this for your db and redisConnection for example.
+   */
+  registerInstance<T>(token: Token<T>, instance: T): this {
+    const key = this.toKey(token);
+
+    this.registry.set(key, { lifecycle: "singleton", factory: () => instance });
+
+    return this;
+  }
+
+  /**
    * Normalize any token to a symbol key for Map storage.
    * Symbol.for('name') always returns the SAME symbol for the same string.
    */
