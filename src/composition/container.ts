@@ -34,6 +34,14 @@ export class Container {
 
   private singletonCache = new Map<symbol, any>();
 
+  /**
+   * Register a dependency with a factory function.
+   *
+   * @param token The identifier (e.g., Symbol('db'))
+   * @param factory The recipe: (scope) => new MyService(...)
+   * @param lifecycle "singleton" (shared), "scoped" (per-request), "transient" (always new)
+   * @returns this — for chaining: container.register(A).register(B)
+   */
   register<T>(
     token: Token<T>,
     factory: Factory<T>,
