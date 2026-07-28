@@ -17,6 +17,7 @@ export type Token<T> = string | symbol | Constructor<T>;
  */
 export type Factory<T> = (scope: Scope) => T;
 
+export type DependencyLifeCycle = "singleton" | "scoped" | "transient";
 
 /**
  * a Registration is what we store about a specific dependancy.
@@ -25,9 +26,34 @@ export type Factory<T> = (scope: Scope) => T;
  */
 export type Registration<T> = {
   factory: Factory<T>;
-  lifecycle: "singleton" | "scoped" | "transient";
+  lifecycle: DependencyLifeCycle;
 };
 
-export class Container {}
+export class Container {
+  private registry = new Map<symbol, Registration<any>>();
+
+  private singletonCache = new Map<symbol, any>();
+
+  register<T>(
+    token: Token<T>,
+    factory: Factory<T>,
+    lifecycle: DependencyLifeCycle = "transient",
+  ): this {
+    const key = this.toKey(token);
+    this.registry.set(key, { lifecycle, factory });
+    return this;
+  }
+
+  /**
+   * Normalize any token to a symbol key for Map storage.
+   * Symbol.for('name') always returns the SAME symbol for the same string.
+   */
+  private toKey<T>(token: Token<T>): symbol {
+    if (typeof token === "function") {
+      return Symbol.for(token.name);
+    }
+    return Symbol.for(String(token));
+  }
+}
 
 export class Scope {}
