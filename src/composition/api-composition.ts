@@ -11,6 +11,7 @@ import { PostgresOutboxRepository } from "#/infrastructure/databases/repositorie
 import { PostgresProductRepository } from "#/infrastructure/databases/repositories/postgres/postgres-product-repository.js";
 import { PostgresRatingRepository } from "#/infrastructure/databases/repositories/postgres/postgres-rating-repository.js";
 import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres/postgres-user-repository.js";
+import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
 import { Container } from "./container.js";
 import { registerSharedInfrastructure } from "./shared-registry.js";
 import {
@@ -19,6 +20,7 @@ import {
   CATEGORY_QUERIES,
   CATEGORY_REPOSITORY,
   DB,
+  FILE_STORE_GATEWAY,
   ORDER_QUERIES,
   ORDER_REPOSITORY,
   OUTBOX_REPOSITORY,
@@ -28,7 +30,15 @@ import {
   RATING_REPOSITORY,
   USER_QUERIES,
   USER_REPOSITORY,
+  HTTP_CLIENT,
+  SHIPPING_PROVIDER_GATEWAY,
+  UTAPI,
 } from "./tokens.js";
+
+import { UTApi } from "uploadthing/server";
+import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
+import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
+import { env } from "#/infrastructure/config/env.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -81,7 +91,6 @@ export function buildApiContainer(): Container {
   );
 
   // register read models (singletons)
-
   container.register(
     CART_QUERIES,
     (scope) => new PostgresCartQueries(scope.resolve(DB)),
@@ -115,6 +124,29 @@ export function buildApiContainer(): Container {
   container.register(
     USER_QUERIES,
     (scope) => new PostgresUserQueries(scope.resolve(DB)),
+    "singleton",
+  );
+
+  // register gateways and http client
+  container.register(HTTP_CLIENT, () => new FetchHttpClient(15000), "singleton");
+
+  const utApi = new UTApi({});
+  container.registerInstance(UTAPI, utApi);
+
+  container.register(
+    FILE_STORE_GATEWAY,
+    (scope) => new UploadthingFileStoreGateway(scope.resolve(UTAPI)),
+    "singleton",
+  );
+
+  container.register(
+    SHIPPING_PROVIDER_GATEWAY,
+    (scope) =>
+      new WorldExpressShippingProviderGateway(
+        scope.resolve(HTTP_CLIENT),
+        env.WORLD_EXPRESS_API_URL,
+        env.WORLD_EXPRESS_API_KEY,
+      ),
     "singleton",
   );
 
