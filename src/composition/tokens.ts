@@ -5,6 +5,8 @@ import type { ProductQueries } from "#/application/read-models/product.queries.j
 import type { RatingQueries } from "#/application/read-models/rating.queries.js";
 import type { UserQueries } from "#/application/read-models/user.queries.js";
 import type { OutboxRepository } from "#/application/repositories/outbox.repository.js";
+import type { FileStoreGateway } from "#/domain/gateways/file-store.gateway.js";
+import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
 import type { CartRepository } from "#/domain/repositories/cart.repository.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
@@ -12,10 +14,16 @@ import type { ProductRepository } from "#/domain/repositories/product.repository
 import type { RatingRepository } from "#/domain/repositories/rating.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
+import type { UTApi } from "uploadthing/server";
 import type { InjectionToken } from "./container.js";
+import type { HttpClient } from "#/infrastructure/http/client/http-client.js";
+import { Redis } from "ioredis";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
+export const REDIS = Symbol("redis") as InjectionToken<Redis>;
+export const UTAPI = Symbol("utApi") as InjectionToken<UTApi>;
+export const HTTP_CLIENT = Symbol("httpClient") as InjectionToken<HttpClient>;
 
 // add queues and redis connection here later...
 
@@ -73,4 +81,12 @@ export const USER_QUERIES = Symbol(
   "userQueries",
 ) as InjectionToken<UserQueries>;
 
-// service tokens:
+// gateways tokens:
+
+export const FILE_STORE_GATEWAY = Symbol(
+  "fileStoreGateway",
+) as InjectionToken<FileStoreGateway>;
+
+export const SHIPPING_PROVIDER_GATEWAY = Symbol(
+  "shippingProviderGateway",
+) as InjectionToken<ShippingProviderGateway>;
