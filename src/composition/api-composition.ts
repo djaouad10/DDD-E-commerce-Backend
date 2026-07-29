@@ -1,0 +1,122 @@
+import { PostgresCartQueries } from "#/infrastructure/databases/read-models/postgres-cart-queries.js";
+import { PostgresCategoryQueries } from "#/infrastructure/databases/read-models/postgres-category-queries.js";
+import { PostgresOrderQueries } from "#/infrastructure/databases/read-models/postgres-order-queries.js";
+import { PostgresProductQueries } from "#/infrastructure/databases/read-models/postgres-product-queries.js";
+import { PostgresRatingQueries } from "#/infrastructure/databases/read-models/postgres-rating-queries.js";
+import { PostgresUserQueries } from "#/infrastructure/databases/read-models/postgres-user-queries.js";
+import { PostgresCartRepository } from "#/infrastructure/databases/repositories/postgres-cart-repository.js";
+import { PostgresCategoryRepository } from "#/infrastructure/databases/repositories/postgres-category-repository.js";
+import { PostgresOrderRepository } from "#/infrastructure/databases/repositories/postgres-order-repository.js";
+import { PostgresOutboxRepository } from "#/infrastructure/databases/repositories/postgres-outbox-repository.js";
+import { PostgresProductRepository } from "#/infrastructure/databases/repositories/postgres-product-repository.js";
+import { PostgresRatingRepository } from "#/infrastructure/databases/repositories/postgres-rating-repository.js";
+import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres-user-repository.js";
+import { Container } from "./container.js";
+import { registerSharedInfrastructure } from "./shared-registry.js";
+import {
+  CART_QUERIES,
+  CART_REPOSITORY,
+  CATEGORY_QUERIES,
+  CATEGORY_REPOSITORY,
+  DB,
+  ORDER_QUERIES,
+  ORDER_REPOSITORY,
+  OUTBOX_REPOSITORY,
+  PRODUCT_QUERIES,
+  PRODUCT_REPOSITORY,
+  RATING_QUERIES,
+  RATING_REPOSITORY,
+  USER_QUERIES,
+  USER_REPOSITORY,
+} from "./tokens.js";
+
+export function buildApiContainer(): Container {
+  // API process shared container
+  const container = new Container();
+
+  // Shared infrastructure (db, redis, queues)
+  registerSharedInfrastructure(container);
+
+  // register repositories (singletons)
+  container.register(
+    CART_REPOSITORY,
+    (scope) => new PostgresCartRepository(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    CATEGORY_REPOSITORY,
+    (scope) => new PostgresCategoryRepository(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    ORDER_REPOSITORY,
+    (scope) => new PostgresOrderRepository(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    PRODUCT_REPOSITORY,
+    (scope) => new PostgresProductRepository(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    RATING_REPOSITORY,
+    (scope) => new PostgresRatingRepository(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    USER_REPOSITORY,
+    (scope) => new PostgresUserRepository(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    OUTBOX_REPOSITORY,
+    (scope) => new PostgresOutboxRepository(scope.resolve(DB)),
+    "singleton",
+  );
+
+  // register read models (singletons)
+
+  container.register(
+    CART_QUERIES,
+    (scope) => new PostgresCartQueries(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    CATEGORY_QUERIES,
+    (scope) => new PostgresCategoryQueries(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    ORDER_QUERIES,
+    (scope) => new PostgresOrderQueries(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    PRODUCT_QUERIES,
+    (scope) => new PostgresProductQueries(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    RATING_QUERIES,
+    (scope) => new PostgresRatingQueries(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    USER_QUERIES,
+    (scope) => new PostgresUserQueries(scope.resolve(DB)),
+    "singleton",
+  );
+
+  return container;
+}
