@@ -148,3 +148,13 @@ export class HttpMalformedResponseError extends Error {
     this.cause = cause;
   }
 }
+
+export class DependencyResolutionError extends Error {
+  readonly code = "DEPENDENCY_RESOLUTION_ERROR";
+  readonly statusCode = 500;
+  readonly isOperational = false;
+
+  constructor(dependencyKey: symbol) {
+    super(`No registration for token: ${String(dependencyKey)}`);
+  }
+}
