@@ -18,6 +18,8 @@ export const env = createEnv({
     UPLOADTHING_APP_ID: z.string(),
     REDIS_HOST: z.string().min(1),
     REDIS_PORT: z.coerce.number().default(6379),
+    WORLD_EXPRESS_API_URL: z.url(),
+    WORLD_EXPRESS_API_KEY: z.string(),
   },
 
   /*
