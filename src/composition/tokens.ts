@@ -12,64 +12,65 @@ import type { ProductRepository } from "#/domain/repositories/product.repository
 import type { RatingRepository } from "#/domain/repositories/rating.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
+import type { InjectionToken } from "./container.js";
 
 // Infrastructure tokens
-export const DB = Symbol("db") as symbol & { __type: DrizzleDBClient }; // this __type is what allows TS later to infer the type of instance this token's registration resolves to
+export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
 
 // add queues and redis connection here later...
 
 // Repository tokens
-export const CART_REPOSITORY = Symbol("cartRepository") as symbol & {
-  __type: CartRepository;
-};
+export const CART_REPOSITORY = Symbol(
+  "cartRepository",
+) as InjectionToken<CartRepository>;
 
-export const CATEGORY_REPOSITORY = Symbol("categoryRepository") as symbol & {
-  __type: CategoryRepository;
-};
+export const CATEGORY_REPOSITORY = Symbol(
+  "categoryRepository",
+) as InjectionToken<CategoryRepository>;
 
-export const ORDER_REPOSITORY = Symbol("orderRepository") as symbol & {
-  __type: OrderRepository;
-};
+export const ORDER_REPOSITORY = Symbol(
+  "orderRepository",
+) as InjectionToken<OrderRepository>;
 
-export const PRODUCT_REPOSITORY = Symbol("productRepository") as symbol & {
-  __type: ProductRepository;
-};
+export const PRODUCT_REPOSITORY = Symbol(
+  "productRepository",
+) as InjectionToken<ProductRepository>;
 
-export const RATING_REPOSITORY = Symbol("ratingRepository") as symbol & {
-  __type: RatingRepository;
-};
+export const RATING_REPOSITORY = Symbol(
+  "ratingRepository",
+) as InjectionToken<RatingRepository>;
 
-export const USER_REPOSITORY = Symbol("userRepository") as symbol & {
-  __type: UserRepository;
-};
+export const USER_REPOSITORY = Symbol(
+  "userRepository",
+) as InjectionToken<UserRepository>;
 
-export const OUTBOX_REPOSITORY = Symbol("outboxRepository") as symbol & {
-  __type: OutboxRepository;
-};
+export const OUTBOX_REPOSITORY = Symbol(
+  "outboxRepository",
+) as InjectionToken<OutboxRepository>;
 
 // read model tokens
-export const CART_QUERIES = Symbol("cartQueries") as symbol & {
-  __type: CartQueries;
-};
+export const CART_QUERIES = Symbol(
+  "cartQueries",
+) as InjectionToken<CartQueries>;
 
-export const CATEGORY_QUERIES = Symbol("categoryQueries") as symbol & {
-  __type: CategoryQueries;
-};
+export const CATEGORY_QUERIES = Symbol(
+  "categoryQueries",
+) as InjectionToken<CategoryQueries>;
 
-export const ORDER_QUERIES = Symbol("orderQueries") as symbol & {
-  __type: OrderQueries;
-};
+export const ORDER_QUERIES = Symbol(
+  "orderQueries",
+) as InjectionToken<OrderQueries>;
 
-export const PRODUCT_QUERIES = Symbol("productQueries") as symbol & {
-  __type: ProductQueries;
-};
+export const PRODUCT_QUERIES = Symbol(
+  "productQueries",
+) as InjectionToken<ProductQueries>;
 
-export const RATING_QUERIES = Symbol("ratingQueries") as symbol & {
-  __type: RatingQueries;
-};
+export const RATING_QUERIES = Symbol(
+  "ratingQueries",
+) as InjectionToken<RatingQueries>;
 
-export const USER_QUERIES = Symbol("userQueries") as symbol & {
-  __type: UserQueries;
-};
+export const USER_QUERIES = Symbol(
+  "userQueries",
+) as InjectionToken<UserQueries>;
 
 // service tokens:
