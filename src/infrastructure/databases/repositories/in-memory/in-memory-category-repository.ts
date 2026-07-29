@@ -1,7 +1,6 @@
 import type { Category } from "#/domain/entities/category.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
 import type { CategoryId } from "#/domain/value-objects/category-id.js";
-import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
 export class InMemoryCategoryRepository implements CategoryRepository {
   private categories: Category[] = [];
@@ -14,7 +13,7 @@ export class InMemoryCategoryRepository implements CategoryRepository {
     return [...this.categories];
   }
 
-  async save(category: Category, tx?: TransactionClient): Promise<void> {
+  async save(category: Category): Promise<void> {
     const index = this.categories.findIndex((c) => c.id.equals(category.id));
 
     if (index >= 0) {
@@ -24,7 +23,7 @@ export class InMemoryCategoryRepository implements CategoryRepository {
     }
   }
 
-  async delete(id: CategoryId, tx?: TransactionClient): Promise<void> {
+  async delete(id: CategoryId): Promise<void> {
     this.categories = this.categories.filter((c) => !c.id.equals(id));
   }
 }
