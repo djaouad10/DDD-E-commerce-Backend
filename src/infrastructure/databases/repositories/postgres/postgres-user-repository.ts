@@ -6,8 +6,8 @@ import { eq } from "drizzle-orm";
 import {
   PostgresUserMapper,
   type UserRow,
-} from "../mappers/postgres-user-mapper.js";
-import { user } from "../schema.js";
+} from "../../mappers/postgres/postgres-user-mapper.js";
+import { user } from "../../schema.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 

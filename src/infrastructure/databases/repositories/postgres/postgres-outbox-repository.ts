@@ -6,19 +6,19 @@ import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { outbox } from "../schema.js";
+import { outbox } from "../../schema.js";
 import {
   OutboxCategory,
   OutboxStatus,
   type OutboxDomainEventRow,
   type OutboxJobRow,
   type UpdateOutboxRowParams,
-} from "../outbox/types.js";
+} from "../../outbox/types.js";
 import type {
   DomainEvent,
   DomainEventType,
 } from "#/domain/events/domain-event.js";
-import { generateOutboxId } from "../outbox/utils.js";
+import { generateOutboxId } from "../../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { and, eq, lte } from "drizzle-orm";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";

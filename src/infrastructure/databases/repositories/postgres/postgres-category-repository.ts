@@ -5,8 +5,8 @@ import { eq } from "drizzle-orm";
 import {
   PostgresCategoryMapper,
   type CategoryRow,
-} from "../mappers/postgres-category-mapper.js";
-import { category } from "../schema.js";
+} from "../../mappers/postgres/postgres-category-mapper.js";
+import { category } from "../../schema.js";
 import {
   type DrizzleDBClient,
   type DrizzleTransactionClient,

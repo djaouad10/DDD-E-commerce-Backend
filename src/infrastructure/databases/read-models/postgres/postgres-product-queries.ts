@@ -12,7 +12,7 @@ import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { and, avg, eq, inArray, sql } from "drizzle-orm";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
-import { cartItem, rating, variation } from "../schema.js";
+import { cartItem, rating, variation } from "../../schema.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type {
   VariationDTO,

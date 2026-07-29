@@ -10,8 +10,8 @@ import { and, eq } from "drizzle-orm";
 import {
   PostgresRatingMapper,
   type RatingRow,
-} from "../mappers/postgres-rating-mapper.js";
-import { rating } from "../schema.js";
+} from "../../mappers/postgres/postgres-rating-mapper.js";
+import { rating } from "../../schema.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";

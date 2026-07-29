@@ -9,7 +9,10 @@ import { ShippingDetails } from "#/domain/value-objects/shipping-details.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { VariationId } from "#/domain/value-objects/variation-id.js";
 import { Weight } from "#/domain/value-objects/weight.js";
-import type { DrizzleOrderItemSelect, DrizzleOrderSelect } from "../schema.js";
+import type {
+  DrizzleOrderItemSelect,
+  DrizzleOrderSelect,
+} from "../../schema.js";
 
 export type OrderItemRow = DrizzleOrderItemSelect;
 
