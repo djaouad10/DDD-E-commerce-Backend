@@ -6,11 +6,15 @@ import { DependencyResolutionError } from "#/shared/errors/domain-error.js";
  */
 export type Constructor<T> = new (...args: any[]) => T;
 
+export type InjectionToken<T> = symbol & {
+  readonly __type?: T;
+};
+
 /**
  * a token is how we ask for a dependency
  ** it could be symbol (prefered), a class constuctor or a string (avoid for collisions possibility)
  */
-export type Token<T> = string | symbol | Constructor<T>;
+export type Token<T> = InjectionToken<T> | Constructor<T>;
 
 /**
  * a factory is a RECIPE on how to build a specific dependency
