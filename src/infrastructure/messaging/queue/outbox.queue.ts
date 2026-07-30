@@ -1,16 +1,18 @@
-import { redisConnection } from "#/infrastructure/config/redis-connection.js";
 import { Queue } from "bullmq";
+import { Redis } from "ioredis";
 
-export const outboxQueue = new Queue("outbox-queue", {
-  connection: redisConnection,
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: {
-      type: "exponential",
-      delay: 1000,
+export function createOutboxQueue(connection: Redis) {
+  return new Queue("outbox-queue", {
+    connection: connection,
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 1000,
+      },
+      priority: 0,
+      removeOnComplete: true,
+      removeOnFail: true,
     },
-    priority: 0,
-    removeOnComplete: true,
-    removeOnFail: true,
-  },
-});
+  });
+}
