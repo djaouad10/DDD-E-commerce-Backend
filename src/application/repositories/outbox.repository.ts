@@ -66,6 +66,7 @@ export type UpdateOutboxEntryParams =
   | {
       id: string;
       status: typeof OutboxStatus.FAILED;
+      attempts: number;
       errorMessage: string;
       processedAt: Date;
     }
