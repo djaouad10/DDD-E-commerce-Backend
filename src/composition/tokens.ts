@@ -18,6 +18,7 @@ import type { UTApi } from "uploadthing/server";
 import type { InjectionToken } from "./container.js";
 import type { HttpClient } from "#/infrastructure/http/client/http-client.js";
 import { Redis } from "ioredis";
+import type { Queue } from "bullmq";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -90,3 +91,6 @@ export const FILE_STORE_GATEWAY = Symbol(
 export const SHIPPING_PROVIDER_GATEWAY = Symbol(
   "shippingProviderGateway",
 ) as InjectionToken<ShippingProviderGateway>;
+
+// Queues
+export const OUTBOX_QUEUE = Symbol("outboxQueue") as InjectionToken<Queue>;
