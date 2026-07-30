@@ -1,6 +1,8 @@
-import { createDb } from "#/infrastructure/config/database.js";
-import { env } from "#/infrastructure/config/env.js";
-import { createRedisConnection } from "#/infrastructure/config/redis-connection.js";
+import { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
+import {
+  type DrizzleDBClient,
+  type DrizzleTransactionClient,
+} from "#/infrastructure/config/database.js";
 import { InMemoryCartRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-cart-repository.js";
 import { InMemoryCategoryRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-category-repository.js";
 import { InMemoryOrderRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-order-repository.js";
@@ -9,6 +11,7 @@ import { InMemoryProductRepository } from "#/infrastructure/databases/repositori
 import { InMemoryRatingRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-rating-repository.js";
 import { InMemoryUserRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-user-repository.js";
 import { InMemoryFileStoreGateway } from "#/infrastructure/gateways/in-memory-file-store-gateway.js";
+import { createOutboxQueue } from "#/infrastructure/messaging/queue/outbox.queue.js";
 import { Container } from "../container.js";
 import {
   DB,
@@ -21,22 +24,31 @@ import {
   OUTBOX_REPOSITORY,
   REDIS,
   FILE_STORE_GATEWAY,
+  OUTBOX_PROCESSOR_SERVICE,
+  OUTBOX_QUEUE,
 } from "../tokens.js";
+import Redis from "ioredis-mock";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();
 
   // singletons
-  const testDb = createDb({ connectionUrl: env.DATABASE_URL, maxPoolSize: 1 });
+  const testDb = {
+    transaction: async <T>(
+      cb: (tx: DrizzleTransactionClient) => Promise<T>,
+    ): Promise<T> => {
+      return cb({} as DrizzleTransactionClient);
+    },
+  } as unknown as DrizzleDBClient;
+
   container.registerInstance(DB, testDb);
 
-  const testRedisConnection = createRedisConnection({
-    host: env.REDIS_HOST,
-    port: env.REDIS_PORT,
+  const testRedisConnection = new Redis({
     maxRetriesPerRequest: null, // required by bullmq
     enableReadyCheck: false, // required by bullmq
     lazyConnect: true, // connection is established on first use instead of on server startup (faster startup time)
   });
+
   container.registerInstance(REDIS, testRedisConnection);
 
   // repositories
@@ -89,7 +101,23 @@ export function buildUnitTestsContainer(): Container {
     "singleton",
   );
 
+  // queues
+  container.register(
+    OUTBOX_QUEUE,
+    (scope) => createOutboxQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
   // services (scoped)
+  container.register(
+    OUTBOX_PROCESSOR_SERVICE,
+    (scope) =>
+      new OutboxProcessorService(
+        scope.resolve(OUTBOX_REPOSITORY),
+        scope.resolve(OUTBOX_QUEUE),
+      ),
+    "scoped",
+  );
 
   return container;
 }
