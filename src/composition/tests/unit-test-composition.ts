@@ -12,6 +12,8 @@ import { InMemoryRatingRepository } from "#/infrastructure/databases/repositorie
 import { InMemoryUserRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-user-repository.js";
 import { InMemoryFileStoreGateway } from "#/infrastructure/gateways/in-memory-file-store-gateway.js";
 import { createOutboxQueue } from "#/infrastructure/messaging/queue/outbox.queue.js";
+import { FakeQueue } from "#/tests/helpers/fake-queue.js";
+import type { Queue } from "bullmq";
 import { Container } from "../container.js";
 import {
   DB,
@@ -104,7 +106,7 @@ export function buildUnitTestsContainer(): Container {
   // queues
   container.register(
     OUTBOX_QUEUE,
-    (scope) => createOutboxQueue(scope.resolve(REDIS)),
+    () => new FakeQueue() as unknown as Queue,
     "singleton",
   );
 
