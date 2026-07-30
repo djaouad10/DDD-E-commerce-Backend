@@ -95,7 +95,6 @@ export class Container {
 
     // if not build it, then cache it
 
-    // when reg.factory call scope.resolve and since this dependecy is a singelton: it will be directly redirected to the parent's resolveSingleton, so we can use a dummy singelton
     const instance = reg.factory(new Scope(this));
 
     this.singletonCache.set(key, instance);
