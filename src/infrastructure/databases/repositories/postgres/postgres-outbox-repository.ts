@@ -1,19 +1,18 @@
-import type {
-  OutboxAction,
-  OutboxRepository,
+import {
+  OutboxCategory,
+  OutboxStatus,
+  type OutboxAction,
+  type OutboxDomainEventEntry,
+  type OutboxJobEntry,
+  type OutboxRepository,
+  type UpdateOutboxEntryParams,
 } from "#/application/repositories/outbox.repository.js";
 import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
 import { outbox } from "../../schema.js";
-import {
-  OutboxCategory,
-  OutboxStatus,
-  type OutboxDomainEventRow,
-  type OutboxJobRow,
-  type UpdateOutboxRowParams,
-} from "../../outbox/types.js";
+
 import type {
   DomainEvent,
   DomainEventType,
@@ -105,7 +104,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
 
   // Methods used by infrastructure workers, NOT part of the application interface:
 
-  async getPendingJobs(limit = 100): Promise<OutboxJobRow[]> {
+  async getPendingJobs(limit = 100): Promise<OutboxJobEntry[]> {
     this.logger.debug("getPendingJobs called");
 
     try {
@@ -129,7 +128,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
 
       const outboxJobRowsToReturn = outboxJobRows.map((row) => ({
         ...row,
-        category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobRow type
+        category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobEntry type
         event_type: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
       }));
 
@@ -145,7 +144,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
     }
   }
 
-  async getPendingEvents(limit = 100): Promise<OutboxDomainEventRow[]> {
+  async getPendingEvents(limit = 100): Promise<OutboxDomainEventEntry[]> {
     this.logger.debug("getPendingEvents called");
 
     try {
@@ -169,7 +168,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
       const outboxDomainEventRowsToReturn = outboxDomainEventRows.map(
         (row) => ({
           ...row,
-          category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventRow type
+          category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventEntry type
           event_type: row.event_type as DomainEventType, // this cast is safe because we know the event_type is a valid DomainEventType when the category is DOMAIN_EVENT
         }),
       );
@@ -186,7 +185,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
     }
   }
 
-  async updateRow(params: UpdateOutboxRowParams): Promise<void> {
+  async updateRow(params: UpdateOutboxEntryParams): Promise<void> {
     this.logger.debug("updateRow called", { id: params.id });
 
     const { id: rowId, ...updateParams } = params;
