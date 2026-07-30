@@ -1,7 +1,7 @@
 import { Rating } from "#/domain/entities/rating.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import type { DrizzleRatingSelect } from "../schema.js";
+import type { DrizzleRatingSelect } from "../../schema.js";
 
 export type RatingRow = DrizzleRatingSelect;
 

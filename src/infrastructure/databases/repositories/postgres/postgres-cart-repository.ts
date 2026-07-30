@@ -9,8 +9,8 @@ import { eq } from "drizzle-orm";
 import {
   PostgresCartMapper,
   type CartItemRow,
-} from "../mappers/postgres-cart-mapper.js";
-import { cartItem } from "../schema.js";
+} from "../../mappers/postgres/postgres-cart-mapper.js";
+import { cartItem } from "../../schema.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";

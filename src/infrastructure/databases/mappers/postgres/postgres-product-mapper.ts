@@ -6,7 +6,7 @@ import type {
   DrizzleFileSelect,
   DrizzleProductSelect,
   DrizzleVariationSelect,
-} from "../schema.js";
+} from "../../schema.js";
 
 import { File } from "#/domain/entities/file.js";
 import { FileId } from "#/domain/value-objects/file-id.js";

@@ -4,7 +4,7 @@ import { CartId } from "#/domain/value-objects/cart-id.js";
 import { CartItemId } from "#/domain/value-objects/cart-item-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { VariationId } from "#/domain/value-objects/variation-id.js";
-import type { DrizzleCartItemSelect } from "../schema.js";
+import type { DrizzleCartItemSelect } from "../../schema.js";
 
 export type CartItemRow = DrizzleCartItemSelect;
 

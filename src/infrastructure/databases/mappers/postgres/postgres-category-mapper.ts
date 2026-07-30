@@ -1,6 +1,6 @@
 import { Category } from "#/domain/entities/category.js";
 import { CategoryId } from "#/domain/value-objects/category-id.js";
-import type { DrizzleCategorySelect } from "../schema.js";
+import type { DrizzleCategorySelect } from "../../schema.js";
 
 export type CategoryRow = DrizzleCategorySelect;
 

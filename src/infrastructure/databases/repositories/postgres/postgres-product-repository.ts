@@ -9,8 +9,8 @@ import { avg, eq, inArray } from "drizzle-orm";
 import {
   PostgresProductMapper,
   type ProductWithVariationsAndFilesRow,
-} from "../mappers/postgres-product-mapper.js";
-import { file, product, rating, variation } from "../schema.js";
+} from "../../mappers/postgres/postgres-product-mapper.js";
+import { file, product, rating, variation } from "../../schema.js";
 import type { Slug } from "#/domain/value-objects/slug.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";

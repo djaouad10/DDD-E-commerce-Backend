@@ -6,13 +6,13 @@ import {
   type DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
 import { eq } from "drizzle-orm";
-import { order, orderItem } from "../schema.js";
+import { order, orderItem } from "../../schema.js";
 import {
   PostgresOrderMapper,
   type OrderItemRow,
   type OrderRow,
   type OrderWithItemsRow,
-} from "../mappers/postgres-order-mapper.js";
+} from "../../mappers/postgres/postgres-order-mapper.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";

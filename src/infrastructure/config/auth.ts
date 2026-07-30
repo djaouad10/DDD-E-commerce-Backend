@@ -5,7 +5,7 @@ import { env } from "./env.js";
 import { db } from "./database.js";
 import { UserRole } from "#/domain/entities/user.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import { PostgresUserRepository } from "../databases/repositories/postgres-user-repository.js";
+import { PostgresUserRepository } from "../databases/repositories/postgres/postgres-user-repository.js";
 
 const userRepo = new PostgresUserRepository(db);
 
