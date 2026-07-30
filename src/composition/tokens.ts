@@ -19,6 +19,7 @@ import type { InjectionToken } from "./container.js";
 import type { HttpClient } from "#/infrastructure/http/client/http-client.js";
 import { Redis } from "ioredis";
 import type { Queue } from "bullmq";
+import type { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -94,3 +95,8 @@ export const SHIPPING_PROVIDER_GATEWAY = Symbol(
 
 // Queues
 export const OUTBOX_QUEUE = Symbol("outboxQueue") as InjectionToken<Queue>;
+
+// services
+export const OUTBOX_PROCESSOR_SERVICE = Symbol(
+  "outboxProcessorService",
+) as InjectionToken<OutboxProcessorService>;
