@@ -22,6 +22,9 @@ export const OutboxCategory = {
   DOMAIN_EVENT: "domain-event",
 } as const;
 
+export type OutboxCategory =
+  (typeof OutboxCategory)[keyof typeof OutboxCategory];
+
 export const OutboxStatus = {
   PENDING: "PENDING",
   PROCESSING: "PROCESSING",
@@ -29,31 +32,33 @@ export const OutboxStatus = {
   FAILED: "FAILED",
 } as const;
 
+export type OutboxStatus = (typeof OutboxStatus)[keyof typeof OutboxStatus];
+
 export type OutboxJobEntry = {
   id: string;
   category: typeof OutboxCategory.OUTBOX_JOB;
-  event_type: OutboxAction;
+  eventType: OutboxAction;
   payload: unknown;
-  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+  status: OutboxStatus;
   attempts: number;
   scheduledAt: Date;
-  processed_at: Date | null;
-  error_message: string | null;
-  created_at: Date;
+  processedAt: Date | null;
+  errorMessage: string | null;
+  createdAt: Date;
 };
 
 export type OutboxDomainEventEntry = {
   id: string;
   category: typeof OutboxCategory.DOMAIN_EVENT;
-  event_type: DomainEventType;
-  aggregate_id: string | null;
+  eventType: DomainEventType;
+  aggregateId: string | null;
   payload: unknown;
-  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+  status: OutboxStatus;
   attempts: number;
   scheduledAt: Date;
-  processed_at: Date | null;
-  error_message: string | null;
-  created_at: Date;
+  processedAt: Date | null;
+  errorMessage: string | null;
+  createdAt: Date;
 };
 
 // Used only by the processor worker
