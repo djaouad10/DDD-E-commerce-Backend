@@ -27,7 +27,7 @@ import {
   OUTBOX_PROCESSOR_SERVICE,
   OUTBOX_QUEUE,
 } from "../tokens.js";
-import Redis from "ioredis-mock";
+import RedisMock from "ioredis-mock";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();
@@ -43,7 +43,7 @@ export function buildUnitTestsContainer(): Container {
 
   container.registerInstance(DB, testDb);
 
-  const testRedisConnection = new Redis({
+  const testRedisConnection = new RedisMock({
     maxRetriesPerRequest: null, // required by bullmq
     enableReadyCheck: false, // required by bullmq
     lazyConnect: true, // connection is established on first use instead of on server startup (faster startup time)
