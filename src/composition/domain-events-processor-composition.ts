@@ -1,7 +1,7 @@
 import { PostgresOutboxRepository } from "#/infrastructure/databases/repositories/postgres/postgres-outbox-repository.js";
-import { createBullMqAnalyticsQueue } from "#/infrastructure/messaging/queue/analytics.queue.js";
-import { createBullMqEmailQueue } from "#/infrastructure/messaging/queue/email.queue.js";
-import { createBullMqInventoryQueue } from "#/infrastructure/messaging/queue/inventory.queue.js";
+import { createBullMqAnalyticsQueue } from "#/infrastructure/messaging/bullmq/queue/analytics.queue.js";
+import { createBullMqEmailQueue } from "#/infrastructure/messaging/bullmq/queue/email.queue.js";
+import { createBullMqInventoryQueue } from "#/infrastructure/messaging/bullmq/queue/inventory.queue.js";
 import { FlowProducer } from "bullmq";
 import { Container } from "./container.js";
 import { registerSharedInfrastructure } from "./shared-registry.js";
