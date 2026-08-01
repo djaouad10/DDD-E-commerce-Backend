@@ -18,7 +18,7 @@ import type { UTApi } from "uploadthing/server";
 import type { InjectionToken } from "./container.js";
 import type { HttpClient } from "#/infrastructure/http/client/http-client.js";
 import { Redis } from "ioredis";
-import type { Queue } from "bullmq";
+import type { FlowProducer, Queue } from "bullmq";
 import type { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
 import type { EventPublisher } from "#/application/ports/event-publisher.port.js";
 
@@ -97,6 +97,16 @@ export const SHIPPING_PROVIDER_GATEWAY = Symbol(
 // Queues
 export const OUTBOX_QUEUE = Symbol("outboxQueue") as InjectionToken<Queue>;
 
+export const EMAIL_QUEUE = Symbol("emailQueue") as InjectionToken<Queue>;
+
+export const INVENTORY_QUEUE = Symbol(
+  "inventoryQueue",
+) as InjectionToken<Queue>;
+
+export const ANALYTICS_QUEUE = Symbol(
+  "analyticsQueue",
+) as InjectionToken<Queue>;
+
 // services
 export const OUTBOX_PROCESSOR_SERVICE = Symbol(
   "outboxProcessorService",
@@ -106,3 +116,8 @@ export const OUTBOX_PROCESSOR_SERVICE = Symbol(
 export const EVENT_PUBLISHER = Symbol(
   "eventPublisher",
 ) as InjectionToken<EventPublisher>;
+
+// other
+export const BULLMQ_FLOW_PRODUCER = Symbol(
+  "bullmqFlowProducer",
+) as InjectionToken<FlowProducer>;
