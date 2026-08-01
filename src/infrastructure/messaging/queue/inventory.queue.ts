@@ -1,8 +1,8 @@
 import { Queue } from "bullmq";
 import type { Redis } from "ioredis";
 
-export function createBullMqOutboxQueue(connection: Redis) {
-  return new Queue("outbox-queue", {
+export function createBullMqInventoryQueue(connection: Redis) {
+  return new Queue("inventory-queue", {
     connection: connection,
     defaultJobOptions: {
       attempts: 3,
