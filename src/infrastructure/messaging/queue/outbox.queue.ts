@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
 
-export function createOutboxQueue(connection: Redis) {
+export function createBullMqOutboxQueue(connection: Redis) {
   return new Queue("outbox-queue", {
     connection: connection,
     defaultJobOptions: {
