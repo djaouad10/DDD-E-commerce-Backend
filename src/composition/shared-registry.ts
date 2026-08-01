@@ -1,10 +1,9 @@
 import type { Container } from "./container.js";
-import { DB, OUTBOX_QUEUE, REDIS } from "./tokens.js";
+import { DB, REDIS } from "./tokens.js";
 import { createDb } from "#/infrastructure/config/database.js";
 
 import { createRedisConnection } from "#/infrastructure/config/redis-connection.js";
 import { env } from "#/infrastructure/config/env.js";
-import { createOutboxQueue } from "#/infrastructure/messaging/queue/outbox.queue.js";
 
 export function registerSharedInfrastructure(container: Container): void {
   // registers shared infra singeltons: db, redis connection, queues,... etc.
@@ -20,10 +19,4 @@ export function registerSharedInfrastructure(container: Container): void {
   });
 
   container.registerInstance(REDIS, redisConnection);
-
-  container.register(
-    OUTBOX_QUEUE,
-    (scope) => createOutboxQueue(scope.resolve(REDIS)),
-    "singleton",
-  );
 }
