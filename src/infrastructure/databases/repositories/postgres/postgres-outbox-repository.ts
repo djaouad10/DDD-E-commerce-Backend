@@ -15,7 +15,7 @@ import { outbox } from "../../schema.js";
 
 import type {
   DomainEvent,
-  DomainEventType,
+  DomainEventCode,
 } from "#/domain/events/domain-event.js";
 import { generateOutboxId } from "../../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
@@ -186,7 +186,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
           createdAt: row.created_at,
           aggregateId: row.aggregate_id,
           category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventEntry type
-          eventType: row.event_type as DomainEventType, // this cast is safe because we know the event_type is a valid DomainEventType when the category is DOMAIN_EVENT
+          eventType: row.event_type as DomainEventCode, // this cast is safe because we know the event_type is a valid DomainEventCode when the category is DOMAIN_EVENT
         }));
 
       this.logger.debug("getPendingEvents completed", {

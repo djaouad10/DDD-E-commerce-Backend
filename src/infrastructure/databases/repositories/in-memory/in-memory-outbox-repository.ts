@@ -8,7 +8,7 @@ import type {
 import { OutboxCategory } from "#/application/repositories/outbox.repository.js";
 import type {
   DomainEvent,
-  DomainEventType,
+  DomainEventCode,
 } from "#/domain/events/domain-event.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { generateOutboxId } from "../../outbox/utils.js";
@@ -110,7 +110,7 @@ export class InMemoryOutboxRepository implements OutboxRepository {
       .map((entry) => ({
         id: entry.id,
         category: entry.category,
-        eventType: entry.action ,
+        eventType: entry.action,
         action: entry.action,
         payload: entry.payload,
         status: entry.status,
@@ -149,7 +149,7 @@ export class InMemoryOutboxRepository implements OutboxRepository {
       .map((entry) => ({
         id: entry.id,
         category: entry.category,
-        eventType: entry.eventType as DomainEventType,
+        eventType: entry.eventType as DomainEventCode,
         payload: entry.payload,
         status: entry.status,
         attempts: entry.attempts,

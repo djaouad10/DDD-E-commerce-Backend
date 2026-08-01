@@ -1,6 +1,6 @@
 import type {
   DomainEvent,
-  DomainEventType,
+  DomainEventCode,
 } from "#/domain/events/domain-event.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
@@ -49,7 +49,7 @@ export type OutboxJobEntry = {
 export type OutboxDomainEventEntry = {
   id: string;
   category: typeof OutboxCategory.DOMAIN_EVENT;
-  eventType: DomainEventType;
+  eventType: DomainEventCode;
   aggregateId: string | null;
   payload: unknown;
   status: OutboxStatus;
