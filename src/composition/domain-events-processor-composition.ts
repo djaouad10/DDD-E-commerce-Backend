@@ -50,6 +50,12 @@ export function buildDomainEventsProcessorContainer(): Container {
   );
 
   container.register(
+    BULLMQ_FLOW_PRODUCER,
+    (scope) => createBullMqFlowProducer(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
     EVENT_PUBLISHER,
     (scope) =>
       new BullMqEventPublisher(
