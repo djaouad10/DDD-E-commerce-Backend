@@ -11,7 +11,6 @@ import { InMemoryProductRepository } from "#/infrastructure/databases/repositori
 import { InMemoryRatingRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-rating-repository.js";
 import { InMemoryUserRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-user-repository.js";
 import { InMemoryFileStoreGateway } from "#/infrastructure/gateways/in-memory-file-store-gateway.js";
-import { createOutboxQueue } from "#/infrastructure/messaging/queue/outbox.queue.js";
 import { FakeQueue } from "#/tests/helpers/fake-queue.js";
 import type { Queue } from "bullmq";
 import { Container } from "../container.js";
