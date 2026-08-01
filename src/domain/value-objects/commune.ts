@@ -1,8 +1,8 @@
 export class Commune {
   constructor(
-    name: string,
-    wilayaCode: number,
-    postalCode: string,
-    hasStopDesk: boolean,
+    public name: string,
+    public wilayaCode: number,
+    public postalCode: string,
+    public hasStopDesk: boolean,
   ) {}
 }
