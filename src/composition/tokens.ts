@@ -20,6 +20,7 @@ import type { HttpClient } from "#/infrastructure/http/client/http-client.js";
 import { Redis } from "ioredis";
 import type { Queue } from "bullmq";
 import type { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
+import type { EventPublisher } from "#/application/ports/event-publisher.port.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -100,3 +101,8 @@ export const OUTBOX_QUEUE = Symbol("outboxQueue") as InjectionToken<Queue>;
 export const OUTBOX_PROCESSOR_SERVICE = Symbol(
   "outboxProcessorService",
 ) as InjectionToken<OutboxProcessorService>;
+
+// ports
+export const EVENT_PUBLISHER = Symbol(
+  "eventPublisher",
+) as InjectionToken<EventPublisher>;
