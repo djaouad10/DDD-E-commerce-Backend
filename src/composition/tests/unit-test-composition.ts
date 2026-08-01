@@ -27,8 +27,12 @@ import {
   FILE_STORE_GATEWAY,
   OUTBOX_PROCESSOR_SERVICE,
   OUTBOX_QUEUE,
+  EVENT_PUBLISHER,
+  DOMAIN_EVENTS_PROCESSOR_SERVICE,
 } from "../tokens.js";
 import RedisMock from "ioredis-mock";
+import { FakeEventPublisher } from "#/tests/helpers/fake-event-publisher.js";
+import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();
@@ -109,6 +113,13 @@ export function buildUnitTestsContainer(): Container {
     "singleton",
   );
 
+  // other
+  container.register(
+    EVENT_PUBLISHER,
+    () => new FakeEventPublisher(),
+    "singleton",
+  );
+
   // services (scoped)
   container.register(
     OUTBOX_PROCESSOR_SERVICE,
@@ -116,6 +127,16 @@ export function buildUnitTestsContainer(): Container {
       new OutboxProcessorService(
         scope.resolve(OUTBOX_REPOSITORY),
         scope.resolve(OUTBOX_QUEUE),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DOMAIN_EVENTS_PROCESSOR_SERVICE,
+    (scope) =>
+      new DomainEventsProcessorService(
+        scope.resolve(OUTBOX_REPOSITORY),
+        scope.resolve(EVENT_PUBLISHER),
       ),
     "scoped",
   );
