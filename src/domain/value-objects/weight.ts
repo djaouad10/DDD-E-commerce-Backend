@@ -1,4 +1,4 @@
-import type { WeightDTO } from "#/domain/entities-snapshots/weight.snapshot.js";
+import type { WeightSnapshot } from "#/domain/entities-snapshots/weight.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // add more units here in the future
@@ -36,7 +36,7 @@ export class Weight {
     return new Weight(weightInKg, "kg");
   }
 
-  toSnapshot(): WeightDTO {
+  toSnapshot(): WeightSnapshot {
     return { weight: this.weight, unit: this.unit };
   }
 }
