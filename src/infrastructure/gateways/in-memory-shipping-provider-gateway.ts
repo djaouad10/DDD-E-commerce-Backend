@@ -49,8 +49,12 @@ export class InMemoryShippingProviderGateway implements ShippingProviderGateway 
   }
 
   seedShipment(trackingNumber: string, status: OrderStatus): void {
-    const record = this.shipments.get(trackingNumber);
-    if (record) record.status = status;
+    this.shipments.set(trackingNumber, {
+      order: {} as any, // dummy — delete only needs the key
+      trackingNumber,
+      status,
+      activated: false,
+    });
   }
 
   seedTrackingHistory(
