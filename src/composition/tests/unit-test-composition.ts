@@ -30,11 +30,13 @@ import {
   EVENT_PUBLISHER,
   DOMAIN_EVENTS_PROCESSOR_SERVICE,
   SHIPPING_PROVIDER_GATEWAY,
+  IDEMPOTENCY_KEYS_REPOSITORY,
 } from "../tokens.js";
 import RedisMock from "ioredis-mock";
 import { FakeEventPublisher } from "#/tests/helpers/fake-event-publisher.js";
 import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
 import { InMemoryShippingProviderGateway } from "#/infrastructure/gateways/in-memory-shipping-provider-gateway.js";
+import { InMemoryIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-idempotency-keys-repository.js";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();
@@ -62,43 +64,49 @@ export function buildUnitTestsContainer(): Container {
   container.register(
     CART_REPOSITORY,
     () => new InMemoryCartRepository(),
-    "singleton",
+    "scoped",
   );
 
   container.register(
     CATEGORY_REPOSITORY,
     () => new InMemoryCategoryRepository(),
-    "singleton",
+    "scoped",
   );
 
   container.register(
     ORDER_REPOSITORY,
     () => new InMemoryOrderRepository(),
-    "singleton",
+    "scoped",
   );
 
   container.register(
     PRODUCT_REPOSITORY,
     () => new InMemoryProductRepository(),
-    "singleton",
+    "scoped",
   );
 
   container.register(
     RATING_REPOSITORY,
     () => new InMemoryRatingRepository(),
-    "singleton",
+    "scoped",
   );
 
   container.register(
     USER_REPOSITORY,
     () => new InMemoryUserRepository(),
-    "singleton",
+    "scoped",
   );
 
   container.register(
     OUTBOX_REPOSITORY,
     () => new InMemoryOutboxRepository(),
-    "singleton",
+    "scoped",
+  );
+
+  container.register(
+    IDEMPOTENCY_KEYS_REPOSITORY,
+    () => new InMemoryIdempotencyKeysRepository(),
+    "scoped",
   );
 
   // gateways
