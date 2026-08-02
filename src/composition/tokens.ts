@@ -23,6 +23,7 @@ import type { OutboxProcessorService } from "#/application/services/outbox-proce
 import type { EventPublisher } from "#/application/ports/event-publisher.port.js";
 import type { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
 import type { IdempotencyKeysRepository } from "#/application/repositories/idempotency-keys.repository.js";
+import type { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -121,6 +122,10 @@ export const OUTBOX_PROCESSOR_SERVICE = Symbol(
 export const DOMAIN_EVENTS_PROCESSOR_SERVICE = Symbol(
   "domainEventsProcessorService",
 ) as InjectionToken<DomainEventsProcessorService>;
+
+export const CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
+  "createOrderInShippingProviderService",
+) as InjectionToken<CreateOrderInShippingProviderService>;
 
 // ports
 export const EVENT_PUBLISHER = Symbol(

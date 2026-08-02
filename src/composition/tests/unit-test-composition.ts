@@ -31,12 +31,14 @@ import {
   DOMAIN_EVENTS_PROCESSOR_SERVICE,
   SHIPPING_PROVIDER_GATEWAY,
   IDEMPOTENCY_KEYS_REPOSITORY,
+  CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
 } from "../tokens.js";
 import RedisMock from "ioredis-mock";
 import { FakeEventPublisher } from "#/tests/helpers/fake-event-publisher.js";
 import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
 import { InMemoryShippingProviderGateway } from "#/infrastructure/gateways/in-memory-shipping-provider-gateway.js";
 import { InMemoryIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-idempotency-keys-repository.js";
+import { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();
@@ -153,6 +155,18 @@ export function buildUnitTestsContainer(): Container {
       new DomainEventsProcessorService(
         scope.resolve(OUTBOX_REPOSITORY),
         scope.resolve(EVENT_PUBLISHER),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new CreateOrderInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
     "scoped",
   );
