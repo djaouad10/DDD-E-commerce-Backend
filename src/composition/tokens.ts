@@ -22,6 +22,7 @@ import type { FlowProducer, Queue } from "bullmq";
 import type { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
 import type { EventPublisher } from "#/application/ports/event-publisher.port.js";
 import type { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
+import type { IdempotencyKeysRepository } from "#/application/repositories/idempotency-keys.repository.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -59,6 +60,10 @@ export const USER_REPOSITORY = Symbol(
 export const OUTBOX_REPOSITORY = Symbol(
   "outboxRepository",
 ) as InjectionToken<OutboxRepository>;
+
+export const IDEMPOTENCY_KEYS_REPOSITORY = Symbol(
+  "idempotencyKeysRepository",
+) as InjectionToken<IdempotencyKeysRepository>;
 
 // read model tokens
 export const CART_QUERIES = Symbol(
