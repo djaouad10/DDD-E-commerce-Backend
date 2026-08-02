@@ -29,10 +29,12 @@ import {
   OUTBOX_QUEUE,
   EVENT_PUBLISHER,
   DOMAIN_EVENTS_PROCESSOR_SERVICE,
+  SHIPPING_PROVIDER_GATEWAY,
 } from "../tokens.js";
 import RedisMock from "ioredis-mock";
 import { FakeEventPublisher } from "#/tests/helpers/fake-event-publisher.js";
 import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
+import { InMemoryShippingProviderGateway } from "#/infrastructure/gateways/in-memory-shipping-provider-gateway.js";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();
@@ -103,7 +105,13 @@ export function buildUnitTestsContainer(): Container {
   container.register(
     FILE_STORE_GATEWAY,
     () => new InMemoryFileStoreGateway(),
-    "singleton",
+    "scoped",
+  );
+
+  container.register(
+    SHIPPING_PROVIDER_GATEWAY,
+    () => new InMemoryShippingProviderGateway(),
+    "scoped",
   );
 
   // queues
