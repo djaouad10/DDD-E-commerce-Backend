@@ -1,4 +1,3 @@
-// src/application/services/domain-events-processor.service.test.ts
 import { buildUnitTestsContainer } from "#/composition/tests/unit-test-composition.js";
 import {
   OUTBOX_REPOSITORY,

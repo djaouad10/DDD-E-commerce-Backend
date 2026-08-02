@@ -1,4 +1,3 @@
-// src/application/services/create-order-in-shipping-provider.service.test.ts
 import { buildUnitTestsContainer } from "#/composition/tests/unit-test-composition.js";
 import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
