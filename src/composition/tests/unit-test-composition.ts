@@ -32,6 +32,7 @@ import {
   SHIPPING_PROVIDER_GATEWAY,
   IDEMPOTENCY_KEYS_REPOSITORY,
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+  DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
 } from "../tokens.js";
 import RedisMock from "ioredis-mock";
 import { FakeEventPublisher } from "#/tests/helpers/fake-event-publisher.js";
@@ -39,6 +40,7 @@ import { DomainEventsProcessorService } from "#/application/services/domain-even
 import { InMemoryShippingProviderGateway } from "#/infrastructure/gateways/in-memory-shipping-provider-gateway.js";
 import { InMemoryIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-idempotency-keys-repository.js";
 import { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
+import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();
@@ -165,6 +167,17 @@ export function buildUnitTestsContainer(): Container {
       new CreateOrderInShippingProviderService(
         scope.resolve(DB),
         scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new DeleteOrderFromShippingProviderService(
+        scope.resolve(DB),
         scope.resolve(SHIPPING_PROVIDER_GATEWAY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
