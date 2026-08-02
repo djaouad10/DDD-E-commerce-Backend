@@ -48,6 +48,7 @@ export class CreateOrderInShippingProviderService {
           tx,
         );
 
+        // must be made inside the transaction that creates the idempotency key
         const { trackingNumber } =
           await this.shippingProviderGateway.createShipment(order);
 
