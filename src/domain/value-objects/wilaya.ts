@@ -1,3 +1,6 @@
 export class Wilaya {
-  constructor(code: number, name: string) {}
+  constructor(
+    public code: number,
+    public name: string,
+  ) {}
 }

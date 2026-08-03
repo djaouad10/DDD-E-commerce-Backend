@@ -1,4 +1,4 @@
-import { PostgresError } from "postgres";
+import type { PostgresError } from "postgres";
 import {
   ConflictError,
   NotFoundError,
@@ -30,30 +30,13 @@ const PG = {
   OUT_OF_MEMORY: "53200",
 } as const;
 
-function extractPostgresError(err: unknown): PostgresError | null {
-  // Direct postgres-js error (e.g. from raw query)
-  if (err instanceof PostgresError) {
-    return err;
+function extractPostgresError(error: unknown): PostgresError | null {
+  if (isPostgresError(error)) {
+    return error;
   }
 
-  // Drizzle wraps it: new Error("...", { cause: originalPostgresError })
-  if (
-    err instanceof Error &&
-    "cause" in err &&
-    err.cause instanceof PostgresError
-  ) {
-    return err.cause;
-  }
-
-  // Fallback duck-type for safety
-  if (
-    err &&
-    typeof err === "object" &&
-    "code" in err &&
-    typeof (err as Record<string, unknown>).code === "string" &&
-    "severity" in err
-  ) {
-    return err as PostgresError;
+  if (error instanceof Error && error.cause && isPostgresError(error.cause)) {
+    return error.cause;
   }
 
   return null;
@@ -178,4 +161,15 @@ export function handleDrizzleErrors(err: unknown, context?: string): never {
         pg,
       );
   }
+}
+
+function isPostgresError(error: unknown): error is PostgresError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code: unknown }).code === "string" &&
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string"
+  );
 }

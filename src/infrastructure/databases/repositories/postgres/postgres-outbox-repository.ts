@@ -15,7 +15,7 @@ import { outbox } from "../../schema.js";
 
 import type {
   DomainEvent,
-  DomainEventType,
+  DomainEventCode,
 } from "#/domain/events/domain-event.js";
 import { generateOutboxId } from "../../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
@@ -126,11 +126,20 @@ export class PostgresOutboxRepository implements OutboxRepository {
           }),
       );
 
-      const outboxJobRowsToReturn = outboxJobRows.map((row) => ({
-        ...row,
-        category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobEntry type
-        event_type: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
-      }));
+      const outboxJobRowsToReturn: OutboxJobEntry[] = outboxJobRows.map(
+        (row) => ({
+          id: row.id,
+          payload: row.payload,
+          status: row.status,
+          attempts: row.attempts,
+          scheduledAt: row.scheduledAt,
+          processedAt: row.processed_at,
+          errorMessage: row.error_message,
+          createdAt: row.created_at,
+          category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobEntry type
+          eventType: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
+        }),
+      );
 
       this.logger.debug("getPendingJobs completed", {
         jobsCount: outboxJobRowsToReturn.length,
@@ -165,13 +174,20 @@ export class PostgresOutboxRepository implements OutboxRepository {
           }),
       );
 
-      const outboxDomainEventRowsToReturn = outboxDomainEventRows.map(
-        (row) => ({
-          ...row,
+      const outboxDomainEventRowsToReturn: OutboxDomainEventEntry[] =
+        outboxDomainEventRows.map((row) => ({
+          id: row.id,
+          payload: row.payload,
+          status: row.status,
+          attempts: row.attempts,
+          scheduledAt: row.scheduledAt,
+          processedAt: row.processed_at,
+          errorMessage: row.error_message,
+          createdAt: row.created_at,
+          aggregateId: row.aggregate_id,
           category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventEntry type
-          event_type: row.event_type as DomainEventType, // this cast is safe because we know the event_type is a valid DomainEventType when the category is DOMAIN_EVENT
-        }),
-      );
+          eventType: row.event_type as DomainEventCode, // this cast is safe because we know the event_type is a valid DomainEventCode when the category is DOMAIN_EVENT
+        }));
 
       this.logger.debug("getPendingEvents completed", {
         eventsCount: outboxDomainEventRowsToReturn.length,

@@ -1,6 +1,6 @@
 import type {
   DomainEvent,
-  DomainEventType,
+  DomainEventCode,
 } from "#/domain/events/domain-event.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
@@ -11,8 +11,7 @@ export const OutboxAction = {
   CREATE_ORDER_IN_SHIPPING_API: "create_order_in_shipping_api",
   DELETE_ORDER_IN_SHIPPING_API: "delete_order_in_shipping_api",
   UPDATE_ORDER_IN_SHIPPING_API: "update_order_in_shipping_api",
-  CREATE_SHIPMENT_SHIPPING_IN_SHIPPING_API:
-    "create_shipment_shipping_in_shipping_api",
+  CREATE_SHIPMENT_IN_SHIPPING_API: "create_shipment_in_shipping_api",
 } as const;
 
 export type OutboxAction = (typeof OutboxAction)[keyof typeof OutboxAction];
@@ -50,7 +49,7 @@ export type OutboxJobEntry = {
 export type OutboxDomainEventEntry = {
   id: string;
   category: typeof OutboxCategory.DOMAIN_EVENT;
-  eventType: DomainEventType;
+  eventType: DomainEventCode;
   aggregateId: string | null;
   payload: unknown;
   status: OutboxStatus;
@@ -67,6 +66,7 @@ export type UpdateOutboxEntryParams =
   | {
       id: string;
       status: typeof OutboxStatus.FAILED;
+      attempts: number;
       errorMessage: string;
       processedAt: Date;
     }

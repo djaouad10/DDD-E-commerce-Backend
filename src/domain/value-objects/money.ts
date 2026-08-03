@@ -1,4 +1,4 @@
-import type { MoneyDTO } from "#/domain/entities-snapshots/money.snapshot.js";
+import type { MoneySnapshot } from "#/domain/entities-snapshots/money.snapshot.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
 // add more currencies here in the future
@@ -51,7 +51,7 @@ export class Money {
     return new Money(this.amount * qty, this.currency);
   }
 
-  toSnapshot(): MoneyDTO {
+  toSnapshot(): MoneySnapshot {
     return { amount: this.amount, currency: this.currency };
   }
 }
