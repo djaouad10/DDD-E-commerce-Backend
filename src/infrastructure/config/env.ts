@@ -22,6 +22,7 @@ export const env = createEnv({
     WORLD_EXPRESS_API_KEY: z.string(),
     EMAIL_SENDER_NAME: z.string(),
     EMAIL_SENDER_ADDRESS: z.email(),
+    SERVICE_NAME: z.string(),
   },
 
   /*

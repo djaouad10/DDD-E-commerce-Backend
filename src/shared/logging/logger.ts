@@ -206,6 +206,8 @@ export class Logger {
   }
 }
 
+const SERVICE_NAME = env.SERVICE_NAME || "not-specified";
+
 export function createLogger(component: string) {
-  return new Logger("e-commerce-api", component);
+  return new Logger(SERVICE_NAME, component);
 }
