@@ -25,6 +25,8 @@ import type { DomainEventsProcessorService } from "#/application/services/domain
 import type { IdempotencyKeysRepository } from "#/application/repositories/idempotency-keys.repository.js";
 import type { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
+import type { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
+import type { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -131,6 +133,14 @@ export const CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
 export const DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE = Symbol(
   "deleteOrderFromShippingProviderService",
 ) as InjectionToken<DeleteOrderFromShippingProviderService>;
+
+export const UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
+  "updateOrderInShippingProviderService",
+) as InjectionToken<UpdateOrderInShippingProviderService>;
+
+export const CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
+  "createShipmentInShippingProviderService",
+) as InjectionToken<CreateShipmentInShippingProviderService>;
 
 // ports
 export const EVENT_PUBLISHER = Symbol(

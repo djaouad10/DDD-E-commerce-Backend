@@ -1,5 +1,7 @@
 import { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
+import { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
 import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
+import { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
 import { env } from "#/infrastructure/config/env.js";
 import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/postgres/postgres-idempotency-keys-repository.js";
 import { PostgresOrderRepository } from "#/infrastructure/databases/repositories/postgres/postgres-order-repository.js";
@@ -9,12 +11,14 @@ import { Container } from "./container.js";
 import { registerSharedInfrastructure } from "./shared-registry.js";
 import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+  CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
   DB,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
   HTTP_CLIENT,
   IDEMPOTENCY_KEYS_REPOSITORY,
   ORDER_REPOSITORY,
   SHIPPING_PROVIDER_GATEWAY,
+  UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
 } from "./tokens.js";
 
 export function buildOutboxHandlerContainer(): Container {
@@ -73,5 +77,28 @@ export function buildOutboxHandlerContainer(): Container {
       ),
     "scoped",
   );
+
+  container.register(
+    UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new UpdateOrderInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new CreateShipmentInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
   return container;
 }
