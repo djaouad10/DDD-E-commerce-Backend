@@ -7,6 +7,7 @@ import type { CreateOrderInShippingProviderService } from "#/application/service
 import type { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import type { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
+import type { InjectionToken, Scope } from "#/composition/container.js";
 import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
   CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
@@ -126,3 +127,16 @@ const handlerRegistry: { [K in OutboxAction]: HandlerRegistryEntry<K> } = {
     },
   },
 };
+
+export async function executeOutboxHandler<T extends OutboxAction>(
+  action: T,
+  scope: Scope,
+  command: OutboxActionToCommand[T],
+  jobId: string,
+): Promise<unknown> {
+  const entry = handlerRegistry[action];
+  const service = scope.resolve<OutboxActionToHandlerService[T]>(
+    entry.token as InjectionToken<OutboxActionToHandlerService[T]>,
+  );
+  return entry.handlerMethod(service, command, jobId);
+}
