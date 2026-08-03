@@ -7,7 +7,10 @@ import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "./database.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 
-async function initializeAuth(db: DrizzleDBClient, userRepo: UserRepository) {
+export async function initializeAuth(
+  db: DrizzleDBClient,
+  userRepo: UserRepository,
+) {
   const customSessionPlugin = customSession(async ({ user: myUser }) => {
     const dbUser = await userRepo.find(UserId.of(myUser.id));
 
