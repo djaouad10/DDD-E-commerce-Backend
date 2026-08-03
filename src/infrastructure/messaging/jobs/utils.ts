@@ -7,7 +7,7 @@ import type { CreateOrderInShippingProviderService } from "#/application/service
 import type { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import type { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
-import type {
+import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
   CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
@@ -15,21 +15,21 @@ import type {
 } from "#/composition/tokens.js";
 import type { OutboxJobPayloadType } from "./validation.js";
 
-export type OutboxActionToCommand = {
+type OutboxActionToCommand = {
   [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: CreateOrderInShippingProviderCommand;
   [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: CreateShipmentInShippingProviderCommand;
   [OutboxAction.UPDATE_ORDER_IN_SHIPPING_API]: UpdateOrderInShippingProviderCommand;
   [OutboxAction.DELETE_ORDER_IN_SHIPPING_API]: DeleteOrderFromShippingProviderCommand;
 };
 
-export type OutboxActionToHandlerService = {
+type OutboxActionToHandlerService = {
   [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: CreateOrderInShippingProviderService;
   [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: CreateShipmentInShippingProviderService;
   [OutboxAction.UPDATE_ORDER_IN_SHIPPING_API]: UpdateOrderInShippingProviderService;
   [OutboxAction.DELETE_ORDER_IN_SHIPPING_API]: DeleteOrderFromShippingProviderService;
 };
 
-export type OutboxActionToToken = {
+type OutboxActionToToken = {
   [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: typeof CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE;
   [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: typeof CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE;
   [OutboxAction.UPDATE_ORDER_IN_SHIPPING_API]: typeof UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE;
@@ -87,3 +87,42 @@ export function buildOutboxCommand<T extends OutboxAction>(
       throw new Error(`Unhandled outbox action: ${_exhaustive}`);
   }
 }
+
+type HandlerRegistryEntry<T extends OutboxAction> = {
+  token: OutboxActionToToken[T];
+  handlerMethod: (
+    handler: OutboxActionToHandlerService[T],
+    command: OutboxActionToCommand[T],
+    jobId: string,
+  ) => Promise<unknown>;
+};
+
+const handlerRegistry: { [K in OutboxAction]: HandlerRegistryEntry<K> } = {
+  [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: {
+    token: CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: {
+    token: CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [OutboxAction.UPDATE_ORDER_IN_SHIPPING_API]: {
+    token: UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [OutboxAction.DELETE_ORDER_IN_SHIPPING_API]: {
+    token: DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+};
