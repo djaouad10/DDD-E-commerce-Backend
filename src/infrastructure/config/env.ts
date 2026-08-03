@@ -20,6 +20,8 @@ export const env = createEnv({
     REDIS_PORT: z.coerce.number().default(6379),
     WORLD_EXPRESS_API_URL: z.url(),
     WORLD_EXPRESS_API_KEY: z.string(),
+    EMAIL_SENDER_NAME: z.string(),
+    EMAIL_SENDER_ADDRESS: z.email(),
   },
 
   /*
