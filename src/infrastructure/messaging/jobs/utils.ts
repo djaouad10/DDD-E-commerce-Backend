@@ -36,4 +36,54 @@ export type OutboxActionToToken = {
   [OutboxAction.DELETE_ORDER_IN_SHIPPING_API]: typeof DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE;
 };
 
+export function buildOutboxCommand<T extends OutboxAction>(
+  action: T,
+  payload: OutboxJobPayloadType<T>,
+): OutboxActionToCommand[T] {
+  switch (action) {
+    case OutboxAction.CREATE_ORDER_IN_SHIPPING_API: {
+      const p = payload as OutboxJobPayloadType<
+        typeof OutboxAction.CREATE_ORDER_IN_SHIPPING_API
+      >;
 
+      return new CreateOrderInShippingProviderCommand(
+        p.orderId,
+      ) as OutboxActionToCommand[T];
+    }
+
+    case OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API: {
+      const p = payload as OutboxJobPayloadType<
+        typeof OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API
+      >;
+
+      return new CreateShipmentInShippingProviderCommand(
+        p.trackingNumber,
+      ) as OutboxActionToCommand[T];
+    }
+
+    case OutboxAction.UPDATE_ORDER_IN_SHIPPING_API: {
+      const p = payload as OutboxJobPayloadType<
+        typeof OutboxAction.UPDATE_ORDER_IN_SHIPPING_API
+      >;
+
+      return new UpdateOrderInShippingProviderCommand(
+        p.orderId,
+      ) as OutboxActionToCommand[T];
+    }
+
+    case OutboxAction.DELETE_ORDER_IN_SHIPPING_API: {
+      const p = payload as OutboxJobPayloadType<
+        typeof OutboxAction.DELETE_ORDER_IN_SHIPPING_API
+      >;
+
+      return new DeleteOrderFromShippingProviderCommand(
+        p.trackingNumber,
+        p.shippingProvider,
+      ) as OutboxActionToCommand[T];
+    }
+
+    default:
+      const _exhaustive: never = action;
+      throw new Error(`Unhandled outbox action: ${_exhaustive}`);
+  }
+}
