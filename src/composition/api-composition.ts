@@ -33,12 +33,14 @@ import {
   HTTP_CLIENT,
   SHIPPING_PROVIDER_GATEWAY,
   UTAPI,
+  AUTH,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { env } from "#/infrastructure/config/env.js";
+import { initializeAuth } from "#/infrastructure/config/auth.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -128,7 +130,11 @@ export function buildApiContainer(): Container {
   );
 
   // register gateways and http client
-  container.register(HTTP_CLIENT, () => new FetchHttpClient(15000), "singleton");
+  container.register(
+    HTTP_CLIENT,
+    () => new FetchHttpClient(15000),
+    "singleton",
+  );
 
   const utApi = new UTApi({});
   container.registerInstance(UTAPI, utApi);
@@ -147,6 +153,13 @@ export function buildApiContainer(): Container {
         env.WORLD_EXPRESS_API_URL,
         env.WORLD_EXPRESS_API_KEY,
       ),
+    "singleton",
+  );
+
+  container.register(
+    AUTH,
+    (scope) =>
+      initializeAuth(scope.resolve(DB), scope.resolve(USER_REPOSITORY)),
     "singleton",
   );
 

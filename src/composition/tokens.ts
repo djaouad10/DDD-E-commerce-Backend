@@ -27,6 +27,7 @@ import type { CreateOrderInShippingProviderService } from "#/application/service
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import type { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
 import type { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
+import type { Auth } from "#/infrastructure/config/auth.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -151,3 +152,5 @@ export const EVENT_PUBLISHER = Symbol(
 export const BULLMQ_FLOW_PRODUCER = Symbol(
   "bullmqFlowProducer",
 ) as InjectionToken<FlowProducer>;
+
+export const AUTH = Symbol("auth") as InjectionToken<Auth>;

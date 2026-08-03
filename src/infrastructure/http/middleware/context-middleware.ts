@@ -1,4 +1,3 @@
-import type { UserRole } from "#/domain/entities/user.js";
 import {
   runWithContext,
   type ContextStore,
@@ -6,7 +5,7 @@ import {
 import type { Request, Response, NextFunction } from "express";
 
 export function contextMiddleware(
-  req: Request & { user?: { id: string; role: UserRole } },
+  req: Request,
   res: Response,
   next: NextFunction,
 ): void {

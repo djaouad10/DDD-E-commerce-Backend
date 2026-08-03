@@ -4,6 +4,7 @@ import { DOMAIN_EVENTS_PROCESSOR_SERVICE } from "#/composition/tokens.js";
 import { OutboxProcessorCommand } from "#/application/commands/outbox-processor.command.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
+import { runWithContext } from "#/shared/context/request-context.js";
 
 const logger = createLogger("DomainEventsProcessorWorker");
 
@@ -11,17 +12,27 @@ async function startDomainEventsProcessor() {
   const container = buildDomainEventsProcessorContainer();
 
   while (true) {
-    const scope = container.createScope();
+    const iterationId = `iter_${crypto.randomUUID().replace(/-/g, "")}`;
 
-    try {
-      const service = scope.resolve(DOMAIN_EVENTS_PROCESSOR_SERVICE);
-      await service.execute(new OutboxProcessorCommand(5));
-    } catch (error) {
-      logger.error("Domain events processor iteration failed", error as Error);
-      await sleep(5000);
-    } finally {
-      await scope.dispose();
-    }
+    await runWithContext(
+      { requestId: iterationId, startTime: performance.now() },
+      async () => {
+        const scope = container.createScope();
+
+        try {
+          const service = scope.resolve(DOMAIN_EVENTS_PROCESSOR_SERVICE);
+          await service.execute(new OutboxProcessorCommand(5));
+        } catch (error) {
+          logger.error(
+            "Domain events processor iteration failed",
+            error as Error,
+          );
+          await sleep(5000);
+        } finally {
+          await scope.dispose();
+        }
+      },
+    );
 
     await sleep(5000);
   }

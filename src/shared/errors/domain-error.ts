@@ -4,7 +4,8 @@ type ErrorCodes =
   | "INSUFFICIENT_INVENTORY"
   | "UNAUTHORIZED"
   | "CONFLICT"
-  | "BAD_REQUEST";
+  | "BAD_REQUEST"
+  | "FORBIDDEN";
 
 export abstract class DomainError extends Error {
   abstract readonly code: ErrorCodes;
@@ -65,6 +66,15 @@ export class InsufficientInventoryError extends DomainError {
 
 export class UnauthorizedError extends DomainError {
   readonly code = "UNAUTHORIZED";
+  readonly statusCode = 401;
+
+  constructor(message?: string) {
+    super(message ?? "You are not authorized to perform this action");
+  }
+}
+
+export class ForbiddenError extends DomainError {
+  readonly code = "FORBIDDEN";
   readonly statusCode = 403;
 
   constructor(action: string, userId: string) {

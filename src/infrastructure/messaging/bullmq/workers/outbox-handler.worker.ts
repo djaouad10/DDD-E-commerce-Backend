@@ -1,7 +1,10 @@
 import { createLogger } from "#/shared/logging/logger.js";
 import { Worker } from "bullmq";
 import type { Redis } from "ioredis";
-import { BadRequestError, ValidationError } from "#/shared/errors/domain-error.js";
+import {
+  BadRequestError,
+  ValidationError,
+} from "#/shared/errors/domain-error.js";
 import { buildOutboxHandlerContainer } from "#/composition/outbox-handler-composition.js";
 
 import {
@@ -10,6 +13,7 @@ import {
 } from "../../jobs/validation.js";
 import type { OutboxAction } from "#/application/repositories/outbox.repository.js";
 import { buildOutboxCommand, executeOutboxHandler } from "../../jobs/utils.js";
+import { runWithContext } from "#/shared/context/request-context.js";
 
 export class OutboxHandlerWorker {
   private logger = createLogger("OutboxHandlerWorker");
@@ -26,48 +30,61 @@ export class OutboxHandlerWorker {
     this.worker = new Worker(
       "outbox-queue",
       async (job) => {
-        const container = buildOutboxHandlerContainer();
-        const scope = container.createScope();
+        const requestId = `job_${job.id}`;
 
-        const jobId = job.id;
-        const outboxAction = job.name as OutboxAction;
+        return runWithContext(
+          {
+            requestId,
+            jobId: job.id ?? "unknown",
+            queueName: "outbox-queue",
+            startTime: performance.now(),
+          },
+          async () => {
+            const container = buildOutboxHandlerContainer();
+            const scope = container.createScope();
 
-        this.logger.info("Processing outbox job", { jobId, outboxAction });
+            const jobId = job.id;
+            const outboxAction = job.name as OutboxAction;
 
-        if (!jobId) throw new BadRequestError("jobId is required");
+            this.logger.info("Processing outbox job", { jobId, outboxAction });
 
-        try {
-          // 1. Schema lookup + validation
-          const payloadSchema = outboxJobPayloadsSchemas.shape[outboxAction];
+            if (!jobId) throw new BadRequestError("jobId is required");
 
-          if (!payloadSchema) {
-            throw new ValidationError(
-              "outboxAction",
-              `Invalid outbox action: ${outboxAction}`,
-            );
-          }
+            try {
+              // 1. Schema lookup + validation
+              const payloadSchema =
+                outboxJobPayloadsSchemas.shape[outboxAction];
 
-          const payload = payloadSchema.parse(job.data) as OutboxJobPayloadType<
-            typeof outboxAction
-          >;
+              if (!payloadSchema) {
+                throw new ValidationError(
+                  "outboxAction",
+                  `Invalid outbox action: ${outboxAction}`,
+                );
+              }
 
-          // 2. Build typed command
-          const command = buildOutboxCommand(outboxAction, payload);
+              const payload = payloadSchema.parse(
+                job.data,
+              ) as OutboxJobPayloadType<typeof outboxAction>;
 
-          // 3. Resolve service & execute (fully typed end-to-end)
-          await executeOutboxHandler(outboxAction, scope, command, jobId);
+              // 2. Build typed command
+              const command = buildOutboxCommand(outboxAction, payload);
 
-          this.logger.info("Outbox job completed", { jobId, outboxAction });
-        } catch (error) {
-          this.logger.error("Outbox job failed", error as Error, {
-            jobId,
-            outboxAction,
-            error,
-          });
-          throw error; // BullMQ handles retries / dead-letter
-        } finally {
-          scope.dispose();
-        }
+              // 3. Resolve service & execute (fully typed end-to-end)
+              await executeOutboxHandler(outboxAction, scope, command, jobId);
+
+              this.logger.info("Outbox job completed", { jobId, outboxAction });
+            } catch (error) {
+              this.logger.error("Outbox job failed", error as Error, {
+                jobId,
+                outboxAction,
+                error,
+              });
+              throw error; // BullMQ handles retries / dead-letter
+            } finally {
+              await scope.dispose();
+            }
+          },
+        );
       },
       {
         connection: this.connection,
