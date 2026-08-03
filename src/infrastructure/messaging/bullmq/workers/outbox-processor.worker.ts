@@ -3,6 +3,7 @@ import { OUTBOX_PROCESSOR_SERVICE } from "#/composition/tokens.js";
 import { OutboxProcessorCommand } from "#/application/commands/outbox-processor.command.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
+import { runWithContext } from "#/shared/context/request-context.js";
 
 const logger = createLogger("OutboxProcessorWorker");
 
@@ -10,18 +11,25 @@ async function startOutboxProcessor() {
   const container = buildOutboxProcessorContainer();
 
   while (true) {
-    const scope = container.createScope();
+    const iterationId = `iter_${crypto.randomUUID().replace(/-/g, "")}`;
 
-    try {
-      const service = scope.resolve(OUTBOX_PROCESSOR_SERVICE);
-      await service.execute(new OutboxProcessorCommand(5));
-    } catch (error) {
-      logger.error("Outbox processor iteration failed", error as Error);
-      // sleep and retry
-      await sleep(5000);
-    } finally {
-      await scope.dispose();
-    }
+    await runWithContext(
+      { requestId: iterationId, startTime: performance.now() },
+      async () => {
+        const scope = container.createScope();
+
+        try {
+          const service = scope.resolve(OUTBOX_PROCESSOR_SERVICE);
+          await service.execute(new OutboxProcessorCommand(5));
+        } catch (error) {
+          logger.error("Outbox processor iteration failed", error as Error);
+          // sleep and retry
+          await sleep(5000);
+        } finally {
+          await scope.dispose();
+        }
+      },
+    );
 
     await sleep(5000); // 5 seconds poll interval
   }

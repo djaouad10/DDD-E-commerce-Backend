@@ -8,13 +8,17 @@ export interface ContextStore {
 
   userRole?: UserRole;
 
-  path: string;
+  path?: string;
 
-  method: string;
+  method?: string;
 
   startTime: number;
 
   clientIp?: string;
+
+  jobId?: string;
+
+  queueName?: string;
 }
 
 const requestContext = new AsyncLocalStorage<ContextStore>();
