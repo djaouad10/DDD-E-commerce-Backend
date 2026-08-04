@@ -18,7 +18,7 @@ export function createServer(container: Container) {
   app.use(attachUserMiddleware);
   app.use(contextMiddleware);
 
-  app.use("/api", routes);
+  app.use("/api/v1", routes);
 
   app.use(errorHandlingMiddleware);
 
