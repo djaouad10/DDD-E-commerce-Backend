@@ -166,7 +166,6 @@ export function buildApiContainer(): Container {
   );
 
   // register services
-
   container.register(
     GET_CATEGORIES_SERVICE,
     (scope) => new GetCategoriesService(scope.resolve(CATEGORY_QUERIES)),
