@@ -1,7 +1,7 @@
 import { AUTH } from "#/composition/tokens.js";
 import type { NextFunction, Request, Response } from "express";
 
-export async function AuthMiddleware(
+export async function attachUserMiddleware(
   req: Request,
   _res: Response,
   next: NextFunction,
