@@ -34,6 +34,7 @@ import {
   SHIPPING_PROVIDER_GATEWAY,
   UTAPI,
   AUTH,
+  GET_CATEGORIES_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -41,6 +42,7 @@ import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { env } from "#/infrastructure/config/env.js";
 import { initializeAuth } from "#/infrastructure/config/auth.js";
+import GetCategoriesService from "#/application/services/get-categories.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -161,6 +163,14 @@ export function buildApiContainer(): Container {
     (scope) =>
       initializeAuth(scope.resolve(DB), scope.resolve(USER_REPOSITORY)),
     "singleton",
+  );
+
+  // register services
+
+  container.register(
+    GET_CATEGORIES_SERVICE,
+    (scope) => new GetCategoriesService(scope.resolve(CATEGORY_QUERIES)),
+    "scoped",
   );
 
   return container;
