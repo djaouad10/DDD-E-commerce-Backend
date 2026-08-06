@@ -1,13 +1,7 @@
 import type { Container } from "#/composition/container.js";
 import { CATEGORY_REPOSITORY, DB } from "#/composition/tokens.js";
 import type { Category } from "#/domain/entities/category.js";
-import {
-  category,
-  order,
-  orderItem,
-  outbox,
-  product,
-} from "#/infrastructure/databases/schema.js";
+
 import { sql } from "drizzle-orm";
 
 export async function createCategoryInDB(
