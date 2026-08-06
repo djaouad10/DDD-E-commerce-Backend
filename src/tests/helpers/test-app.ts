@@ -1,3 +1,4 @@
+import type { Container } from "#/composition/container.js";
 import { buildIntegrationTestsContainer } from "#/composition/tests/integration-tests-composition.js";
 import { createServer } from "#/infrastructure/http/server/index.js";
 import type { Express } from "express";
@@ -5,7 +6,7 @@ import nock from "nock";
 
 let app: Express;
 
-export function createTestApp(): Express {
+export function createTestApp(): { app: Express; container: Container } {
   // Deny ALL outgoing HTTP by default
   nock.disableNetConnect();
   // Allow localhost ONLY for any test-specific needs (rare)
@@ -14,7 +15,7 @@ export function createTestApp(): Express {
   const container = buildIntegrationTestsContainer();
   app = createServer(container);
 
-  return app;
+  return { app, container };
 }
 
 export function cleanupTestApp(): void {
