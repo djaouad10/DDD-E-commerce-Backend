@@ -157,7 +157,7 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     FILE_STORE_GATEWAY,
     (scope) => new UploadthingFileStoreGateway(scope.resolve(UTAPI)),
-    "singleton",
+    "scoped",
   );
 
   container.register(
@@ -168,7 +168,7 @@ export function buildIntegrationTestsContainer(): Container {
         env.WORLD_EXPRESS_API_URL,
         env.WORLD_EXPRESS_API_KEY,
       ),
-    "singleton",
+    "scoped",
   );
 
   // other

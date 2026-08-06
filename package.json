@@ -57,6 +57,7 @@
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",
     "ioredis-mock": "^8.13.1",
+    "nock": "^14.0.17",
     "supertest": "^7.2.2",
     "tsc-alias": "^1.9.1",
     "tsx": "^4.22.4",
