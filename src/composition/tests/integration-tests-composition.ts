@@ -38,12 +38,14 @@ import {
   SHIPPING_PROVIDER_GATEWAY,
   UTAPI,
   HTTP_CLIENT,
+  AUTH,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
 import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
+import { fakeAuth } from "#/tests/helpers/fake-auth.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -168,6 +170,10 @@ export function buildIntegrationTestsContainer(): Container {
       ),
     "singleton",
   );
+
+  // other
+
+  container.register(AUTH, () => fakeAuth, "singleton");
 
   // register services
   container.register(
