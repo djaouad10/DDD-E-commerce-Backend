@@ -7,16 +7,18 @@ import { attachUserMiddleware } from "../middleware/attach-user-middleware.js";
 import { contextMiddleware } from "../middleware/context-middleware.js";
 import routes from "../routes/index.js";
 import { errorHandlingMiddleware } from "../middleware/error-handling-middleware.js";
+import { requestTimerMiddleware } from "../middleware/request-timer-middleware.js";
 export function createServer(container: Container) {
   const app = express();
 
   app.use(express.json());
   app.use(cors());
 
-  app.use(requestLogger);
+  app.use(requestTimerMiddleware);
   app.use(scopeMiddleware(container));
   app.use(attachUserMiddleware);
   app.use(contextMiddleware);
+  app.use(requestLogger);
 
   app.use("/api/v1", routes);
 

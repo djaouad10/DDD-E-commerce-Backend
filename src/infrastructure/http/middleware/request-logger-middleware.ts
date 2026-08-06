@@ -4,7 +4,7 @@ import type { Request, Response, NextFunction } from "express";
 // must be executed after the context-middlware
 export function requestLogger(logger: Logger) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const timer = new PerformanceTimer();
+    const timer = req.startTime ?? new PerformanceTimer();
 
     logger.info("Request started", {
       method: req.method,
