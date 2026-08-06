@@ -9,8 +9,7 @@ export function createTestApp(): Express {
   // Deny ALL outgoing HTTP by default
   nock.disableNetConnect();
   // Allow localhost ONLY for any test-specific needs (rare)
-  // nock.enableNetConnect("127.0.0.1");
-  // usually not needed since no server starts
+  nock.enableNetConnect("127.0.0.1");
 
   const container = buildIntegrationTestsContainer();
   app = createServer(container);
