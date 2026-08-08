@@ -41,6 +41,7 @@ import {
   AUTH,
   CREATE_CATEGORY_SERVICE,
   UPDATE_CATEGORY_SERVICE,
+  DELETE_CATEGORY_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -50,6 +51,7 @@ import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.
 import { fakeAuth } from "#/tests/helpers/fake-auth.js";
 import { CreateCategoryService } from "#/application/services/create-category.service.js";
 import { UpdateCategoryService } from "#/application/services/update-category.service.js";
+import { DeleteCategoryService } from "#/application/services/delete-category.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -201,6 +203,17 @@ export function buildIntegrationTestsContainer(): Container {
     UPDATE_CATEGORY_SERVICE,
     (scope) =>
       new UpdateCategoryService(
+        scope.resolve(DB),
+        scope.resolve(CATEGORY_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DELETE_CATEGORY_SERVICE,
+    (scope) =>
+      new DeleteCategoryService(
         scope.resolve(DB),
         scope.resolve(CATEGORY_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
