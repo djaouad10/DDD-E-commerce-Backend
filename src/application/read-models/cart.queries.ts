@@ -3,5 +3,5 @@ import type { CartDTO } from "../dto/cart.dto.js";
 
 export type CartQueries = {
   // doesn't require an aggregate
-  getCartByUserId: (userId: UserId) => Promise<CartDTO | null>;
+  getCartByUserId: (userId: UserId) => Promise<CartDTO>;
 };
