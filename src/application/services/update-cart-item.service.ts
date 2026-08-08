@@ -1,4 +1,5 @@
 import type { CartRepository } from "#/domain/repositories/cart.repository.js";
+import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
@@ -13,13 +14,19 @@ export class UpdateCartItemService {
     private db: DrizzleDBClient,
     private cartRepository: CartRepository,
     private outboxRepository: OutboxRepository,
+    private userRepository: UserRepository,
   ) {}
 
   async execute(command: UpdateCartItemCommand): Promise<void> {
     const { userId, itemId, newQty } = command;
     this.logger.info("Updating cart item", { userId, itemId, newQty });
 
-    const cart = await this.cartRepository.findByUserId(UserId.of(userId));
+    const [user, cart] = await Promise.all([
+      this.userRepository.find(UserId.of(userId)),
+      this.cartRepository.findByUserId(UserId.of(userId)), // cartRepository will return an empty cart object even if user didn't exist, so it's safe to check that the user exists
+    ]);
+
+    if (!user) throw new NotFoundError("user", userId);
 
     const item = cart.getItems().find((item) => item.id.value === itemId);
 

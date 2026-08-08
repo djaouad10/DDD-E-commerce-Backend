@@ -232,6 +232,7 @@ export function buildApiContainer(): Container {
         scope.resolve(DB),
         scope.resolve(CART_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
+        scope.resolve(USER_REPOSITORY),
       ),
     "scoped",
   );
