@@ -1,6 +1,15 @@
 import type { Container } from "#/composition/container.js";
-import { CATEGORY_REPOSITORY, DB } from "#/composition/tokens.js";
+import {
+  CART_REPOSITORY,
+  CATEGORY_REPOSITORY,
+  DB,
+  PRODUCT_REPOSITORY,
+} from "#/composition/tokens.js";
+import type { Cart } from "#/domain/entities/cart.js";
 import type { Category } from "#/domain/entities/category.js";
+import type { Product } from "#/domain/entities/product.js";
+import type { User } from "#/domain/entities/user.js";
+import { user } from "#/infrastructure/databases/schema.js";
 
 import { sql } from "drizzle-orm";
 
@@ -13,6 +22,44 @@ export async function createCategoryInDB(
 
   await db.transaction(async (tx) => {
     await categoryRepository.save(category, tx);
+  });
+}
+
+export async function saveCartInDB(
+  container: Container,
+  cart: Cart,
+): Promise<void> {
+  const db = container.resolveSingleton(DB);
+  const cartRepository = container.resolveSingleton(CART_REPOSITORY);
+
+  await db.transaction(async (tx) => {
+    await cartRepository.save(cart, tx);
+  });
+}
+
+export async function createUserInDB(container: Container, userObj: User) {
+  const db = container.resolveSingleton(DB);
+  await db.insert(user).values({
+    id: userObj.id.value,
+    email: userObj.email,
+    name: userObj.getName(),
+    role: userObj.role,
+    emailVerified: true,
+    image: userObj.getImage(),
+    createdAt: userObj.createdAt,
+    updatedAt: userObj.getUpdatedAt(),
+  });
+}
+
+export async function createProductInDB(
+  container: Container,
+  product: Product,
+) {
+  const db = container.resolveSingleton(DB);
+  const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
+
+  await db.transaction(async (tx) => {
+    await productRepository.save(product, tx);
   });
 }
 
