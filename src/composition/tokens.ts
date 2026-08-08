@@ -30,6 +30,7 @@ import type { CreateShipmentInShippingProviderService } from "#/application/serv
 import type { Auth } from "#/infrastructure/config/auth.js";
 import type GetCategoriesService from "#/application/services/get-categories.service.js";
 import type { CreateCategoryService } from "#/application/services/create-category.service.js";
+import type { UpdateCategoryService } from "#/application/services/update-category.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -167,3 +168,7 @@ export const GET_CATEGORIES_SERVICE = Symbol(
 export const CREATE_CATEGORY_SERVICE = Symbol(
   "createCategoryService",
 ) as InjectionToken<CreateCategoryService>;
+
+export const UPDATE_CATEGORY_SERVICE = Symbol(
+  "updateCategoryService",
+) as InjectionToken<UpdateCategoryService>;

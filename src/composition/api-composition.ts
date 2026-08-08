@@ -36,6 +36,7 @@ import {
   AUTH,
   GET_CATEGORIES_SERVICE,
   CREATE_CATEGORY_SERVICE,
+  UPDATE_CATEGORY_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -45,6 +46,7 @@ import { env } from "#/infrastructure/config/env.js";
 import { initializeAuth } from "#/infrastructure/config/auth.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { CreateCategoryService } from "#/application/services/create-category.service.js";
+import { UpdateCategoryService } from "#/application/services/update-category.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -178,6 +180,17 @@ export function buildApiContainer(): Container {
     CREATE_CATEGORY_SERVICE,
     (scope) =>
       new CreateCategoryService(
+        scope.resolve(DB),
+        scope.resolve(CATEGORY_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    UPDATE_CATEGORY_SERVICE,
+    (scope) =>
+      new UpdateCategoryService(
         scope.resolve(DB),
         scope.resolve(CATEGORY_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
