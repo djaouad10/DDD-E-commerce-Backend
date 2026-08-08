@@ -1,3 +1,5 @@
+import { ValidationError } from "#/shared/errors/domain-error.js";
+
 export class UpdateCartItemCommand {
   constructor(
     public readonly userId: string,
@@ -9,7 +11,10 @@ export class UpdateCartItemCommand {
 
   private validate(newQty: number) {
     if (newQty <= 0) {
-      throw new Error("Quantity must be greater than 0");
+      throw new ValidationError(
+        "cart.item.qty",
+        "cart item must be greater than 0",
+      );
     }
   }
 }
