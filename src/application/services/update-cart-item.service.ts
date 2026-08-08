@@ -1,5 +1,6 @@
 import type { CartRepository } from "#/domain/repositories/cart.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
+import { CartItemId } from "#/domain/value-objects/cart-item-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
@@ -28,7 +29,9 @@ export class UpdateCartItemService {
 
     if (!user) throw new NotFoundError("user", userId);
 
-    const item = cart.getItems().find((item) => item.id.value === itemId);
+    const item = cart
+      .getItems()
+      .find((item) => item.id.equals(CartItemId.of(itemId)));
 
     if (!item) {
       this.logger.error("Item not found in cart", {} as Error, {
