@@ -10,5 +10,5 @@ export async function authMiddleware(
     throw new UnauthorizedError();
   }
 
-  next();
+return  next();
 }

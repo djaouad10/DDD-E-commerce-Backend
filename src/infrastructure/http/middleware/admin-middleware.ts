@@ -7,7 +7,7 @@ export async function adminMiddleware(
   next: NextFunction,
 ) {
   if (req.user && req.user.role === "ADMIN") {
-    next();
+    return next();
   }
 
   throw new ForbiddenError(

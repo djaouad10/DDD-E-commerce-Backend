@@ -37,7 +37,7 @@ export async function requestLogger(
       }
     });
 
-    next();
+    return next();
   } catch (error) {
     const duration = timer.elapsed();
 

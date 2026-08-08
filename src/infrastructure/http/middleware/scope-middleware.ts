@@ -9,6 +9,6 @@ export function scopeMiddleware(container: Container) {
       req.scope.dispose().catch(console.error);
     });
 
-    next();
+    return next();
   };
 }

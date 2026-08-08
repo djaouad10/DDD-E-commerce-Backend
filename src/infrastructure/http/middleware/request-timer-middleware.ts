@@ -8,5 +8,5 @@ export function requestTimerMiddleware(
 ) {
   req.startTime = new PerformanceTimer();
 
-  next();
+  return next();
 }

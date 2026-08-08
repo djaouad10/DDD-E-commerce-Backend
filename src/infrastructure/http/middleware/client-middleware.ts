@@ -7,7 +7,7 @@ export async function clientMiddleware(
   next: NextFunction,
 ) {
   if (req.user && req.user.role === "CLIENT") {
-    next();
+    return next();
   }
 
   throw new ForbiddenError(
