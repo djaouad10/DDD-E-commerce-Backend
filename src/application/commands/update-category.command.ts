@@ -1,8 +1,12 @@
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
-export class CreateCategoryCommand {
+export class UpdateCategoryCommand {
   public name: string;
-  constructor(name: string) {
+
+  constructor(
+    public categoryId: string,
+    name: string,
+  ) {
     this.validate(name);
 
     this.name = name.toLocaleLowerCase();
