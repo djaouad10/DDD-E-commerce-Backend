@@ -32,6 +32,7 @@ import type GetCategoriesService from "#/application/services/get-categories.ser
 import type { CreateCategoryService } from "#/application/services/create-category.service.js";
 import type { UpdateCategoryService } from "#/application/services/update-category.service.js";
 import type { DeleteCategoryService } from "#/application/services/delete-category.service.js";
+import type { GetUserCartService } from "#/application/services/get-user-cart.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -174,3 +175,8 @@ export const UPDATE_CATEGORY_SERVICE = Symbol(
 export const DELETE_CATEGORY_SERVICE = Symbol(
   "deleteCategoryService",
 ) as InjectionToken<DeleteCategoryService>;
+
+
+export const GET_USER_CART_SERVICE = Symbol(
+  "getUserCartService",
+) as InjectionToken<GetUserCartService>;
