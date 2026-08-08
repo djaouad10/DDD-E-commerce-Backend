@@ -1,3 +1,4 @@
+import type { CategorySnapshot } from "#/domain/entities-snapshots/category.snapshot.js";
 import { Category } from "#/domain/entities/category.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
@@ -14,7 +15,7 @@ export class CreateCategoryService {
     private outboxRepository: OutboxRepository,
   ) {}
 
-  async execute(command: CreateCategoryCommand): Promise<void> {
+  async execute(command: CreateCategoryCommand): Promise<CategorySnapshot> {
     this.logger.info(`Creating category ${command.name}`);
 
     const category = Category.create(command.name);
@@ -30,5 +31,7 @@ export class CreateCategoryService {
         this.outboxRepository.saveEvents(events, tx);
       }
     });
+
+    return category.toSnapshot();
   }
 }
