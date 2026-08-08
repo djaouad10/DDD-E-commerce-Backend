@@ -39,6 +39,7 @@ import {
   UTAPI,
   HTTP_CLIENT,
   AUTH,
+  CREATE_CATEGORY_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -46,6 +47,7 @@ import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthi
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
 import { fakeAuth } from "#/tests/helpers/fake-auth.js";
+import { CreateCategoryService } from "#/application/services/create-category.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -179,6 +181,17 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     GET_CATEGORIES_SERVICE,
     (scope) => new GetCategoriesService(scope.resolve(CATEGORY_QUERIES)),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_CATEGORY_SERVICE,
+    (scope) =>
+      new CreateCategoryService(
+        scope.resolve(DB),
+        scope.resolve(CATEGORY_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
     "scoped",
   );
 
