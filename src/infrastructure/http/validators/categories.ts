@@ -11,3 +11,7 @@ export const updateCategoryBodySchema = z.object({
 export const updateCategoryParamsSchema = z.object({
   id: z.string(),
 });
+
+export const deleteCategoryParamsSchema = z.object({
+  id: z.string(),
+});
