@@ -225,7 +225,11 @@ export function buildIntegrationTestsContainer(): Container {
 
   container.register(
     GET_USER_CART_SERVICE,
-    (scope) => new GetUserCartService(scope.resolve(CART_QUERIES)),
+    (scope) =>
+      new GetUserCartService(
+        scope.resolve(CART_QUERIES),
+        scope.resolve(USER_REPOSITORY),
+      ),
     "scoped",
   );
 
