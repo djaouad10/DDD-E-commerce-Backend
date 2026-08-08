@@ -1,5 +1,5 @@
 import { ForbiddenError } from "#/shared/errors/domain-error.js";
-import type { NextFunction, Request } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 export async function adminMiddleware(
   req: Request,

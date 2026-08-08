@@ -6,6 +6,7 @@ import {
 import { Router } from "express";
 import { createCategoryBodySchema } from "../validators/categories.js";
 import { validate } from "../utils/validation.js";
+import { adminMiddleware } from "../middleware/admin-middleware.js";
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.get("/", async (req, res) => {
   res.status(200).json(result);
 });
 
-router.post("/", async (req, res) => {
+router.post("/", adminMiddleware, async (req, res) => {
   const safeBody = validate(createCategoryBodySchema, req.body);
 
   const service = req.scope.resolve(CREATE_CATEGORY_SERVICE);
