@@ -24,11 +24,11 @@ export class CreateCategoryService {
 
     this.logger.debug("Saving category", { id: category.id.value });
     await this.db.transaction(async (tx) => {
-      this.categoryRepository.save(category, tx);
+      await this.categoryRepository.save(category, tx);
 
       if (events.length > 0) {
         this.logger.debug("Saving events", { count: events.length });
-        this.outboxRepository.saveEvents(events, tx);
+        await this.outboxRepository.saveEvents(events, tx);
       }
     });
 
