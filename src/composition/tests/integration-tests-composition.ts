@@ -43,6 +43,7 @@ import {
   UPDATE_CATEGORY_SERVICE,
   DELETE_CATEGORY_SERVICE,
   GET_USER_CART_SERVICE,
+  UPDATE_CART_ITEM_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -54,6 +55,7 @@ import { CreateCategoryService } from "#/application/services/create-category.se
 import { UpdateCategoryService } from "#/application/services/update-category.service.js";
 import { DeleteCategoryService } from "#/application/services/delete-category.service.js";
 import { GetUserCartService } from "#/application/services/get-user-cart.service.js";
+import { UpdateCartItemService } from "#/application/services/update-cart-item.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -229,6 +231,17 @@ export function buildIntegrationTestsContainer(): Container {
       new GetUserCartService(
         scope.resolve(CART_QUERIES),
         scope.resolve(USER_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    UPDATE_CART_ITEM_SERVICE,
+    (scope) =>
+      new UpdateCartItemService(
+        scope.resolve(DB),
+        scope.resolve(CART_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
       ),
     "scoped",
   );
