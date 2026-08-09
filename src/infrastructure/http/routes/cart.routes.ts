@@ -76,7 +76,7 @@ router.delete("/clear", authMiddleware, async (req, res) => {
 });
 
 router.post("/items", authMiddleware, async (req, res) => {
-  const safeBody = validate(addItemToCartBodySchema, req.params);
+  const safeBody = validate(addItemToCartBodySchema, req.body);
 
   const userId = req.user!.id; // auth middleware ensures req.user is defined
 
