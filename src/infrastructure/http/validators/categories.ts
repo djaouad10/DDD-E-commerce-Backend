@@ -15,3 +15,7 @@ export const updateCategoryParamsSchema = z.object({
 export const deleteCategoryParamsSchema = z.object({
   id: z.string(),
 });
+
+export const deleteCartItemParamsSchema = z.object({
+  id: z.string(),
+});

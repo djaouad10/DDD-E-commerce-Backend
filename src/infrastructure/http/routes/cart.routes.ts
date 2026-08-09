@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import {
+  DELETE_CART_ITEM_SERVICE,
   GET_USER_CART_SERVICE,
   UPDATE_CART_ITEM_SERVICE,
 } from "#/composition/tokens.js";
@@ -11,6 +12,8 @@ import {
   updateCartItemBodySchema,
   updateCartItemParamsSchema,
 } from "../validators/cart.js";
+import { DeleteCartItemCommand } from "#/application/commands/delete-cart-item.command.js";
+import { deleteCartItemParamsSchema } from "../validators/categories.js";
 
 const router = Router();
 
@@ -37,6 +40,20 @@ router.patch("/items/:id", authMiddleware, async (req, res) => {
     safeParams.id,
     safeBody.newQty,
   );
+
+  await service.execute(command);
+
+  res.status(200).json({ success: true });
+});
+
+
+router.delete("/items/:id", authMiddleware, async (req, res) => {
+  const safeParams = validate(deleteCartItemParamsSchema, req.params);
+
+  const userId = req.user!.id; // auth middleware ensures req.user is defined
+
+  const service = req.scope.resolve(DELETE_CART_ITEM_SERVICE);
+  const command = new DeleteCartItemCommand(userId, safeParams.id);
 
   await service.execute(command);
 
