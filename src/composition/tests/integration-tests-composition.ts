@@ -46,6 +46,7 @@ import {
   UPDATE_CART_ITEM_SERVICE,
   DELETE_CART_ITEM_SERVICE,
   CLEAR_CART_SERVICE,
+  ADD_ITEM_TO_CART_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -60,6 +61,7 @@ import { GetUserCartService } from "#/application/services/get-user-cart.service
 import { UpdateCartItemService } from "#/application/services/update-cart-item.service.js";
 import { DeleteCartItemService } from "#/application/services/delete-cart-item.service.js";
 import { ClearCartService } from "#/application/services/clear-cart.service.js";
+import { AddItemToCartService } from "#/application/services/add-item-to-cart.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -267,6 +269,18 @@ export function buildIntegrationTestsContainer(): Container {
     CLEAR_CART_SERVICE,
     (scope) =>
       new ClearCartService(
+        scope.resolve(DB),
+        scope.resolve(CART_REPOSITORY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    ADD_ITEM_TO_CART_SERVICE,
+    (scope) =>
+      new AddItemToCartService(
         scope.resolve(DB),
         scope.resolve(CART_REPOSITORY),
         scope.resolve(USER_REPOSITORY),
