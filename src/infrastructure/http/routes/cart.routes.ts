@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import {
+  ADD_ITEM_TO_CART_SERVICE,
   CLEAR_CART_SERVICE,
   DELETE_CART_ITEM_SERVICE,
   GET_USER_CART_SERVICE,
@@ -12,10 +13,12 @@ import { validate } from "../utils/validation.js";
 import {
   updateCartItemBodySchema,
   updateCartItemParamsSchema,
+  deleteCartItemParamsSchema,
+  addItemToCartBodySchema,
 } from "../validators/cart.js";
 import { DeleteCartItemCommand } from "#/application/commands/delete-cart-item.command.js";
-import { deleteCartItemParamsSchema } from "../validators/categories.js";
 import { ClearCartCommand } from "#/application/commands/clear-cart.command.js";
+import { AddItemToCartCommand } from "#/application/commands/add-item-to-cart.command.js";
 
 const router = Router();
 
@@ -70,6 +73,23 @@ router.delete("/clear", authMiddleware, async (req, res) => {
   await service.execute(command);
 
   res.status(200).json({ success: true });
+});
+
+router.post("/items", authMiddleware, async (req, res) => {
+  const safeBody = validate(addItemToCartBodySchema, req.params);
+
+  const userId = req.user!.id; // auth middleware ensures req.user is defined
+
+  const service = req.scope.resolve(ADD_ITEM_TO_CART_SERVICE);
+  const command = new AddItemToCartCommand(
+    userId,
+    safeBody.variationId,
+    safeBody.qty,
+  );
+
+  const result = await service.execute(command);
+
+  res.status(200).json(result);
 });
 
 export default router;
