@@ -40,6 +40,7 @@ import {
   DELETE_CATEGORY_SERVICE,
   GET_USER_CART_SERVICE,
   UPDATE_CART_ITEM_SERVICE,
+  DELETE_CART_ITEM_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -53,6 +54,7 @@ import { UpdateCategoryService } from "#/application/services/update-category.se
 import { DeleteCategoryService } from "#/application/services/delete-category.service.js";
 import { GetUserCartService } from "#/application/services/get-user-cart.service.js";
 import { UpdateCartItemService } from "#/application/services/update-cart-item.service.js";
+import { DeleteCartItemService } from "#/application/services/delete-cart-item.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -233,6 +235,18 @@ export function buildApiContainer(): Container {
         scope.resolve(CART_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
         scope.resolve(USER_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DELETE_CART_ITEM_SERVICE,
+    (scope) =>
+      new DeleteCartItemService(
+        scope.resolve(DB),
+        scope.resolve(CART_REPOSITORY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
       ),
     "scoped",
   );
