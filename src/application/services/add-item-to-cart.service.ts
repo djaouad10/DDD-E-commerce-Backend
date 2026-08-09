@@ -1,3 +1,4 @@
+import type { CartItemSnapshot } from "#/domain/entities-snapshots/cart-item.snapshot.js";
 import { CartItem } from "#/domain/entities/cart-item.js";
 import type { CartRepository } from "#/domain/repositories/cart.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
@@ -19,7 +20,7 @@ export class AddItemToCartService {
     private outboxRepository: OutboxRepository,
   ) {}
 
-  async execute(command: AddItemToCartCommand): Promise<void> {
+  async execute(command: AddItemToCartCommand): Promise<CartItemSnapshot> {
     const { userId, variationId, qty } = command;
     this.logger.info("Adding item to cart", { userId, variationId, qty });
 
@@ -45,5 +46,8 @@ export class AddItemToCartService {
         await this.outboxRepository.saveEvents(events, tx);
       }
     });
+
+
+    return newItem.toSnapshot();
   }
 }
