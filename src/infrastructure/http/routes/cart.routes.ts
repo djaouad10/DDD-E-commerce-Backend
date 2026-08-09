@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import {
+  CLEAR_CART_SERVICE,
   DELETE_CART_ITEM_SERVICE,
   GET_USER_CART_SERVICE,
   UPDATE_CART_ITEM_SERVICE,
@@ -14,6 +15,7 @@ import {
 } from "../validators/cart.js";
 import { DeleteCartItemCommand } from "#/application/commands/delete-cart-item.command.js";
 import { deleteCartItemParamsSchema } from "../validators/categories.js";
+import { ClearCartCommand } from "#/application/commands/clear-cart.command.js";
 
 const router = Router();
 
@@ -46,7 +48,6 @@ router.patch("/items/:id", authMiddleware, async (req, res) => {
   res.status(200).json({ success: true });
 });
 
-
 router.delete("/items/:id", authMiddleware, async (req, res) => {
   const safeParams = validate(deleteCartItemParamsSchema, req.params);
 
@@ -54,6 +55,17 @@ router.delete("/items/:id", authMiddleware, async (req, res) => {
 
   const service = req.scope.resolve(DELETE_CART_ITEM_SERVICE);
   const command = new DeleteCartItemCommand(userId, safeParams.id);
+
+  await service.execute(command);
+
+  res.status(200).json({ success: true });
+});
+
+router.delete("/clear", authMiddleware, async (req, res) => {
+  const userId = req.user!.id; // auth middleware ensures req.user is defined
+
+  const service = req.scope.resolve(CLEAR_CART_SERVICE);
+  const command = new ClearCartCommand(userId);
 
   await service.execute(command);
 
