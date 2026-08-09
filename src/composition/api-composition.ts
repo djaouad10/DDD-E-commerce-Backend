@@ -44,6 +44,7 @@ import {
   CLEAR_CART_SERVICE,
   ADD_ITEM_TO_CART_SERVICE,
   GET_CLIENT_PROFILE_SERVICE,
+  GET_CLIENT_BAN_STATUS_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -61,6 +62,7 @@ import { DeleteCartItemService } from "#/application/services/delete-cart-item.s
 import { ClearCartService } from "#/application/services/clear-cart.service.js";
 import { AddItemToCartService } from "#/application/services/add-item-to-cart.service.js";
 import { GetClientProfileService } from "#/application/services/get-client-profile.service.js";
+import { GetClientBanStatusService } from "#/application/services/get-client-ban-status.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -284,6 +286,12 @@ export function buildApiContainer(): Container {
   container.register(
     GET_CLIENT_PROFILE_SERVICE,
     (scope) => new GetClientProfileService(scope.resolve(USER_REPOSITORY)),
+    "scoped",
+  );
+
+  container.register(
+    GET_CLIENT_BAN_STATUS_SERVICE,
+    (scope) => new GetClientBanStatusService(scope.resolve(USER_REPOSITORY)),
     "scoped",
   );
 
