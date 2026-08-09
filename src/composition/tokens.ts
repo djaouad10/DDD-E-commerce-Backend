@@ -202,5 +202,5 @@ export const ADD_ITEM_TO_CART_SERVICE = Symbol(
 ) as InjectionToken<AddItemToCartService>;
 
 export const GET_CLIENT_PROFILE_SERVICE = Symbol(
-  "addItemToCartService",
+  "getClientProfileService",
 ) as InjectionToken<GetClientProfileService>;
