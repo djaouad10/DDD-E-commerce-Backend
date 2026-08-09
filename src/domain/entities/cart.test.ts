@@ -1,4 +1,7 @@
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import {
+  NotFoundError,
+  ValidationError,
+} from "#/shared/errors/domain-error.js";
 import { CartId } from "../value-objects/cart-id.js";
 import { UserId } from "../value-objects/user-id.js";
 import { VariationId } from "../value-objects/variation-id.js";
@@ -150,13 +153,13 @@ describe("Cart Aggregate", () => {
       expect(cart.getItems()).not.toContainEqual(item);
     });
 
-    test("when item is not in the cart, it should throw a ValidationError", () => {
+    test("when item is not in the cart, it should throw a NotFoundError", () => {
       // Arrange
       const item = CartItem.create(VariationId.generate(), 3);
       const cart = Cart.create(UserId.generate(), []);
 
       // Act & Assert
-      expect(() => cart.removeItem(item.id)).toThrow(ValidationError);
+      expect(() => cart.removeItem(item.id)).toThrow(NotFoundError);
     });
   });
 
