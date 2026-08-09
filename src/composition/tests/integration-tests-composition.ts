@@ -49,6 +49,7 @@ import {
   ADD_ITEM_TO_CART_SERVICE,
   GET_CLIENT_PROFILE_SERVICE,
   GET_CLIENT_BAN_STATUS_SERVICE,
+  GET_CLIENTS_LIST_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -66,6 +67,7 @@ import { ClearCartService } from "#/application/services/clear-cart.service.js";
 import { AddItemToCartService } from "#/application/services/add-item-to-cart.service.js";
 import { GetClientProfileService } from "#/application/services/get-client-profile.service.js";
 import { GetClientBanStatusService } from "#/application/services/get-client-ban-status.service.js";
+import { GetClientsListService } from "#/application/services/get-clients-list.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -302,6 +304,12 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     GET_CLIENT_BAN_STATUS_SERVICE,
     (scope) => new GetClientBanStatusService(scope.resolve(USER_REPOSITORY)),
+    "scoped",
+  );
+
+  container.register(
+    GET_CLIENTS_LIST_SERVICE,
+    (scope) => new GetClientsListService(scope.resolve(USER_QUERIES)),
     "scoped",
   );
 
