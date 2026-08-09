@@ -1,16 +1,21 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import { validate } from "../utils/validation.js";
-import { getClientProfileSearchParamsSchema } from "../validators/client.js";
+import {
+  getClientProfileSearchParamsSchema,
+  getClientBanStatusParamsSchema,
+  getClientsListSearchParamsSchema,
+} from "../validators/client.js";
 import {
   GET_CLIENT_BAN_STATUS_SERVICE,
   GET_CLIENT_PROFILE_SERVICE,
+  GET_CLIENTS_LIST_SERVICE,
 } from "#/composition/tokens.js";
 import { GetClientProfileQuery } from "#/application/queries/get-client-profile.query.js";
 import type { UserDTO } from "#/application/dto/user.dto.js";
-import { deleteCartItemParamsSchema } from "../validators/cart.js";
 import { GetClientBanStatusQuery } from "#/application/queries/get-client-ban-status.query.js";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
+import { GetClientsListQuery } from "#/application/queries/get-clients-list.query.js";
 
 const router = Router();
 
@@ -43,8 +48,26 @@ router.get("/profile", authMiddleware, async (req, res) => {
   return res.status(200).json(userDto);
 });
 
+router.get("/", adminMiddleware, async (req, res) => {
+  const safeSearchParams = validate(
+    getClientsListSearchParamsSchema,
+    req.params,
+  );
+
+  const service = req.scope.resolve(GET_CLIENTS_LIST_SERVICE);
+  const query = new GetClientsListQuery(
+    safeSearchParams.limit,
+    safeSearchParams.role,
+    safeSearchParams.cursor,
+  );
+
+  const result = await service.execute(query);
+
+  return res.status(200).json(result);
+});
+
 router.get("/ban-status/:id", adminMiddleware, async (req, res) => {
-  const safeParams = validate(deleteCartItemParamsSchema, req.params);
+  const safeParams = validate(getClientBanStatusParamsSchema, req.params);
 
   const service = req.scope.resolve(GET_CLIENT_BAN_STATUS_SERVICE);
   const query = new GetClientBanStatusQuery(safeParams.id);
