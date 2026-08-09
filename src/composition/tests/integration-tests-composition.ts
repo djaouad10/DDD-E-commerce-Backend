@@ -47,6 +47,7 @@ import {
   DELETE_CART_ITEM_SERVICE,
   CLEAR_CART_SERVICE,
   ADD_ITEM_TO_CART_SERVICE,
+  GET_CLIENT_PROFILE_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -62,6 +63,7 @@ import { UpdateCartItemService } from "#/application/services/update-cart-item.s
 import { DeleteCartItemService } from "#/application/services/delete-cart-item.service.js";
 import { ClearCartService } from "#/application/services/clear-cart.service.js";
 import { AddItemToCartService } from "#/application/services/add-item-to-cart.service.js";
+import { GetClientProfileService } from "#/application/services/get-client-profile.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -286,6 +288,12 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(USER_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
+    "scoped",
+  );
+
+  container.register(
+    GET_CLIENT_PROFILE_SERVICE,
+    (scope) => new GetClientProfileService(scope.resolve(USER_REPOSITORY)),
     "scoped",
   );
 

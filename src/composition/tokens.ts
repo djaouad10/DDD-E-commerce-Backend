@@ -37,6 +37,7 @@ import type { UpdateCartItemService } from "#/application/services/update-cart-i
 import type { DeleteCartItemService } from "#/application/services/delete-cart-item.service.js";
 import type { ClearCartService } from "#/application/services/clear-cart.service.js";
 import type { AddItemToCartService } from "#/application/services/add-item-to-cart.service.js";
+import type { GetClientProfileService } from "#/application/services/get-client-profile.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -199,3 +200,7 @@ export const CLEAR_CART_SERVICE = Symbol(
 export const ADD_ITEM_TO_CART_SERVICE = Symbol(
   "addItemToCartService",
 ) as InjectionToken<AddItemToCartService>;
+
+export const GET_CLIENT_PROFILE_SERVICE = Symbol(
+  "addItemToCartService",
+) as InjectionToken<GetClientProfileService>;
