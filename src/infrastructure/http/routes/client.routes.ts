@@ -51,7 +51,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
 router.get("/", adminMiddleware, async (req, res) => {
   const safeSearchParams = validate(
     getClientsListSearchParamsSchema,
-    req.params,
+    req.query,
   );
 
   const service = req.scope.resolve(GET_CLIENTS_LIST_SERVICE);
