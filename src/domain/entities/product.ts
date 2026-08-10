@@ -560,7 +560,9 @@ export class Product {
     this._updatedAt = new Date();
 
     // record domain events
-    this.recordThat(new ProductImageRemoved(this.id.value, imageId.value));
+    this.recordThat(
+      new ProductImageRemoved(this.id.value, targetImage.getKey()),
+    );
   }
 
   // query methods
