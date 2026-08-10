@@ -642,6 +642,10 @@ export class Product {
     return mainImage;
   }
 
+  getImageByKey(key: string): File | null {
+    return this._images.find((i) => i.getKey() === key) ?? null;
+  }
+
   // event methods
   pullEvents(): DomainEvent[] {
     const events = [...this._events];
