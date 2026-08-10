@@ -48,6 +48,7 @@ export async function createUserInDB(container: Container, userObj: User) {
     image: userObj.getImage(),
     createdAt: userObj.createdAt,
     updatedAt: userObj.getUpdatedAt(),
+    banned: userObj.isBanned(),
   });
 }
 
