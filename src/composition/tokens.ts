@@ -41,6 +41,7 @@ import type { GetClientProfileService } from "#/application/services/get-client-
 import type { GetClientBanStatusService } from "#/application/services/get-client-ban-status.service.js";
 import type { GetClientsListService } from "#/application/services/get-clients-list.service.js";
 import type { UpdateProductMainImageService } from "#/application/services/update-product-main-image.service.js";
+import type { DeleteProductImageService } from "#/application/services/delete-product-image.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -219,3 +220,7 @@ export const GET_CLIENTS_LIST_SERVICE = Symbol(
 export const UPDATE_PRODUCT_MAIN_IMAGE_SERVICE = Symbol(
   "updateProductMainImageService",
 ) as InjectionToken<UpdateProductMainImageService>;
+
+export const DELETE_PRODUCT_IMAGE_SERVICE = Symbol(
+  "deleteProductImageService",
+) as InjectionToken<DeleteProductImageService>;

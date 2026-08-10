@@ -47,6 +47,7 @@ import {
   GET_CLIENT_BAN_STATUS_SERVICE,
   GET_CLIENTS_LIST_SERVICE,
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
+  DELETE_PRODUCT_IMAGE_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -67,6 +68,7 @@ import { GetClientProfileService } from "#/application/services/get-client-profi
 import { GetClientBanStatusService } from "#/application/services/get-client-ban-status.service.js";
 import { GetClientsListService } from "#/application/services/get-clients-list.service.js";
 import { UpdateProductMainImageService } from "#/application/services/update-product-main-image.service.js";
+import { DeleteProductImageService } from "#/application/services/delete-product-image.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -309,6 +311,17 @@ export function buildApiContainer(): Container {
     UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
     (scope) =>
       new UpdateProductMainImageService(
+        scope.resolve(DB),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DELETE_PRODUCT_IMAGE_SERVICE,
+    (scope) =>
+      new DeleteProductImageService(
         scope.resolve(DB),
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
