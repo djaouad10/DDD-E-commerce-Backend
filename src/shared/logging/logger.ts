@@ -111,6 +111,7 @@ export class Logger {
       `${color}[${levelStr}]${reset} ` +
         `[${entry.timestamp.split("T")[1]!.split(".")[0]}] ` +
         `[${reqId}]${duration} ` +
+        `[${entry.component}] ` +
         `${entry.message}`,
     );
 
