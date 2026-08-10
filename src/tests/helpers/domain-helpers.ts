@@ -9,8 +9,12 @@ import { Money } from "#/domain/value-objects/money.js";
 
 export function productFactory({
   categoryId,
+  customImages,
+  customVariations,
 }: {
   categoryId: CategoryId;
+  customImages?: File[];
+  customVariations?: Variation[];
 }): Product {
   const productName = faker.commerce.productName();
   const images = [
@@ -38,8 +42,8 @@ export function productFactory({
     productName,
     Slug.generate(productName),
     categoryId,
-    images,
-    variations,
+    customImages ?? images,
+    customVariations ?? variations,
     faker.commerce.productDescription(),
     faker.commerce.productAdjective(),
     faker.commerce.productMaterial(),
