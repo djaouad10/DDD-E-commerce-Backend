@@ -536,8 +536,8 @@ export class Product {
     this.recordThat(
       new ProductMainImageUpdated(
         this.id.value,
-        newMainImage.id.value,
-        oldMainImage?.id.value ?? null,
+        newMainImage.getKey(),
+        oldMainImage?.getKey() ?? null,
       ),
     );
   }
