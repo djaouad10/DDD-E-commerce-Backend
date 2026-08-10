@@ -44,14 +44,15 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       await createCategoryInDB(container, category);
       await createProductInDB(container, product);
 
+      const newMainImage = {
+        key: "new-main-key",
+        name: "new-main-name",
+        publicUrl: "https://example.com/new-main.jpg",
+      };
       // Act
       const response = await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send({
-          key: "new-main-key",
-          name: "new-main-name",
-          publicUrl: "https://example.com/new-main.jpg",
-        })
+        .send(newMainImage)
         .set("authorization", "Bearer test-admin-token");
 
       // Assert
@@ -85,7 +86,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       await createCategoryInDB(container, category);
       await createProductInDB(container, product);
 
-      const newMianImage = {
+      const newMainImage = {
         key: "new-main-key",
         name: "new-main-name",
         publicUrl: "https://example.com/new-main.jpg",
@@ -94,7 +95,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMianImage)
+        .send(newMainImage)
         .set("authorization", "Bearer test-admin-token");
 
       // Assert
@@ -102,10 +103,10 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       const updatedProduct = await productRepository.find(product.id);
 
       expect(updatedProduct).not.toBeNull();
-      expect(updatedProduct!.getMainImage().getKey()).toBe(newMianImage.key);
-      expect(updatedProduct!.getMainImage().getName()).toBe(newMianImage.name);
+      expect(updatedProduct!.getMainImage().getKey()).toBe(newMainImage.key);
+      expect(updatedProduct!.getMainImage().getName()).toBe(newMainImage.name);
       expect(updatedProduct!.getMainImage().publicUrl).toBe(
-        newMianImage.publicUrl,
+        newMainImage.publicUrl,
       );
     });
 
@@ -119,7 +120,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
 
       const oldMainImageKey = product.getMainImage().getKey();
 
-      const newMianImage = {
+      const newMainImage = {
         key: "new-main-key",
         name: "new-main-name",
         publicUrl: "https://example.com/new-main.jpg",
@@ -128,7 +129,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMianImage)
+        .send(newMainImage)
         .set("authorization", "Bearer test-admin-token");
 
       // Assert
@@ -138,7 +139,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       expect(updatedProduct).not.toBeNull();
       const imageKeys = updatedProduct!.getImages().map((img) => img.getKey());
       expect(imageKeys).not.toContain(oldMainImageKey);
-      expect(imageKeys).toContain(newMianImage.key);
+      expect(imageKeys).toContain(newMainImage.key);
     });
 
     test("when called with valid data, only one image should be main", async () => {
@@ -149,7 +150,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       await createCategoryInDB(container, category);
       await createProductInDB(container, product);
 
-      const newMianImage = {
+      const newMainImage = {
         key: "new-main-key",
         name: "new-main-name",
         publicUrl: "https://example.com/new-main.jpg",
@@ -158,7 +159,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMianImage)
+        .send(newMainImage)
         .set("authorization", "Bearer test-admin-token");
 
       // Assert
@@ -170,7 +171,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
         .getImages()
         .filter((img) => img.isMain());
       expect(mainImages).toHaveLength(1);
-      expect(mainImages[0]!.getKey()).toBe(newMianImage.key);
+      expect(mainImages[0]!.getKey()).toBe(newMainImage.key);
     });
 
     test("when called with valid data, it should persist ProductMainImageUpdated event to outbox", async () => {
@@ -183,7 +184,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
 
       const oldMainImageKey = product.getMainImage().getKey();
 
-      const newMianImage = {
+      const newMainImage = {
         key: "new-main-key",
         name: "new-main-name",
         publicUrl: "https://example.com/new-main.jpg",
@@ -192,7 +193,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMianImage)
+        .send(newMainImage)
         .set("authorization", "Bearer test-admin-token");
 
       // Assert
@@ -205,7 +206,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       expect(mainImageUpdatedEvent).toBeDefined();
       expect(mainImageUpdatedEvent!.aggregateId).toBe(product.id.value);
       expect(mainImageUpdatedEvent!.payload).toMatchObject({
-        newMainImageKey: newMianImage.key,
+        newMainImageKey: newMainImage.key,
         previousMainImageKey: oldMainImageKey,
       });
     });
