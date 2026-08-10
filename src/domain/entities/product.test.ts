@@ -7,7 +7,11 @@ import { Variation } from "./variation.js";
 import { Weight } from "../value-objects/weight.js";
 import { Money } from "../value-objects/money.js";
 import { ProductId } from "../value-objects/product-id.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "#/shared/errors/domain-error.js";
 import { VariationId } from "../value-objects/variation-id.js";
 import { FileId } from "../value-objects/file-id.js";
 
@@ -499,7 +503,7 @@ describe("Product", () => {
       expect(product.getVariations()).toContainEqual(newVariation);
     });
 
-    test("when called with a variation with existing color and size, it should throw a ValidationError", () => {
+    test("when called with a variation with existing color and size, it should throw a ConflictError", () => {
       // Arrange
       const args = makeValidReconstituteArguments();
 
@@ -523,7 +527,7 @@ describe("Product", () => {
       );
 
       // Act & Assert
-      expect(() => product.addVariation(newVariation)).toThrow(ValidationError);
+      expect(() => product.addVariation(newVariation)).toThrow(ConflictError);
     });
   });
 
@@ -550,7 +554,7 @@ describe("Product", () => {
       expect(product.getVariations()).not.toContainEqual(variations[1]);
     });
 
-    test("when called with a non existing variation id, it should throw a ValidationError", () => {
+    test("when called with a non existing variation id, it should throw a NotFoundError", () => {
       // Arrange
       const args = makeValidReconstituteArguments();
 
@@ -567,7 +571,7 @@ describe("Product", () => {
 
       // Act & Assert
       expect(() => product.removeVariation(VariationId.generate())).toThrow(
-        ValidationError,
+        NotFoundError,
       );
     });
   });
@@ -776,7 +780,7 @@ describe("Product", () => {
 
       // Act & Assert
       expect(() => product.removeImage(FileId.generate())).toThrow(
-        ValidationError,
+        NotFoundError,
       );
     });
 
@@ -982,7 +986,7 @@ describe("Product", () => {
       expect(tragetVariation!.getReservedQty()).toBe(60);
     });
 
-    test("when reserving a non-existent variation, it should throw a ValidationError", () => {
+    test("when reserving a non-existent variation, it should throw a not found error", () => {
       // Arrange
       const variations = [
         Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
@@ -996,7 +1000,7 @@ describe("Product", () => {
 
       // Act & Assert
       expect(() => product.reserveStock(VariationId.generate(), 10)).toThrow(
-        ValidationError,
+        NotFoundError,
       );
     });
   });
@@ -1025,7 +1029,7 @@ describe("Product", () => {
       expect(tragetVariation!.getReservedQty()).toBe(40);
     });
 
-    test("when releasing a non-existent variation, it should throw a ValidationError", () => {
+    test("when releasing a non-existent variation, it should throw a not found error", () => {
       // Arrange
       const variations = [
         Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
@@ -1039,7 +1043,7 @@ describe("Product", () => {
 
       // Act & Assert
       expect(() => product.releaseStock(VariationId.generate(), 10)).toThrow(
-        ValidationError,
+        NotFoundError,
       );
     });
   });

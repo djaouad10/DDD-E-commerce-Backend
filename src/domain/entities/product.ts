@@ -1,5 +1,6 @@
 import type { ProductSnapshot } from "#/domain/entities-snapshots/product.snapshot.js";
 import {
+  ConflictError,
   NotFoundError,
   ValidationError,
 } from "#/shared/errors/domain-error.js";
@@ -347,9 +348,10 @@ export class Product {
     });
 
     if (existingVariation)
-      throw new ValidationError(
-        "newVariation",
-        "variation with same color and size already exists",
+      throw new ConflictError(
+        "product.variation",
+        existingVariation.id.value,
+        "color + size combo already exists",
       );
 
     this._variations.push(newVariation);
@@ -384,7 +386,7 @@ export class Product {
     );
 
     if (!variationToUpdate)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     const prevTotalQty = variationToUpdate.getTotalQty();
 
@@ -410,7 +412,7 @@ export class Product {
     );
 
     if (!variationToUpdate)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     const prevWeightInGrams = variationToUpdate.getWeight();
 
@@ -435,7 +437,7 @@ export class Product {
     );
 
     if (!variationToRemove)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     this._variations = this._variations.filter(
       (v) => !v.id.equals(variationId),
@@ -456,7 +458,7 @@ export class Product {
     );
 
     if (!variationToReserve)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     variationToReserve.reserve(qty);
 
@@ -479,7 +481,7 @@ export class Product {
     );
 
     if (!variationToRelease)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     variationToRelease.release(qty);
 
@@ -548,7 +550,8 @@ export class Product {
   removeImage(imageId: FileId): void {
     const targetImage = this._images.find((i) => i.id.equals(imageId));
 
-    if (!targetImage) throw new ValidationError("imageId", "image not found");
+    if (!targetImage)
+      throw new NotFoundError("product.image.id", imageId.value);
 
     if (targetImage.isMain())
       throw new ValidationError("imageId", "cannot remove main image");
