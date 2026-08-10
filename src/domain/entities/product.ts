@@ -1,5 +1,8 @@
 import type { ProductSnapshot } from "#/domain/entities-snapshots/product.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import {
+  NotFoundError,
+  ValidationError,
+} from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { FileUploaded } from "../events/file/file-uploaded.js";
 import { ProductCreated } from "../events/product/product-created.js";
@@ -628,6 +631,15 @@ export class Product {
     }
 
     return this._price.subtract(this._discountedPrice!);
+  }
+
+  getMainImage(): File {
+    const mainImage = this._images.find((i) => i.isMain());
+
+    if (!mainImage)
+      throw new NotFoundError("product.mainImage", "main image not found");
+
+    return mainImage;
   }
 
   // event methods
