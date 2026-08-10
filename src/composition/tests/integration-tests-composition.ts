@@ -50,6 +50,7 @@ import {
   GET_CLIENT_PROFILE_SERVICE,
   GET_CLIENT_BAN_STATUS_SERVICE,
   GET_CLIENTS_LIST_SERVICE,
+  UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -68,6 +69,7 @@ import { AddItemToCartService } from "#/application/services/add-item-to-cart.se
 import { GetClientProfileService } from "#/application/services/get-client-profile.service.js";
 import { GetClientBanStatusService } from "#/application/services/get-client-ban-status.service.js";
 import { GetClientsListService } from "#/application/services/get-clients-list.service.js";
+import { UpdateProductMainImageService } from "#/application/services/update-product-main-image.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -310,6 +312,17 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     GET_CLIENTS_LIST_SERVICE,
     (scope) => new GetClientsListService(scope.resolve(USER_QUERIES)),
+    "scoped",
+  );
+
+  container.register(
+    UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
+    (scope) =>
+      new UpdateProductMainImageService(
+        scope.resolve(DB),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
     "scoped",
   );
 
