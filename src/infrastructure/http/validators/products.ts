@@ -9,3 +9,8 @@ export const updateProductMainImageBodySchema = z.object({
   name: z.string(),
   publicUrl: z.url(),
 });
+
+export const deleteProductImageParamsSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+});
