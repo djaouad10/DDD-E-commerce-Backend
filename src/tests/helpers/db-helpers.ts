@@ -37,7 +37,11 @@ export async function saveCartInDB(
   });
 }
 
-export async function createUserInDB(container: Container, userObj: User) {
+export async function createUserInDB(
+  container: Container,
+  userObj: User,
+  createdAt?: Date,
+) {
   const db = container.resolveSingleton(DB);
   await db.insert(user).values({
     id: userObj.id.value,
@@ -46,7 +50,7 @@ export async function createUserInDB(container: Container, userObj: User) {
     role: userObj.role,
     emailVerified: true,
     image: userObj.getImage(),
-    createdAt: userObj.createdAt,
+    createdAt: createdAt ?? userObj.createdAt,
     updatedAt: userObj.getUpdatedAt(),
     banned: userObj.isBanned(),
   });
