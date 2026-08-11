@@ -14,3 +14,7 @@ export const deleteProductImageParamsSchema = z.object({
   id: z.string(),
   key: z.string(),
 });
+
+export const getProductVariationsParamsSchema = z.object({
+  id: z.string(),
+});
