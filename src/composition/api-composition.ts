@@ -333,7 +333,11 @@ export function buildApiContainer(): Container {
 
   container.register(
     GET_PRODUCT_VARIATIONS_SERVICE,
-    (scope) => new GetProductVariationsService(scope.resolve(PRODUCT_QUERIES)),
+    (scope) =>
+      new GetProductVariationsService(
+        scope.resolve(PRODUCT_QUERIES),
+        scope.resolve(PRODUCT_REPOSITORY),
+      ),
     "scoped",
   );
 
