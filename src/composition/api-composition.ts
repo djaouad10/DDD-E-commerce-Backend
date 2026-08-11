@@ -48,6 +48,7 @@ import {
   GET_CLIENTS_LIST_SERVICE,
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
   DELETE_PRODUCT_IMAGE_SERVICE,
+  GET_PRODUCT_VARIATIONS_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -69,6 +70,7 @@ import { GetClientBanStatusService } from "#/application/services/get-client-ban
 import { GetClientsListService } from "#/application/services/get-clients-list.service.js";
 import { UpdateProductMainImageService } from "#/application/services/update-product-main-image.service.js";
 import { DeleteProductImageService } from "#/application/services/delete-product-image.service.js";
+import { GetProductVariationsService } from "#/application/services/get-product-variations.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -326,6 +328,12 @@ export function buildApiContainer(): Container {
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
+    "scoped",
+  );
+
+  container.register(
+    GET_PRODUCT_VARIATIONS_SERVICE,
+    (scope) => new GetProductVariationsService(scope.resolve(PRODUCT_QUERIES)),
     "scoped",
   );
 
