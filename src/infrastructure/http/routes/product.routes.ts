@@ -10,7 +10,7 @@ import {
 } from "#/composition/tokens.js";
 import {
   deleteProductImageParamsSchema,
-  getProductsParamsSchema,
+  getProductsSearchParamsSchema,
   getProductVariationsParamsSchema,
   getProductVariationsWithCartFlagParamsSchema,
   updateProductMainImageBodySchema,
@@ -26,11 +26,17 @@ import { GetProductsQuery } from "#/application/queries/get-products.query.js";
 const router = Router();
 
 router.patch("/:id/images/main", adminMiddleware, async (req, res) => {
-  const safeParams = validate(updateProductMainImageParamsSchema, req.params);
+  const safeSearchParams = validate(
+    updateProductMainImageParamsSchema,
+    req.params,
+  );
   const safeBody = validate(updateProductMainImageBodySchema, req.body);
 
   const service = req.scope.resolve(UPDATE_PRODUCT_MAIN_IMAGE_SERVICE);
-  const command = new UpdateProductMainImageCommand(safeParams.id, safeBody);
+  const command = new UpdateProductMainImageCommand(
+    safeSearchParams.id,
+    safeBody,
+  );
 
   await service.execute(command);
 
@@ -38,10 +44,13 @@ router.patch("/:id/images/main", adminMiddleware, async (req, res) => {
 });
 
 router.delete("/:id/images/:key", adminMiddleware, async (req, res) => {
-  const safeParams = validate(deleteProductImageParamsSchema, req.params);
+  const safeSearchParams = validate(deleteProductImageParamsSchema, req.params);
 
   const service = req.scope.resolve(DELETE_PRODUCT_IMAGE_SERVICE);
-  const command = new DeleteProductImageCommand(safeParams.id, safeParams.key);
+  const command = new DeleteProductImageCommand(
+    safeSearchParams.id,
+    safeSearchParams.key,
+  );
 
   await service.execute(command);
 
@@ -49,10 +58,13 @@ router.delete("/:id/images/:key", adminMiddleware, async (req, res) => {
 });
 
 router.get("/:id/variations", async (req, res) => {
-  const safeParams = validate(getProductVariationsParamsSchema, req.params);
+  const safeSearchParams = validate(
+    getProductVariationsParamsSchema,
+    req.params,
+  );
 
   const service = req.scope.resolve(GET_PRODUCT_VARIATIONS_SERVICE);
-  const query = new GetProductVariationsQuery(safeParams.id);
+  const query = new GetProductVariationsQuery(safeSearchParams.id);
 
   const result = await service.execute(query);
 
@@ -63,7 +75,7 @@ router.get(
   "/:id/variations/with-cart-flag",
   authMiddleware,
   async (req, res) => {
-    const safeParams = validate(
+    const safeSearchParams = validate(
       getProductVariationsWithCartFlagParamsSchema,
       req.params,
     );
@@ -74,7 +86,7 @@ router.get(
       GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
     );
     const query = new GetProductVariationsWithCartFlagQuery(
-      safeParams.id,
+      safeSearchParams.id,
       userId,
     );
 
@@ -85,15 +97,15 @@ router.get(
 );
 
 router.get("/", async (req, res) => {
-  const safeParams = validate(getProductsParamsSchema, req.params);
+  const safeSearchParams = validate(getProductsSearchParamsSchema, req.query);
 
   const service = req.scope.resolve(GET_PRODUCTS_SERVICE);
   const query = new GetProductsQuery(
-    safeParams.limit,
-    safeParams.categoryId,
-    safeParams.cursor,
-    safeParams.max_price,
-    safeParams.min_price,
+    safeSearchParams.limit,
+    safeSearchParams.categoryId,
+    safeSearchParams.cursor,
+    safeSearchParams.max_price,
+    safeSearchParams.min_price,
   );
 
   const result = await service.execute(query);
