@@ -358,6 +358,8 @@ export function buildIntegrationTestsContainer(): Container {
     (scope) =>
       new GetProductVariationsWithCartFlagService(
         scope.resolve(PRODUCT_QUERIES),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(USER_REPOSITORY),
       ),
     "scoped",
   );
