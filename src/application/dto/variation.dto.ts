@@ -15,7 +15,7 @@ export type VariationDTO = {
 };
 
 export type VariationWithCartItemDTO = VariationDTO & {
-  cartItemId: string | undefined;
+  cartItemId: string | null;
 };
 
 export type VariationSearchDTO = Omit<
