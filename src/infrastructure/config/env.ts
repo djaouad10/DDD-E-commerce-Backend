@@ -10,7 +10,10 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "production", "test"]),
     PORT: z.string().transform((val) => parseInt(val, 10)),
     DATABASE_URL: z.url(),
-    DEBUG_DB: z.coerce.boolean().default(false),
+    DEBUG_DB: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     BETTER_AUTH_URL: z.url(),
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
