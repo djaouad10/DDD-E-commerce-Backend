@@ -53,6 +53,7 @@ import {
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
   DELETE_PRODUCT_IMAGE_SERVICE,
   GET_PRODUCT_VARIATIONS_SERVICE,
+  GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -74,6 +75,7 @@ import { GetClientsListService } from "#/application/services/get-clients-list.s
 import { UpdateProductMainImageService } from "#/application/services/update-product-main-image.service.js";
 import { DeleteProductImageService } from "#/application/services/delete-product-image.service.js";
 import { GetProductVariationsService } from "#/application/services/get-product-variations.service.js";
+import { GetProductVariationsWithCartFlagService } from "#/application/services/get-product-variations-with-cart-flag.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -347,6 +349,15 @@ export function buildIntegrationTestsContainer(): Container {
       new GetProductVariationsService(
         scope.resolve(PRODUCT_QUERIES),
         scope.resolve(PRODUCT_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
+    (scope) =>
+      new GetProductVariationsWithCartFlagService(
+        scope.resolve(PRODUCT_QUERIES),
       ),
     "scoped",
   );
