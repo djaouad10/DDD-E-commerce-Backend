@@ -22,3 +22,16 @@ export const getProductVariationsParamsSchema = z.object({
 export const getProductVariationsWithCartFlagParamsSchema = z.object({
   id: z.string(),
 });
+
+export const getProductsParamsSchema = z.object({
+  limit: z.coerce.number().min(1),
+  categoryId: z.string().optional(),
+  max_price: z.number().optional(),
+  min_price: z.number().optional(),
+  cursor: z
+    .object({
+      createdAt: z.iso.datetime().pipe(z.coerce.date()),
+      productId: z.string(),
+    })
+    .optional(),
+});

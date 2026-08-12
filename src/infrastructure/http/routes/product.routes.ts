@@ -5,10 +5,12 @@ import {
   DELETE_PRODUCT_IMAGE_SERVICE,
   GET_PRODUCT_VARIATIONS_SERVICE,
   GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
+  GET_PRODUCTS_SERVICE,
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
 } from "#/composition/tokens.js";
 import {
   deleteProductImageParamsSchema,
+  getProductsParamsSchema,
   getProductVariationsParamsSchema,
   getProductVariationsWithCartFlagParamsSchema,
   updateProductMainImageBodySchema,
@@ -19,6 +21,7 @@ import { DeleteProductImageCommand } from "#/application/commands/delete-product
 import { GetProductVariationsQuery } from "#/application/queries/get-product-variations.query.js";
 import { GetProductVariationsWithCartFlagQuery } from "#/application/queries/get-product-variations-with-cart-flag.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
+import { GetProductsQuery } from "#/application/queries/get-products.query.js";
 
 const router = Router();
 
@@ -80,5 +83,22 @@ router.get(
     res.status(200).json(result);
   },
 );
+
+router.get("/", async (req, res) => {
+  const safeParams = validate(getProductsParamsSchema, req.params);
+
+  const service = req.scope.resolve(GET_PRODUCTS_SERVICE);
+  const query = new GetProductsQuery(
+    safeParams.limit,
+    safeParams.categoryId,
+    safeParams.cursor,
+    safeParams.max_price,
+    safeParams.min_price,
+  );
+
+  const result = await service.execute(query);
+
+  res.status(200).json(result);
+});
 
 export default router;
