@@ -4,17 +4,21 @@ import { UpdateProductMainImageCommand } from "#/application/commands/update-pro
 import {
   DELETE_PRODUCT_IMAGE_SERVICE,
   GET_PRODUCT_VARIATIONS_SERVICE,
+  GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
 } from "#/composition/tokens.js";
 import {
   deleteProductImageParamsSchema,
   getProductVariationsParamsSchema,
+  getProductVariationsWithCartFlagParamsSchema,
   updateProductMainImageBodySchema,
   updateProductMainImageParamsSchema,
 } from "../validators/products.js";
 import { validate } from "../utils/validation.js";
 import { DeleteProductImageCommand } from "#/application/commands/delete-product-image.command.js";
 import { GetProductVariationsQuery } from "#/application/queries/get-product-variations.query.js";
+import { GetProductVariationsWithCartFlagQuery } from "#/application/queries/get-product-variations-with-cart-flag.query.js";
+import { authMiddleware } from "../middleware/auth-middleware.js";
 
 const router = Router();
 
@@ -51,5 +55,30 @@ router.get("/:id/variations", async (req, res) => {
 
   res.status(200).json(result);
 });
+
+router.get(
+  "/:id/variations/with-cart-flag",
+  authMiddleware,
+  async (req, res) => {
+    const safeParams = validate(
+      getProductVariationsWithCartFlagParamsSchema,
+      req.params,
+    );
+
+    const userId = req.user!.id; // auth middleware ensures req.user is defined
+
+    const service = req.scope.resolve(
+      GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
+    );
+    const query = new GetProductVariationsWithCartFlagQuery(
+      safeParams.id,
+      userId,
+    );
+
+    const result = await service.execute(query);
+
+    res.status(200).json(result);
+  },
+);
 
 export default router;
