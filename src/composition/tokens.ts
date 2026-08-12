@@ -44,6 +44,7 @@ import type { UpdateProductMainImageService } from "#/application/services/updat
 import type { DeleteProductImageService } from "#/application/services/delete-product-image.service.js";
 import type { GetProductVariationsService } from "#/application/services/get-product-variations.service.js";
 import type { GetProductVariationsWithCartFlagService } from "#/application/services/get-product-variations-with-cart-flag.service.js";
+import type { GetProductsService } from "#/application/services/get-products.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -234,3 +235,7 @@ export const GET_PRODUCT_VARIATIONS_SERVICE = Symbol(
 export const GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE = Symbol(
   "getProductVariationsWithCartFlagService",
 ) as InjectionToken<GetProductVariationsWithCartFlagService>;
+
+export const GET_PRODUCTS_SERVICE = Symbol(
+  "getProductsService",
+) as InjectionToken<GetProductsService>;
