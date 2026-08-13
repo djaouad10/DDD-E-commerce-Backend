@@ -54,6 +54,7 @@ import {
   GET_LOW_STOCK_PRODUCTS_SERVICE,
   GET_PRODUCT_STATIC_DATA_SERVICE,
   GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
+  GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -81,6 +82,7 @@ import { GetProductsService } from "#/application/services/get-products.service.
 import { GetLowStockProductsService } from "#/application/services/get-low-stock-products.service.js";
 import { GetProductStaticDataService } from "#/application/services/get-product-static-data.service.js";
 import { GetApprovedRatingsOfProductService } from "#/application/services/get-approved-ratings-of-product.service.js";
+import { GetPendingRatingsOfProductService } from "#/application/services/get-pending-ratings-of-product.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -384,6 +386,13 @@ export function buildApiContainer(): Container {
     GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
     (scope) =>
       new GetApprovedRatingsOfProductService(scope.resolve(RATING_QUERIES)),
+    "scoped",
+  );
+
+  container.register(
+    GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
+    (scope) =>
+      new GetPendingRatingsOfProductService(scope.resolve(RATING_QUERIES)),
     "scoped",
   );
 
