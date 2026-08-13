@@ -101,7 +101,7 @@ router.get("/", async (req, res) => {
 
   const service = req.scope.resolve(GET_PRODUCTS_SERVICE);
   const query = new GetProductsQuery(
-    safeSearchParams.limit,
+    safeSearchParams.limit ?? 10,
     safeSearchParams.categoryId,
     safeSearchParams.cursor,
     safeSearchParams.max_price,

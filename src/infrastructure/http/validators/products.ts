@@ -24,10 +24,10 @@ export const getProductVariationsWithCartFlagParamsSchema = z.object({
 });
 
 export const getProductsSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1),
+  limit: z.coerce.number().min(1).optional(),
   categoryId: z.string().optional(),
-  max_price: z.number().optional(),
-  min_price: z.number().optional(),
+  max_price: z.coerce.number().optional(),
+  min_price: z.coerce.number().optional(),
   cursor: z
     .object({
       createdAt: z.iso.datetime().pipe(z.coerce.date()),
