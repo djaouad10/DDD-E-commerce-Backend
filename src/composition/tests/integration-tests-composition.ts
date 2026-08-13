@@ -97,7 +97,7 @@ import { DidUserRateProductService } from "#/application/services/did-user-rate-
 import { GetActiveWilayasOfProviderService } from "#/application/services/get-active-wilayas-of-provider.service.js";
 import { GetCommunesOfWilayaService } from "#/application/services/get-communes-of-wilaya.service.js";
 import { GetDeliveryFeesOfWilayaService } from "#/application/services/get-delivery-fees-of-wilaya.service.js";
-import { GetOrdersOfClientService } from "#/tests/integration/api/orders/get-orders-of-client.service.js";
+import { GetOrdersOfClientService } from "#/application/services/get-orders-of-client.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
