@@ -51,6 +51,7 @@ import type { GetApprovedRatingsOfProductService } from "#/application/services/
 import type { GetPendingRatingsOfProductService } from "#/application/services/get-pending-ratings-of-product.service.js";
 import type { GetRatingsOfClientService } from "#/application/services/get-ratings-of-client.service.js";
 import type { DidUserRateProductService } from "#/application/services/did-user-rate-product.service.js";
+import type { GetActiveWilayasOfProviderService } from "#/application/services/get-active-wilayas-of-provider.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -269,3 +270,7 @@ export const GET_RATINGS_OF_CLIENT_SERVICE = Symbol(
 export const DID_USER_RATE_PRODUCT_SERVICE = Symbol(
   "didUserRateProductService",
 ) as InjectionToken<DidUserRateProductService>;
+
+export const GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE = Symbol(
+  "getActiveWilayasOfProviderService",
+) as InjectionToken<GetActiveWilayasOfProviderService>;

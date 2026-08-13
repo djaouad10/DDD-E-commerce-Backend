@@ -61,6 +61,7 @@ import {
   GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
   GET_RATINGS_OF_CLIENT_SERVICE,
   DID_USER_RATE_PRODUCT_SERVICE,
+  GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -90,6 +91,7 @@ import { GetApprovedRatingsOfProductService } from "#/application/services/get-a
 import { GetPendingRatingsOfProductService } from "#/application/services/get-pending-ratings-of-product.service.js";
 import { GetRatingsOfClientService } from "#/application/services/get-ratings-of-client.service.js";
 import { DidUserRateProductService } from "#/application/services/did-user-rate-product.service.js";
+import { GetActiveWilayasOfProviderService } from "#/application/services/get-active-wilayas-of-provider.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -423,6 +425,15 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(RATING_QUERIES),
         scope.resolve(USER_REPOSITORY),
         scope.resolve(PRODUCT_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE,
+    (scope) =>
+      new GetActiveWilayasOfProviderService(
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
       ),
     "scoped",
   );
