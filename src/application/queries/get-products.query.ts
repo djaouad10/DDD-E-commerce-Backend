@@ -1,10 +1,11 @@
 import { ValidationError } from "#/shared/errors/domain-error.js";
+import type { ProductCursor } from "../read-models/product.queries.js";
 
 export class GetProductsQuery {
   constructor(
     public readonly limit: number,
     public readonly categoryId?: string,
-    public readonly cursor?: { productId: string; createdAt: Date },
+    public readonly cursor?: ProductCursor,
     public readonly max_price?: number,
     public readonly min_price?: number,
   ) {
