@@ -46,3 +46,7 @@ export const getLowStockProductsSearchParamsSchema = z.object({
     })
     .optional(),
 });
+
+export const getProductStaticDataParamsSchema = z.object({
+  id: z.string(),
+});

@@ -4,6 +4,7 @@ import { UpdateProductMainImageCommand } from "#/application/commands/update-pro
 import {
   DELETE_PRODUCT_IMAGE_SERVICE,
   GET_LOW_STOCK_PRODUCTS_SERVICE,
+  GET_PRODUCT_STATIC_DATA_SERVICE,
   GET_PRODUCT_VARIATIONS_SERVICE,
   GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
   GET_PRODUCTS_SERVICE,
@@ -13,6 +14,7 @@ import {
   deleteProductImageParamsSchema,
   getLowStockProductsSearchParamsSchema,
   getProductsSearchParamsSchema,
+  getProductStaticDataParamsSchema,
   getProductVariationsParamsSchema,
   getProductVariationsWithCartFlagParamsSchema,
   updateProductMainImageBodySchema,
@@ -25,6 +27,7 @@ import { GetProductVariationsWithCartFlagQuery } from "#/application/queries/get
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import { GetProductsQuery } from "#/application/queries/get-products.query.js";
 import { GetLowStockProductsQuery } from "#/application/queries/get-low-stock-products.query.js";
+import { GetProductStaticDataQuery } from "#/application/queries/get-product-static-data.query.js";
 
 const router = Router();
 
@@ -128,6 +131,17 @@ router.get("/low-stock", async (req, res) => {
     safeSearchParams.minStock ?? 0,
     safeSearchParams.cursor,
   );
+
+  const result = await service.execute(query);
+
+  res.status(200).json(result);
+});
+
+router.get("/:id/static-data", async (req, res) => {
+  const safeParams = validate(getProductStaticDataParamsSchema, req.params);
+
+  const service = req.scope.resolve(GET_PRODUCT_STATIC_DATA_SERVICE);
+  const query = new GetProductStaticDataQuery(safeParams.id);
 
   const result = await service.execute(query);
 
