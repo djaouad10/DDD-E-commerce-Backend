@@ -119,7 +119,7 @@ router.get("/", async (req, res) => {
   res.status(200).json(result);
 });
 
-router.get("/low-stock", async (req, res) => {
+router.get("/low-stock", adminMiddleware, async (req, res) => {
   const safeSearchParams = validate(
     getLowStockProductsSearchParamsSchema,
     req.query,

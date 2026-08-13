@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  didIRateProductParamsSchema,
   getApprovedRatingsOfProductParamsSchema,
   getApprovedRatingsOfProductSearchParamsSchema,
   getPendingRatingsOfProductParamsSchema,
@@ -9,6 +10,7 @@ import {
 } from "../validators/ratings.js";
 import { validate } from "../utils/validation.js";
 import {
+  DID_USER_RATE_PRODUCT_SERVICE,
   GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
   GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
   GET_RATINGS_OF_CliENT_SERVICE,
@@ -16,6 +18,9 @@ import {
 import { GetApprovedRatingsOfProductQuery } from "#/application/queries/get-approved-ratings-of-product.query.js";
 import { GetPendingRatingsOfProductQuery } from "#/application/queries/get-pending-ratings-of-product.query.js";
 import { GetRatingsOfClientQuery } from "#/application/queries/get-ratings-of-client.query.js";
+import { adminMiddleware } from "../middleware/admin-middleware.js";
+import { clientMiddleware } from "../middleware/client-middleware.js";
+import { DidUserRateProductQuery } from "#/application/queries/did-user-rate-product.query.js";
 
 const router = Router();
 
@@ -47,7 +52,7 @@ router.get("/approved/:productId", async (req, res) => {
   res.status(200).json(result);
 });
 
-router.get("/pending/:productId", async (req, res) => {
+router.get("/pending/:productId", adminMiddleware, async (req, res) => {
   const safeParams = validate(
     getPendingRatingsOfProductParamsSchema,
     req.params,
@@ -75,7 +80,7 @@ router.get("/pending/:productId", async (req, res) => {
   res.status(200).json(result);
 });
 
-router.get("/client/:clientId", async (req, res) => {
+router.get("/client/:clientId", adminMiddleware, async (req, res) => {
   const safeParams = validate(getRatingsOfClientParamsSchema, req.params);
   const safeSearchParams = validate(
     getRatingsOfClientSearchParamsSchema,
@@ -94,6 +99,18 @@ router.get("/client/:clientId", async (req, res) => {
         }
       : undefined,
   );
+
+  const result = await service.execute(query);
+
+  res.status(200).json(result);
+});
+
+router.get("/did-i-rate/:productId", clientMiddleware, async (req, res) => {
+  const safeParams = validate(didIRateProductParamsSchema, req.params);
+const userId = req.user!.id // auth middleware ensures req.user is defined
+
+  const service = req.scope.resolve(DID_USER_RATE_PRODUCT_SERVICE);
+  const query = new DidUserRateProductQuery(userId, safeParams.productId);
 
   const result = await service.execute(query);
 

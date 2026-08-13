@@ -41,3 +41,7 @@ export const getRatingsOfClientSearchParamsSchema = z.object({
     })
     .optional(),
 });
+
+export const didIRateProductParamsSchema = z.object({
+  productId: z.string(),
+});
