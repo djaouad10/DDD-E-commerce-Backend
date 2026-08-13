@@ -62,6 +62,7 @@ import {
   GET_RATINGS_OF_CLIENT_SERVICE,
   DID_USER_RATE_PRODUCT_SERVICE,
   GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE,
+  GET_COMMUNES_OF_WILAYA_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -92,6 +93,7 @@ import { GetPendingRatingsOfProductService } from "#/application/services/get-pe
 import { GetRatingsOfClientService } from "#/application/services/get-ratings-of-client.service.js";
 import { DidUserRateProductService } from "#/application/services/did-user-rate-product.service.js";
 import { GetActiveWilayasOfProviderService } from "#/application/services/get-active-wilayas-of-provider.service.js";
+import { GetCommunesOfWilayaService } from "#/application/services/get-communes-of-wilaya.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -435,6 +437,13 @@ export function buildIntegrationTestsContainer(): Container {
       new GetActiveWilayasOfProviderService(
         scope.resolve(SHIPPING_PROVIDER_GATEWAY),
       ),
+    "scoped",
+  );
+
+  container.register(
+    GET_COMMUNES_OF_WILAYA_SERVICE,
+    (scope) =>
+      new GetCommunesOfWilayaService(scope.resolve(SHIPPING_PROVIDER_GATEWAY)),
     "scoped",
   );
 
