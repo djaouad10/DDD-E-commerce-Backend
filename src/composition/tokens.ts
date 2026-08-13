@@ -47,6 +47,7 @@ import type { GetProductVariationsWithCartFlagService } from "#/application/serv
 import type { GetProductsService } from "#/application/services/get-products.service.js";
 import type { GetLowStockProductsService } from "#/application/services/get-low-stock-products.service.js";
 import type { GetProductStaticDataService } from "#/application/services/get-product-static-data.service.js";
+import type { GetApprovedRatingsOfProductService } from "#/application/services/get-approved-ratings-of-product.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -249,3 +250,8 @@ export const GET_LOW_STOCK_PRODUCTS_SERVICE = Symbol(
 export const GET_PRODUCT_STATIC_DATA_SERVICE = Symbol(
   "getProductStaticDataService",
 ) as InjectionToken<GetProductStaticDataService>;
+
+
+export const GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE = Symbol(
+  "getApprovedRatingsOfProductService",
+) as InjectionToken<GetApprovedRatingsOfProductService>;
