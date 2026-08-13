@@ -53,6 +53,7 @@ import type { GetRatingsOfClientService } from "#/application/services/get-ratin
 import type { DidUserRateProductService } from "#/application/services/did-user-rate-product.service.js";
 import type { GetActiveWilayasOfProviderService } from "#/application/services/get-active-wilayas-of-provider.service.js";
 import type { GetCommunesOfWilayaService } from "#/application/services/get-communes-of-wilaya.service.js";
+import type { GetDeliveryFeesOfWilayaService } from "#/application/services/get-delivery-fees-of-wilaya.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -276,7 +277,10 @@ export const GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE = Symbol(
   "getActiveWilayasOfProviderService",
 ) as InjectionToken<GetActiveWilayasOfProviderService>;
 
-
 export const GET_COMMUNES_OF_WILAYA_SERVICE = Symbol(
   "getCommunesOfWilayaService",
 ) as InjectionToken<GetCommunesOfWilayaService>;
+
+export const GET_DELIVERY_FEES_OF_WILAYA_SERVICE = Symbol(
+  "getDeliveryFeesOfWilayaService",
+) as InjectionToken<GetDeliveryFeesOfWilayaService>;
