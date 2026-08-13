@@ -4,10 +4,12 @@ import {
   CATEGORY_REPOSITORY,
   DB,
   PRODUCT_REPOSITORY,
+  RATING_REPOSITORY,
 } from "#/composition/tokens.js";
 import type { Cart } from "#/domain/entities/cart.js";
 import type { Category } from "#/domain/entities/category.js";
 import type { Product } from "#/domain/entities/product.js";
+import type { Rating } from "#/domain/entities/rating.js";
 import type { User } from "#/domain/entities/user.js";
 import { user } from "#/infrastructure/databases/schema.js";
 
@@ -65,6 +67,15 @@ export async function createProductInDB(
 
   await db.transaction(async (tx) => {
     await productRepository.save(product, tx);
+  });
+}
+
+export async function createRatingInDB(container: Container, rating: Rating) {
+  const db = container.resolveSingleton(DB);
+  const ratingRepository = container.resolveSingleton(RATING_REPOSITORY);
+
+  await db.transaction(async (tx) => {
+    await ratingRepository.save(rating, tx);
   });
 }
 
