@@ -1,8 +1,16 @@
 import { Router } from "express";
 import { validate } from "../utils/validation.js";
-import { getShippingWilayasSearchParamsSchema } from "../validators/shipping.js";
-import { GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE } from "#/composition/tokens.js";
+import {
+  getCommunesOfWilayaParamsSchema,
+  getCommunesOfWilayaSearchParamsSchema,
+  getShippingWilayasSearchParamsSchema,
+} from "../validators/shipping.js";
+import {
+  GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE,
+  GET_COMMUNES_OF_WILAYA_SERVICE,
+} from "#/composition/tokens.js";
 import { GetActiveWilayasOfProviderQuery } from "#/application/queries/get-active-wilayas-of-provider.query.js";
+import { GetCommunesOfWilayaQuery } from "#/application/queries/get-communes-of-wilaya.query.js";
 
 const router = Router();
 
@@ -14,6 +22,24 @@ router.get("/wilayas", async (req, res) => {
 
   const service = req.scope.resolve(GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE);
   const query = new GetActiveWilayasOfProviderQuery(safeSearchParams.provider);
+
+  const result = await service.execute(query);
+
+  res.status(200).json(result);
+});
+
+router.get("/communes/:wilayaCode", async (req, res) => {
+  const safeParams = validate(getCommunesOfWilayaParamsSchema, req.params);
+  const safeSearchParams = validate(
+    getCommunesOfWilayaSearchParamsSchema,
+    req.query,
+  );
+
+  const service = req.scope.resolve(GET_COMMUNES_OF_WILAYA_SERVICE);
+  const query = new GetCommunesOfWilayaQuery(
+    safeSearchParams.provider,
+    safeParams.wilayaCode,
+  );
 
   const result = await service.execute(query);
 
