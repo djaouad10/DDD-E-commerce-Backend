@@ -60,6 +60,7 @@ import {
   GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
   GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
   GET_RATINGS_OF_CliENT_SERVICE,
+  DID_USER_RATE_PRODUCT_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -88,6 +89,7 @@ import { GetProductStaticDataService } from "#/application/services/get-product-
 import { GetApprovedRatingsOfProductService } from "#/application/services/get-approved-ratings-of-product.service.js";
 import { GetPendingRatingsOfProductService } from "#/application/services/get-pending-ratings-of-product.service.js";
 import { GetRatingsOfClientService } from "#/application/services/get-ratings-of-client.service.js";
+import { DidUserRateProductService } from "#/application/services/did-user-rate-product.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -411,6 +413,17 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     GET_RATINGS_OF_CliENT_SERVICE,
     (scope) => new GetRatingsOfClientService(scope.resolve(RATING_QUERIES)),
+    "scoped",
+  );
+
+  container.register(
+    DID_USER_RATE_PRODUCT_SERVICE,
+    (scope) =>
+      new DidUserRateProductService(
+        scope.resolve(RATING_QUERIES),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(PRODUCT_REPOSITORY),
+      ),
     "scoped",
   );
 

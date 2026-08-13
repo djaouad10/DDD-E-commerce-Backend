@@ -50,6 +50,7 @@ import type { GetProductStaticDataService } from "#/application/services/get-pro
 import type { GetApprovedRatingsOfProductService } from "#/application/services/get-approved-ratings-of-product.service.js";
 import type { GetPendingRatingsOfProductService } from "#/application/services/get-pending-ratings-of-product.service.js";
 import type { GetRatingsOfClientService } from "#/application/services/get-ratings-of-client.service.js";
+import type { DidUserRateProductService } from "#/application/services/did-user-rate-product.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -264,3 +265,7 @@ export const GET_PENDING_RATINGS_OF_PRODUCT_SERVICE = Symbol(
 export const GET_RATINGS_OF_CliENT_SERVICE = Symbol(
   "getRatingsOfClientService",
 ) as InjectionToken<GetRatingsOfClientService>;
+
+export const DID_USER_RATE_PRODUCT_SERVICE = Symbol(
+  "didUserRateProductService",
+) as InjectionToken<DidUserRateProductService>;
