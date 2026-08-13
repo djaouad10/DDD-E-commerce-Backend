@@ -3,6 +3,7 @@ import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { UpdateProductMainImageCommand } from "#/application/commands/update-product-main-image.command.js";
 import {
   DELETE_PRODUCT_IMAGE_SERVICE,
+  GET_LOW_STOCK_PRODUCTS_SERVICE,
   GET_PRODUCT_VARIATIONS_SERVICE,
   GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
   GET_PRODUCTS_SERVICE,
@@ -10,6 +11,7 @@ import {
 } from "#/composition/tokens.js";
 import {
   deleteProductImageParamsSchema,
+  getLowStockProductsSearchParamsSchema,
   getProductsSearchParamsSchema,
   getProductVariationsParamsSchema,
   getProductVariationsWithCartFlagParamsSchema,
@@ -22,6 +24,7 @@ import { GetProductVariationsQuery } from "#/application/queries/get-product-var
 import { GetProductVariationsWithCartFlagQuery } from "#/application/queries/get-product-variations-with-cart-flag.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import { GetProductsQuery } from "#/application/queries/get-products.query.js";
+import { GetLowStockProductsQuery } from "#/application/queries/get-low-stock-products.query.js";
 
 const router = Router();
 
@@ -106,6 +109,24 @@ router.get("/", async (req, res) => {
     safeSearchParams.cursor,
     safeSearchParams.max_price,
     safeSearchParams.min_price,
+  );
+
+  const result = await service.execute(query);
+
+  res.status(200).json(result);
+});
+
+router.get("/low-stock", async (req, res) => {
+  const safeSearchParams = validate(
+    getLowStockProductsSearchParamsSchema,
+    req.query,
+  );
+
+  const service = req.scope.resolve(GET_LOW_STOCK_PRODUCTS_SERVICE);
+  const query = new GetLowStockProductsQuery(
+    safeSearchParams.limit ?? 10,
+    safeSearchParams.minStock ?? 0,
+    safeSearchParams.cursor,
   );
 
   const result = await service.execute(query);

@@ -35,3 +35,14 @@ export const getProductsSearchParamsSchema = z.object({
     })
     .optional(),
 });
+
+export const getLowStockProductsSearchParamsSchema = z.object({
+  limit: z.coerce.number().min(1).optional(),
+  minStock: z.coerce.number().optional(),
+  cursor: z
+    .object({
+      createdAt: z.iso.datetime().pipe(z.coerce.date()),
+      productId: z.string(),
+    })
+    .optional(),
+});
