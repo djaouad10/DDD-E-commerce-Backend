@@ -9,7 +9,7 @@ import { GetApprovedRatingsOfProductQuery } from "#/application/queries/get-appr
 
 const router = Router();
 
-router.get("/ratings/approved/:productId", async (req, res) => {
+router.get("/approved/:productId", async (req, res) => {
   const safeParams = validate(
     getApprovedRatingsOfProductParamsSchema,
     req.params,
