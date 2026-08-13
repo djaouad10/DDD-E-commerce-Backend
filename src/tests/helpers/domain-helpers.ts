@@ -11,10 +11,14 @@ export function productFactory({
   categoryId,
   customImages,
   customVariations,
+  discountPrice,
+  price,
 }: {
   categoryId: CategoryId;
   customImages?: File[];
   customVariations?: Variation[];
+  price?: number;
+  discountPrice?: number;
 }): Product {
   const productName = faker.commerce.productName();
   const images = [
@@ -47,8 +51,8 @@ export function productFactory({
     faker.commerce.productDescription(),
     faker.commerce.productAdjective(),
     faker.commerce.productMaterial(),
-    Money.of(2000, "DZD"),
-    Money.of(1500, "DZD"),
+    Money.of(price ?? 2000, "DZD"),
+    Money.of(discountPrice ?? 1500, "DZD"),
     null,
   );
 }
