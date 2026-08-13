@@ -46,6 +46,7 @@ import type { GetProductVariationsService } from "#/application/services/get-pro
 import type { GetProductVariationsWithCartFlagService } from "#/application/services/get-product-variations-with-cart-flag.service.js";
 import type { GetProductsService } from "#/application/services/get-products.service.js";
 import type { GetLowStockProductsService } from "#/application/services/get-low-stock-products.service.js";
+import type { GetProductStaticDataService } from "#/application/services/get-product-static-data.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -244,3 +245,7 @@ export const GET_PRODUCTS_SERVICE = Symbol(
 export const GET_LOW_STOCK_PRODUCTS_SERVICE = Symbol(
   "getLowStockProductsService",
 ) as InjectionToken<GetLowStockProductsService>;
+
+export const GET_PRODUCT_STATIC_DATA_SERVICE = Symbol(
+  "getProductStaticDataService",
+) as InjectionToken<GetProductStaticDataService>;
