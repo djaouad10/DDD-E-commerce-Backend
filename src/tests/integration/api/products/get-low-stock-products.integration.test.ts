@@ -65,7 +65,8 @@ describe("GET /api/v1/products/low-stock", () => {
       // Act
       const response = await request
         .get("/api/v1/products/low-stock")
-        .query({ limit: 10, minStock: 10 });
+        .query({ limit: 10, minStock: 10 })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -113,7 +114,8 @@ describe("GET /api/v1/products/low-stock", () => {
       // Act
       const response = await request
         .get("/api/v1/products/low-stock")
-        .query({ limit: 10, minStock: 10 });
+        .query({ limit: 10, minStock: 10 })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -140,7 +142,9 @@ describe("GET /api/v1/products/low-stock", () => {
       await createProductInDB(container, product);
 
       // Act — no query params, uses defaults (limit=10, minStock=0)
-      const response = await request.get("/api/v1/products/low-stock");
+      const response = await request
+        .get("/api/v1/products/low-stock")
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -169,20 +173,24 @@ describe("GET /api/v1/products/low-stock", () => {
 
       const firstPage = await request
         .get("/api/v1/products/low-stock")
-        .query({ limit: 1, minStock: 10 });
+        .query({ limit: 1, minStock: 10 })
+        .set("authorization", "Bearer test-admin-token");
 
       const cursor: ProductCursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
 
       // Act
-      const response = await request.get("/api/v1/products/low-stock").query({
-        limit: 1,
-        minStock: 10,
-        cursor: {
-          createdAt: cursor.createdAt,
-          productId: cursor.productId,
-        },
-      });
+      const response = await request
+        .get("/api/v1/products/low-stock")
+        .query({
+          limit: 1,
+          minStock: 10,
+          cursor: {
+            createdAt: cursor.createdAt,
+            productId: cursor.productId,
+          },
+        })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -193,7 +201,8 @@ describe("GET /api/v1/products/low-stock", () => {
       // Act
       const response = await request
         .get("/api/v1/products/low-stock")
-        .query({ limit: 0, minStock: 10 });
+        .query({ limit: 0, minStock: 10 })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(400);
@@ -204,11 +213,23 @@ describe("GET /api/v1/products/low-stock", () => {
       // Act
       const response = await request
         .get("/api/v1/products/low-stock")
-        .query({ limit: 10, minStock: -1 });
+        .query({ limit: 10, minStock: -1 })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(400);
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    test("when client token is used, it should return 403", async () => {
+      // Act
+      const response = await request
+        .get("/api/v1/products/low-stock")
+        .query({ limit: 10, minStock: 10 })
+        .set("authorization", "Bearer test-client-token");
+
+      // Assert
+      expect(response.status).toBe(403);
     });
   });
 });
