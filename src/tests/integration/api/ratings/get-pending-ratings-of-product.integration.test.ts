@@ -59,9 +59,9 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       await createRatingInDB(container, rating);
 
       // Act
-      const response = await request.get(
-        `/api/v1/ratings/pending/${product.id.value}`,
-      );
+      const response = await request
+        .get(`/api/v1/ratings/pending/${product.id.value}`)
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -99,9 +99,9 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       await createRatingInDB(container, rating);
 
       // Act
-      const response = await request.get(
-        `/api/v1/ratings/pending/${product.id.value}`,
-      );
+      const response = await request
+        .get(`/api/v1/ratings/pending/${product.id.value}`)
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -142,7 +142,8 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/pending/${product.id.value}`)
-        .query({ limit: 1 });
+        .query({ limit: 1 })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -182,7 +183,8 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
 
       const firstPage = await request
         .get(`/api/v1/ratings/pending/${product.id.value}`)
-        .query({ limit: 1 });
+        .query({ limit: 1 })
+        .set("authorization", "Bearer test-admin-token");
 
       const cursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -196,7 +198,8 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
             createdAt: cursor.createdAt,
             userId: cursor.userId,
           },
-        });
+        })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -205,9 +208,9 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
 
     test("when product does not exist, it should return 200 with empty array", async () => {
       // Act
-      const response = await request.get(
-        `/api/v1/ratings/pending/${ProductId.generate().value}`,
-      );
+      const response = await request
+        .get(`/api/v1/ratings/pending/${ProductId.generate().value}`)
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -219,11 +222,24 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/pending/${ProductId.generate().value}`)
-        .query({ limit: 0 });
+        .query({ limit: 0 })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(400);
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    test("when client token is used, it should return 403", async () => {
+      // Act
+      const response = await request
+        .get(`/api/v1/ratings/pending/${ProductId.generate().value}`)
+        .query({ limit: 10 })
+        .set("authorization", "Bearer test-client-token");
+
+      // Assert
+      expect(response.status).toBe(403);
+      expect(response.body.error.code).toBe("FORBIDDEN");
     });
   });
 });
