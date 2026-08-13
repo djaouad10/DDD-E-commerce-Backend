@@ -51,6 +51,7 @@ import {
   GET_PRODUCT_VARIATIONS_SERVICE,
   GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
   GET_PRODUCTS_SERVICE,
+  GET_LOW_STOCK_PRODUCTS_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -75,6 +76,7 @@ import { DeleteProductImageService } from "#/application/services/delete-product
 import { GetProductVariationsService } from "#/application/services/get-product-variations.service.js";
 import { GetProductVariationsWithCartFlagService } from "#/application/services/get-product-variations-with-cart-flag.service.js";
 import { GetProductsService } from "#/application/services/get-products.service.js";
+import { GetLowStockProductsService } from "#/application/services/get-low-stock-products.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -359,6 +361,12 @@ export function buildApiContainer(): Container {
   container.register(
     GET_PRODUCTS_SERVICE,
     (scope) => new GetProductsService(scope.resolve(PRODUCT_QUERIES)),
+    "scoped",
+  );
+
+  container.register(
+    GET_LOW_STOCK_PRODUCTS_SERVICE,
+    (scope) => new GetLowStockProductsService(scope.resolve(PRODUCT_QUERIES)),
     "scoped",
   );
 
