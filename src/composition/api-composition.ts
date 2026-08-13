@@ -60,6 +60,7 @@ import {
   GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE,
   GET_COMMUNES_OF_WILAYA_SERVICE,
   GET_DELIVERY_FEES_OF_WILAYA_SERVICE,
+  GET_ORDERS_OF_CLIENT_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -93,6 +94,7 @@ import { DidUserRateProductService } from "#/application/services/did-user-rate-
 import { GetActiveWilayasOfProviderService } from "#/application/services/get-active-wilayas-of-provider.service.js";
 import { GetCommunesOfWilayaService } from "#/application/services/get-communes-of-wilaya.service.js";
 import { GetDeliveryFeesOfWilayaService } from "#/application/services/get-delivery-fees-of-wilaya.service.js";
+import { GetOrdersOfClientService } from "#/tests/integration/api/orders/get-orders-of-client.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -445,6 +447,12 @@ export function buildApiContainer(): Container {
       new GetDeliveryFeesOfWilayaService(
         scope.resolve(SHIPPING_PROVIDER_GATEWAY),
       ),
+    "scoped",
+  );
+
+  container.register(
+    GET_ORDERS_OF_CLIENT_SERVICE,
+    (scope) => new GetOrdersOfClientService(scope.resolve(ORDER_QUERIES)),
     "scoped",
   );
 
