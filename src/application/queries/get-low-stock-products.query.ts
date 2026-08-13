@@ -15,7 +15,7 @@ export class GetLowStockProductsQuery {
       throw new ValidationError("limit", "limit must be greater than 0");
     }
 
-    if (minStock <= 0) {
+    if (minStock < 0) {
       throw new ValidationError("minStock", "minStock must be greater than 0");
     }
   }
