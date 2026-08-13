@@ -59,9 +59,9 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       await createRatingInDB(container, rating);
 
       // Act
-      const response = await request.get(
-        `/api/v1/ratings/client/${user.id.value}`,
-      );
+      const response = await request
+        .get(`/api/v1/ratings/client/${user.id.value}`)
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -91,9 +91,9 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       await createUserInDB(container, user);
 
       // Act
-      const response = await request.get(
-        `/api/v1/ratings/client/${user.id.value}`,
-      );
+      const response = await request
+        .get(`/api/v1/ratings/client/${user.id.value}`)
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -128,7 +128,8 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/client/${user.id.value}`)
-        .query({ limit: 1 });
+        .query({ limit: 1 })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -162,7 +163,8 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
 
       const firstPage = await request
         .get(`/api/v1/ratings/client/${user.id.value}`)
-        .query({ limit: 1 });
+        .query({ limit: 1 })
+        .set("authorization", "Bearer test-admin-token");
 
       const cursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -176,7 +178,8 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
             createdAt: cursor.createdAt,
             productId: cursor.productId,
           },
-        });
+        })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -185,9 +188,9 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
 
     test("when client does not exist, it should return 200 with empty array", async () => {
       // Act
-      const response = await request.get(
-        `/api/v1/ratings/client/${UserId.generate().value}`,
-      );
+      const response = await request
+        .get(`/api/v1/ratings/client/${UserId.generate().value}`)
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(200);
@@ -210,7 +213,8 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/client/${user.id.value}`)
-        .query({ limit: 0 });
+        .query({ limit: 0 })
+        .set("authorization", "Bearer test-admin-token");
 
       // Assert
       expect(response.status).toBe(400);
