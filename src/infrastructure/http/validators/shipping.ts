@@ -12,3 +12,11 @@ export const getCommunesOfWilayaParamsSchema = z.object({
 export const getCommunesOfWilayaSearchParamsSchema = z.object({
   provider: z.enum(ShippingProvider),
 });
+
+export const getDeliveryFeesOfWilayaParamsSchema = z.object({
+  wilayaCode: z.coerce.number(),
+});
+
+export const getDeliveryFeesOfWilayaSearchParamsSchema = z.object({
+  provider: z.enum(ShippingProvider),
+});

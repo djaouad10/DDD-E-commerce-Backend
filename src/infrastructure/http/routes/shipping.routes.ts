@@ -3,14 +3,18 @@ import { validate } from "../utils/validation.js";
 import {
   getCommunesOfWilayaParamsSchema,
   getCommunesOfWilayaSearchParamsSchema,
+  getDeliveryFeesOfWilayaParamsSchema,
+  getDeliveryFeesOfWilayaSearchParamsSchema,
   getShippingWilayasSearchParamsSchema,
 } from "../validators/shipping.js";
 import {
   GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE,
   GET_COMMUNES_OF_WILAYA_SERVICE,
+  GET_DELIVERY_FEES_OF_WILAYA_SERVICE,
 } from "#/composition/tokens.js";
 import { GetActiveWilayasOfProviderQuery } from "#/application/queries/get-active-wilayas-of-provider.query.js";
 import { GetCommunesOfWilayaQuery } from "#/application/queries/get-communes-of-wilaya.query.js";
+import { GetDeliveryFeesOfWilayaQuery } from "#/application/queries/get-delivery-fees-of-wilaya.query.js";
 
 const router = Router();
 
@@ -37,6 +41,24 @@ router.get("/communes/:wilayaCode", async (req, res) => {
 
   const service = req.scope.resolve(GET_COMMUNES_OF_WILAYA_SERVICE);
   const query = new GetCommunesOfWilayaQuery(
+    safeSearchParams.provider,
+    safeParams.wilayaCode,
+  );
+
+  const result = await service.execute(query);
+
+  res.status(200).json(result);
+});
+
+router.get("/fees/:wilayaCode", async (req, res) => {
+  const safeParams = validate(getDeliveryFeesOfWilayaParamsSchema, req.params);
+  const safeSearchParams = validate(
+    getDeliveryFeesOfWilayaSearchParamsSchema,
+    req.query,
+  );
+
+  const service = req.scope.resolve(GET_DELIVERY_FEES_OF_WILAYA_SERVICE);
+  const query = new GetDeliveryFeesOfWilayaQuery(
     safeSearchParams.provider,
     safeParams.wilayaCode,
   );
