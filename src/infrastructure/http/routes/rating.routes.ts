@@ -13,7 +13,7 @@ import {
   DID_USER_RATE_PRODUCT_SERVICE,
   GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
   GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
-  GET_RATINGS_OF_CliENT_SERVICE,
+  GET_RATINGS_OF_CLIENT_SERVICE,
 } from "#/composition/tokens.js";
 import { GetApprovedRatingsOfProductQuery } from "#/application/queries/get-approved-ratings-of-product.query.js";
 import { GetPendingRatingsOfProductQuery } from "#/application/queries/get-pending-ratings-of-product.query.js";
@@ -87,7 +87,7 @@ router.get("/client/:clientId", adminMiddleware, async (req, res) => {
     req.query,
   );
 
-  const service = req.scope.resolve(GET_RATINGS_OF_CliENT_SERVICE);
+  const service = req.scope.resolve(GET_RATINGS_OF_CLIENT_SERVICE);
   const query = new GetRatingsOfClientQuery(
     safeParams.clientId,
     safeSearchParams.limit ?? 10,
@@ -107,7 +107,7 @@ router.get("/client/:clientId", adminMiddleware, async (req, res) => {
 
 router.get("/did-i-rate/:productId", clientMiddleware, async (req, res) => {
   const safeParams = validate(didIRateProductParamsSchema, req.params);
-const userId = req.user!.id // auth middleware ensures req.user is defined
+  const userId = req.user!.id; // auth middleware ensures req.user is defined
 
   const service = req.scope.resolve(DID_USER_RATE_PRODUCT_SERVICE);
   const query = new DidUserRateProductQuery(userId, safeParams.productId);

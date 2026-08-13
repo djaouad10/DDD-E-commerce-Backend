@@ -262,7 +262,7 @@ export const GET_PENDING_RATINGS_OF_PRODUCT_SERVICE = Symbol(
   "getPendingRatingsOfProductService",
 ) as InjectionToken<GetPendingRatingsOfProductService>;
 
-export const GET_RATINGS_OF_CliENT_SERVICE = Symbol(
+export const GET_RATINGS_OF_CLIENT_SERVICE = Symbol(
   "getRatingsOfClientService",
 ) as InjectionToken<GetRatingsOfClientService>;
 

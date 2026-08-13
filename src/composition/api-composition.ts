@@ -55,7 +55,7 @@ import {
   GET_PRODUCT_STATIC_DATA_SERVICE,
   GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
   GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
-  GET_RATINGS_OF_CliENT_SERVICE,
+  GET_RATINGS_OF_CLIENT_SERVICE,
   DID_USER_RATE_PRODUCT_SERVICE,
 } from "./tokens.js";
 
@@ -401,7 +401,7 @@ export function buildApiContainer(): Container {
   );
 
   container.register(
-    GET_RATINGS_OF_CliENT_SERVICE,
+    GET_RATINGS_OF_CLIENT_SERVICE,
     (scope) => new GetRatingsOfClientService(scope.resolve(RATING_QUERIES)),
     "scoped",
   );
