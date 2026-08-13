@@ -75,7 +75,7 @@ router.get("/pending/:productId", async (req, res) => {
   res.status(200).json(result);
 });
 
-router.get("/ratings/client/:clientId", async (req, res) => {
+router.get("/client/:clientId", async (req, res) => {
   const safeParams = validate(getRatingsOfClientParamsSchema, req.params);
   const safeSearchParams = validate(
     getRatingsOfClientSearchParamsSchema,
