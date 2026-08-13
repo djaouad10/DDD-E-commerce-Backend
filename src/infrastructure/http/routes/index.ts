@@ -5,6 +5,7 @@ import OrderRouter from "./order.routes.js";
 import ProductRouter from "./product.routes.js";
 import RatingRouter from "./rating.routes.js";
 import ClientRouter from "./client.routes.js";
+import ShippingRouter from "./shipping.routes.js";
 
 // all sub routers are wired here
 const router = Router();
@@ -15,5 +16,6 @@ router.use("/orders", OrderRouter);
 router.use("/products", ProductRouter);
 router.use("/ratings", RatingRouter);
 router.use("/clients", ClientRouter);
+router.use("/shipping", ShippingRouter);
 
 export default router;
