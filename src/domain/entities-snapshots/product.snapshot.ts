@@ -13,7 +13,7 @@ export type ProductSnapshot = {
   material: string;
   price: MoneySnapshot;
   discountedPrice: MoneySnapshot | null;
-  category: string | null;
+  categoryId: string | null;
   averageRating: number | null;
   discountAmount: MoneySnapshot;
   discountPercentage: number;

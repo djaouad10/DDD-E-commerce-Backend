@@ -679,7 +679,7 @@ export class Product {
       material: this._material,
       price: this._price.toSnapshot(),
       discountedPrice: this._discountedPrice?.toSnapshot() ?? null,
-      category: this._categoryId?.toString() ?? null,
+      categoryId: this._categoryId?.toString() ?? null,
       averageRating: this._averageRating,
       discountAmount: this.getDiscountAmount().toSnapshot(),
       discountPercentage: this.calculateDiscountPercentage(),
