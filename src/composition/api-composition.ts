@@ -63,6 +63,7 @@ import {
   GET_ORDERS_OF_CLIENT_SERVICE,
   GET_ORDER_BY_TRACKING_NUMBER_SERVICE,
   GET_ORDER_BY_ID_SERVICE,
+  GET_ORDERS_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -99,6 +100,7 @@ import { GetDeliveryFeesOfWilayaService } from "#/application/services/get-deliv
 import { GetOrdersOfClientService } from "#/application/services/get-orders-of-client.service.js";
 import { GetOrderByTrackingNumberService } from "#/application/services/get-order-by-tracking-number.service.js";
 import { GetOrderByIdService } from "#/application/services/get-order-by-id.service.js";
+import { GetOrdersService } from "#/application/services/get-orders.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -477,6 +479,12 @@ export function buildApiContainer(): Container {
         scope.resolve(ORDER_REPOSITORY),
         scope.resolve(PRODUCT_QUERIES),
       ),
+    "scoped",
+  );
+
+  container.register(
+    GET_ORDERS_SERVICE,
+    (scope) => new GetOrdersService(scope.resolve(ORDER_QUERIES)),
     "scoped",
   );
 
