@@ -461,7 +461,10 @@ export function buildApiContainer(): Container {
   container.register(
     GET_ORDER_BY_TRACKING_NUMBER_SERVICE,
     (scope) =>
-      new GetOrderByTrackingNumberService(scope.resolve(ORDER_REPOSITORY)),
+      new GetOrderByTrackingNumberService(
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(PRODUCT_QUERIES),
+      ),
     "scoped",
   );
 
