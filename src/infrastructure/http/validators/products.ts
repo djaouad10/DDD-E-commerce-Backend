@@ -50,3 +50,7 @@ export const getLowStockProductsSearchParamsSchema = z.object({
 export const getProductStaticDataParamsSchema = z.object({
   id: z.string(),
 });
+
+export const getProductUpdateDataParamsSchema = z.object({
+  id: z.string(),
+});
