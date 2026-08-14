@@ -8,7 +8,7 @@ export type OrderCursor = {
 };
 
 export type OrderSearchCriteria = {
-  userId: UserId;
+  userId?: UserId;
   limit: number;
   status?: OrderStatus;
   cursor?: OrderCursor;

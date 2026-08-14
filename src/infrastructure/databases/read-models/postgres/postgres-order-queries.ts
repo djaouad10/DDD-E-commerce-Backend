@@ -28,7 +28,9 @@ export class PostgresOrderQueries implements OrderQueries {
             where: (order, { eq, gt, and, or }) => {
               // build conditions directly no array push with or() since the or clause returns a sql<unknown> | undefined, while "and, get,... etc." return sql<unknown>, so we can't push them to the same array
 
-              const userFilter = eq(order.user_id, userId.value);
+              const userFilter = userId
+                ? eq(order.user_id, userId.value)
+                : undefined;
               const statusFilter = status
                 ? eq(order.status, status)
                 : undefined;
