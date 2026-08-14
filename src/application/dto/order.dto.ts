@@ -6,7 +6,7 @@ import type { VariationDTO } from "./variation.dto.js";
 
 export type OrderItemDTO = {
   id: string;
-  variationId: VariationDTO;
+  variation: VariationDTO;
   qty: number;
   unitPriceAtOrderTime: MoneySnapshot;
   unitDiscountPriceAtOrderTime: MoneySnapshot | null;
