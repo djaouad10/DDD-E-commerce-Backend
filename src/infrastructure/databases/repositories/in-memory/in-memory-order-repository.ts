@@ -10,6 +10,14 @@ export class InMemoryOrderRepository implements OrderRepository {
     return this.orders.find((order) => order.id.equals(id)) ?? null;
   }
 
+  async findByTracking(trackingNumber: string): Promise<Order | null> {
+    return (
+      this.orders.find(
+        (order) => order.getTrackingNumber() === trackingNumber,
+      ) ?? null
+    );
+  }
+
   async findMany(ids: OrderId[]): Promise<Order[]> {
     return this.orders.filter((order) => ids.some((id) => id.equals(order.id)));
   }

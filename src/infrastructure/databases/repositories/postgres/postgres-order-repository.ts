@@ -55,6 +55,41 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
+  async findByTracking(trackingNumber: string): Promise<Order | null> {
+    this.logger.debug("findByTracking called", { trackingNumber });
+
+    try {
+      const orderWithItemsRow: OrderWithItemsRow | undefined =
+        await this.logger.measure("db.query.order.findFirst", () =>
+          this.db.query.order.findFirst({
+            where: eq(order.tracking_number, trackingNumber),
+            with: { order_items: true },
+          }),
+        );
+
+      if (!orderWithItemsRow) {
+        this.logger.debug("order not found", { trackingNumber });
+
+        return null;
+      }
+
+      const orderToReturn = PostgresOrderMapper.toDomain(orderWithItemsRow);
+
+      this.logger.debug("findByTracking completed", {
+        trackingNumber,
+        order: orderToReturn.toSnapshot(),
+      });
+
+      return orderToReturn;
+    } catch (error) {
+      this.logger.error("findByTracking failed", error as Error, {
+        trackingNumber,
+      });
+
+      handleDrizzleErrors(error, "PostgresOrderRepository.findByTracking");
+    }
+  }
+
   async findMany(ids: OrderId[]): Promise<Order[]> {
     this.logger.debug("findMany called");
 
