@@ -1,5 +1,5 @@
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
-import { OrderId } from "#/domain/value-objects/order-id.js";
+import { UserId } from "#/domain/value-objects/user-id.js";
 import { ForbiddenError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { OrderDTO, OrderItemDTO } from "../dto/order.dto.js";
@@ -24,7 +24,7 @@ export class GetOrderByTrackingNumberService {
     if (!order) throw new NotFoundError("order", query.trackingNumber);
 
     // query.clientId is only defined if the user is a client, and clients are only allowed to get their own orders
-    if (query.clientId && !order.userId.equals(OrderId.of(query.clientId)))
+    if (query.clientId && !order.userId.equals(UserId.of(query.clientId)))
       throw new ForbiddenError("get order by tracking number", query.clientId);
 
     // I need to fetch the variations of each orderItem and include them in the result
