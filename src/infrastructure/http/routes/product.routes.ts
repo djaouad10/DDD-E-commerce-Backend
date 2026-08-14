@@ -31,37 +31,50 @@ import { GetProductStaticDataQuery } from "#/application/queries/get-product-sta
 
 const router = Router();
 
-router.patch("/:id/images/main", adminMiddleware, async (req, res) => {
-  const safeSearchParams = validate(
-    updateProductMainImageParamsSchema,
-    req.params,
-  );
-  const safeBody = validate(updateProductMainImageBodySchema, req.body);
+router.patch(
+  "/:id/images/main",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeSearchParams = validate(
+      updateProductMainImageParamsSchema,
+      req.params,
+    );
+    const safeBody = validate(updateProductMainImageBodySchema, req.body);
 
-  const service = req.scope.resolve(UPDATE_PRODUCT_MAIN_IMAGE_SERVICE);
-  const command = new UpdateProductMainImageCommand(
-    safeSearchParams.id,
-    safeBody,
-  );
+    const service = req.scope.resolve(UPDATE_PRODUCT_MAIN_IMAGE_SERVICE);
+    const command = new UpdateProductMainImageCommand(
+      safeSearchParams.id,
+      safeBody,
+    );
 
-  await service.execute(command);
+    await service.execute(command);
 
-  res.status(200).json({ success: true });
-});
+    res.status(200).json({ success: true });
+  },
+);
 
-router.delete("/:id/images/:key", adminMiddleware, async (req, res) => {
-  const safeSearchParams = validate(deleteProductImageParamsSchema, req.params);
+router.delete(
+  "/:id/images/:key",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeSearchParams = validate(
+      deleteProductImageParamsSchema,
+      req.params,
+    );
 
-  const service = req.scope.resolve(DELETE_PRODUCT_IMAGE_SERVICE);
-  const command = new DeleteProductImageCommand(
-    safeSearchParams.id,
-    safeSearchParams.key,
-  );
+    const service = req.scope.resolve(DELETE_PRODUCT_IMAGE_SERVICE);
+    const command = new DeleteProductImageCommand(
+      safeSearchParams.id,
+      safeSearchParams.key,
+    );
 
-  await service.execute(command);
+    await service.execute(command);
 
-  res.status(200).json({ success: true });
-});
+    res.status(200).json({ success: true });
+  },
+);
 
 router.get("/:id/variations", async (req, res) => {
   const safeSearchParams = validate(
@@ -119,7 +132,7 @@ router.get("/", async (req, res) => {
   res.status(200).json(result);
 });
 
-router.get("/low-stock", adminMiddleware, async (req, res) => {
+router.get("/low-stock", authMiddleware, adminMiddleware, async (req, res) => {
   const safeSearchParams = validate(
     getLowStockProductsSearchParamsSchema,
     req.query,

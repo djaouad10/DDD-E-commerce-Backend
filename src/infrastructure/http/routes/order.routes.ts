@@ -87,7 +87,7 @@ router.get("/single/:id", authMiddleware, async (req, res) => {
   res.status(200).json(result);
 });
 
-router.get("/", adminMiddleware, async (req, res) => {
+router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
   const safeSearchParams = validate(getOrdersSearchParamsSchema, req.query);
 
   const service = req.scope.resolve(GET_ORDERS_SERVICE);

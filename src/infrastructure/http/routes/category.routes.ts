@@ -16,6 +16,7 @@ import { validate } from "../utils/validation.js";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { UpdateCategoryCommand } from "#/application/commands/update-category.command.js";
 import { DeleteCategoryCommand } from "#/application/commands/delete-category.command.js";
+import { authMiddleware } from "../middleware/auth-middleware.js";
 
 const router = Router();
 
@@ -37,7 +38,7 @@ router.post("/", adminMiddleware, async (req, res) => {
   res.status(201).json(result);
 });
 
-router.patch("/:id", adminMiddleware, async (req, res) => {
+router.patch("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   const safeParams = validate(updateCategoryParamsSchema, req.params);
   const safeBody = validate(updateCategoryBodySchema, req.body);
 
@@ -49,7 +50,7 @@ router.patch("/:id", adminMiddleware, async (req, res) => {
   res.status(200).json(result);
 });
 
-router.delete("/:id", adminMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   const safeParams = validate(deleteCategoryParamsSchema, req.params);
 
   const service = req.scope.resolve(DELETE_CATEGORY_SERVICE);

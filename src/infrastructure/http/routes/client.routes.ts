@@ -48,7 +48,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
   return res.status(200).json(userDto);
 });
 
-router.get("/", adminMiddleware, async (req, res) => {
+router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
   const safeSearchParams = validate(
     getClientsListSearchParamsSchema,
     req.query,
@@ -66,15 +66,20 @@ router.get("/", adminMiddleware, async (req, res) => {
   return res.status(200).json(result);
 });
 
-router.get("/ban-status/:id", adminMiddleware, async (req, res) => {
-  const safeParams = validate(getClientBanStatusParamsSchema, req.params);
+router.get(
+  "/ban-status/:id",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(getClientBanStatusParamsSchema, req.params);
 
-  const service = req.scope.resolve(GET_CLIENT_BAN_STATUS_SERVICE);
-  const query = new GetClientBanStatusQuery(safeParams.id);
+    const service = req.scope.resolve(GET_CLIENT_BAN_STATUS_SERVICE);
+    const query = new GetClientBanStatusQuery(safeParams.id);
 
-  const result = await service.execute(query);
+    const result = await service.execute(query);
 
-  return res.status(200).json(result);
-});
+    return res.status(200).json(result);
+  },
+);
 
 export default router;
