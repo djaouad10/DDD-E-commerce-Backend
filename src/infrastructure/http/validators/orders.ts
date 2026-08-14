@@ -20,3 +20,14 @@ export const getOrderByTrackingNumberParamsSchema = z.object({
 export const getOrderByIdParamsSchema = z.object({
   id: z.string(),
 });
+
+export const getOrdersSearchParamsSchema = z.object({
+  limit: z.coerce.number().min(1).optional(),
+  status: z.enum(OrderStatus).optional(),
+  cursor: z
+    .object({
+      createdAt: z.iso.datetime().pipe(z.coerce.date()),
+      orderId: z.string(),
+    })
+    .optional(),
+});
