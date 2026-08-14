@@ -16,3 +16,7 @@ export const getOrdersOfClientSearchParamsSchema = z.object({
 export const getOrderByTrackingNumberParamsSchema = z.object({
   tracking: z.string(),
 });
+
+export const getOrderByIdParamsSchema = z.object({
+  id: z.string(),
+});

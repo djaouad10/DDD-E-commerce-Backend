@@ -1,16 +1,19 @@
 import { Router } from "express";
 import { validate } from "../utils/validation.js";
 import {
+  getOrderByIdParamsSchema,
   getOrderByTrackingNumberParamsSchema,
   getOrdersOfClientSearchParamsSchema,
 } from "../validators/orders.js";
 import {
+  GET_ORDER_BY_ID_SERVICE,
   GET_ORDER_BY_TRACKING_NUMBER_SERVICE,
   GET_ORDERS_OF_CLIENT_SERVICE,
 } from "#/composition/tokens.js";
 import { GetOrdersOfClientQuery } from "#/application/queries/get-orders-of-client.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import { GetOrderByTrackingNumberQuery } from "#/application/queries/get-order-by-tracking-number.query.js";
+import { GetOrderByIdQuery } from "#/application/queries/get-order-by-id.query.js";
 
 const router = Router();
 
@@ -58,6 +61,20 @@ router.get("/tracking/:tracking", authMiddleware, async (req, res) => {
   const service = req.scope.resolve(GET_ORDER_BY_TRACKING_NUMBER_SERVICE);
   const query = new GetOrderByTrackingNumberQuery(
     safeParams.tracking,
+    req.user!.role === "CLIENT" ? req.user!.id : undefined, // auth middleware ensures req.user is defined
+  );
+
+  const result = await service.execute(query);
+
+  res.status(200).json(result);
+});
+
+router.get("/single/:id", authMiddleware, async (req, res) => {
+  const safeParams = validate(getOrderByIdParamsSchema, req.params);
+
+  const service = req.scope.resolve(GET_ORDER_BY_ID_SERVICE);
+  const query = new GetOrderByIdQuery(
+    safeParams.id,
     req.user!.role === "CLIENT" ? req.user!.id : undefined, // auth middleware ensures req.user is defined
   );
 
