@@ -12,3 +12,7 @@ export const getOrdersOfClientSearchParamsSchema = z.object({
     })
     .optional(),
 });
+
+export const getOrderByTrackingNumberParamsSchema = z.object({
+  tracking: z.string(),
+});
