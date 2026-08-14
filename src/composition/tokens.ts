@@ -58,6 +58,7 @@ import type { GetOrdersOfClientService } from "#/application/services/get-orders
 import type { GetOrderByTrackingNumberService } from "#/application/services/get-order-by-tracking-number.service.js";
 import type { GetOrderByIdService } from "#/application/services/get-order-by-id.service.js";
 import type { GetOrdersService } from "#/application/services/get-orders.service.js";
+import type { GetProductUpdateDataService } from "#/application/services/get-product-update-data.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -304,3 +305,8 @@ export const GET_ORDER_BY_ID_SERVICE = Symbol(
 export const GET_ORDERS_SERVICE = Symbol(
   "getOrderService",
 ) as InjectionToken<GetOrdersService>;
+
+
+export const GET_PRODUCT_UPDATE_DATA_SERVICE = Symbol(
+  "getProductUpdateDataService",
+) as InjectionToken<GetProductUpdateDataService>;
