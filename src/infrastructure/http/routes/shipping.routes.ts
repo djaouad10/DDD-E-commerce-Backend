@@ -19,6 +19,8 @@ import { GetActiveWilayasOfProviderQuery } from "#/application/queries/get-activ
 import { GetCommunesOfWilayaQuery } from "#/application/queries/get-communes-of-wilaya.query.js";
 import { GetDeliveryFeesOfWilayaQuery } from "#/application/queries/get-delivery-fees-of-wilaya.query.js";
 import { GetShippingLabelQuery } from "#/application/queries/get-shipping-label.query.js";
+import { adminMiddleware } from "../middleware/admin-middleware.js";
+import { authMiddleware } from "../middleware/auth-middleware.js";
 
 const router = Router();
 
@@ -72,29 +74,34 @@ router.get("/fees/:wilayaCode", async (req, res) => {
   res.status(200).json(result);
 });
 
-router.get("/label/:tracking", async (req, res) => {
-  const safeParams = validate(getShippingLabelParamsSchema, req.params);
-  const safeSearchParams = validate(
-    getShippingLabelSearchParamsSchema,
-    req.query,
-  );
+router.get(
+  "/label/:tracking",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(getShippingLabelParamsSchema, req.params);
+    const safeSearchParams = validate(
+      getShippingLabelSearchParamsSchema,
+      req.query,
+    );
 
-  const service = req.scope.resolve(GET_SHIPPING_LABEL_SERVICE);
-  const query = new GetShippingLabelQuery(
-    safeParams.tracking,
-    safeSearchParams.provider,
-  );
+    const service = req.scope.resolve(GET_SHIPPING_LABEL_SERVICE);
+    const query = new GetShippingLabelQuery(
+      safeParams.tracking,
+      safeSearchParams.provider,
+    );
 
-  const result = await service.execute(query);
+    const result = await service.execute(query);
 
-  res.setHeader("Content-Type", result.contentType);
+    res.setHeader("Content-Type", result.contentType);
 
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=${result.filename ?? "label.pdf"}`,
-  );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${result.filename ?? "label.pdf"}`,
+    );
 
-  res.send(result);
-});
+    res.send(result.buffer);
+  },
+);
 
 export default router;
