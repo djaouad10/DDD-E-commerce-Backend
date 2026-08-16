@@ -20,3 +20,11 @@ export const getDeliveryFeesOfWilayaParamsSchema = z.object({
 export const getDeliveryFeesOfWilayaSearchParamsSchema = z.object({
   provider: z.enum(ShippingProvider),
 });
+
+export const getShippingLabelParamsSchema = z.object({
+  tracking: z.string(),
+});
+
+export const getShippingLabelSearchParamsSchema = z.object({
+  provider: z.enum(ShippingProvider),
+});

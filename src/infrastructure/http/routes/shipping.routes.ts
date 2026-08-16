@@ -5,16 +5,20 @@ import {
   getCommunesOfWilayaSearchParamsSchema,
   getDeliveryFeesOfWilayaParamsSchema,
   getDeliveryFeesOfWilayaSearchParamsSchema,
+  getShippingLabelParamsSchema,
+  getShippingLabelSearchParamsSchema,
   getShippingWilayasSearchParamsSchema,
 } from "../validators/shipping.js";
 import {
   GET_ACTIVE_WILAYAS_OF_PROVIDER_SERVICE,
   GET_COMMUNES_OF_WILAYA_SERVICE,
   GET_DELIVERY_FEES_OF_WILAYA_SERVICE,
+  GET_SHIPPING_LABEL_SERVICE,
 } from "#/composition/tokens.js";
 import { GetActiveWilayasOfProviderQuery } from "#/application/queries/get-active-wilayas-of-provider.query.js";
 import { GetCommunesOfWilayaQuery } from "#/application/queries/get-communes-of-wilaya.query.js";
 import { GetDeliveryFeesOfWilayaQuery } from "#/application/queries/get-delivery-fees-of-wilaya.query.js";
+import { GetShippingLabelQuery } from "#/application/queries/get-shipping-label.query.js";
 
 const router = Router();
 
@@ -66,6 +70,31 @@ router.get("/fees/:wilayaCode", async (req, res) => {
   const result = await service.execute(query);
 
   res.status(200).json(result);
+});
+
+router.get("/label/:tracking", async (req, res) => {
+  const safeParams = validate(getShippingLabelParamsSchema, req.params);
+  const safeSearchParams = validate(
+    getShippingLabelSearchParamsSchema,
+    req.query,
+  );
+
+  const service = req.scope.resolve(GET_SHIPPING_LABEL_SERVICE);
+  const query = new GetShippingLabelQuery(
+    safeParams.tracking,
+    safeSearchParams.provider,
+  );
+
+  const result = await service.execute(query);
+
+  res.setHeader("Content-Type", result.contentType);
+
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=${result.filename ?? "label.pdf"}`,
+  );
+
+  res.send(result);
 });
 
 export default router;
