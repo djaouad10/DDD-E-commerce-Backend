@@ -69,6 +69,7 @@ import {
   GET_ORDER_BY_ID_SERVICE,
   GET_ORDERS_SERVICE,
   GET_PRODUCT_UPDATE_DATA_SERVICE,
+  GET_SHIPPING_LABEL_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -106,6 +107,7 @@ import { GetOrderByTrackingNumberService } from "#/application/services/get-orde
 import { GetOrderByIdService } from "#/application/services/get-order-by-id.service.js";
 import { GetOrdersService } from "#/application/services/get-orders.service.js";
 import { GetProductUpdateDataService } from "#/application/services/get-product-update-data.service.js";
+import { GetShippingLabelService } from "#/application/services/get-shipping-label.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -507,6 +509,13 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(CATEGORY_REPOSITORY),
       ),
+    "scoped",
+  );
+
+  container.register(
+    GET_SHIPPING_LABEL_SERVICE,
+    (scope) =>
+      new GetShippingLabelService(scope.resolve(SHIPPING_PROVIDER_GATEWAY)),
     "scoped",
   );
 
