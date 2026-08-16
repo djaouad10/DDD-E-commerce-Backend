@@ -5,8 +5,11 @@ import {
   getClientProfileSearchParamsSchema,
   getClientBanStatusParamsSchema,
   getClientsListSearchParamsSchema,
+  banClientParamsSchema,
+  banClientBodySchema,
 } from "../validators/client.js";
 import {
+  BAN_CLIENT_SERVICE,
   GET_CLIENT_BAN_STATUS_SERVICE,
   GET_CLIENT_PROFILE_SERVICE,
   GET_CLIENTS_LIST_SERVICE,
@@ -16,6 +19,7 @@ import type { UserDTO } from "#/application/dto/user.dto.js";
 import { GetClientBanStatusQuery } from "#/application/queries/get-client-ban-status.query.js";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { GetClientsListQuery } from "#/application/queries/get-clients-list.query.js";
+import { BanClientCommand } from "#/application/commands/ban-client.command.js";
 
 const router = Router();
 
@@ -79,6 +83,27 @@ router.get(
     const result = await service.execute(query);
 
     return res.status(200).json(result);
+  },
+);
+
+router.patch(
+  "/:id/status/ban",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(banClientParamsSchema, req.params);
+    const safeBody = validate(banClientBodySchema, req.body);
+
+    const service = req.scope.resolve(BAN_CLIENT_SERVICE);
+    const command = new BanClientCommand(
+      safeParams.id,
+      safeBody.banExpiresInSeconds ?? undefined,
+      safeBody.reason ?? undefined,
+    );
+
+    await service.execute(command);
+
+    return res.status(200).json({ success: true });
   },
 );
 

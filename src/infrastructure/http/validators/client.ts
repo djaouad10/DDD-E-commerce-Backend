@@ -19,3 +19,12 @@ export const getClientsListSearchParamsSchema = z.object({
     })
     .optional(),
 });
+
+export const banClientParamsSchema = z.object({
+  id: z.string(),
+});
+
+export const banClientBodySchema = z.object({
+  reason: z.string().optional(),
+  banExpiresInSeconds: z.coerce.number().optional(),
+});
