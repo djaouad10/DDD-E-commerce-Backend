@@ -66,6 +66,7 @@ import {
   GET_ORDERS_SERVICE,
   GET_PRODUCT_UPDATE_DATA_SERVICE,
   GET_SHIPPING_LABEL_SERVICE,
+  BAN_CLIENT_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -105,6 +106,7 @@ import { GetOrderByIdService } from "#/application/services/get-order-by-id.serv
 import { GetOrdersService } from "#/application/services/get-orders.service.js";
 import { GetProductUpdateDataService } from "#/application/services/get-product-update-data.service.js";
 import { GetShippingLabelService } from "#/application/services/get-shipping-label.service.js";
+import { BanClientService } from "#/application/services/ban-client.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -506,6 +508,17 @@ export function buildApiContainer(): Container {
     GET_SHIPPING_LABEL_SERVICE,
     (scope) =>
       new GetShippingLabelService(scope.resolve(SHIPPING_PROVIDER_GATEWAY)),
+    "scoped",
+  );
+
+  container.register(
+    BAN_CLIENT_SERVICE,
+    (scope) =>
+      new BanClientService(
+        scope.resolve(DB),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
     "scoped",
   );
 

@@ -60,6 +60,7 @@ import type { GetOrderByIdService } from "#/application/services/get-order-by-id
 import type { GetOrdersService } from "#/application/services/get-orders.service.js";
 import type { GetProductUpdateDataService } from "#/application/services/get-product-update-data.service.js";
 import type { GetShippingLabelService } from "#/application/services/get-shipping-label.service.js";
+import type { BanClientService } from "#/application/services/ban-client.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -315,3 +316,7 @@ export const GET_PRODUCT_UPDATE_DATA_SERVICE = Symbol(
 export const GET_SHIPPING_LABEL_SERVICE = Symbol(
   "getShippingLabelService",
 ) as InjectionToken<GetShippingLabelService>;
+
+export const BAN_CLIENT_SERVICE = Symbol(
+  "banClientService",
+) as InjectionToken<BanClientService>;
