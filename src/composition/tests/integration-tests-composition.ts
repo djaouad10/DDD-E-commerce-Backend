@@ -71,6 +71,7 @@ import {
   GET_PRODUCT_UPDATE_DATA_SERVICE,
   GET_SHIPPING_LABEL_SERVICE,
   BAN_CLIENT_SERVICE,
+  UNBAN_CLIENT_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -110,6 +111,7 @@ import { GetOrdersService } from "#/application/services/get-orders.service.js";
 import { GetProductUpdateDataService } from "#/application/services/get-product-update-data.service.js";
 import { GetShippingLabelService } from "#/application/services/get-shipping-label.service.js";
 import { BanClientService } from "#/application/services/ban-client.service.js";
+import { UnbanClientService } from "#/application/services/unban-client.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -525,6 +527,17 @@ export function buildIntegrationTestsContainer(): Container {
     BAN_CLIENT_SERVICE,
     (scope) =>
       new BanClientService(
+        scope.resolve(DB),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    UNBAN_CLIENT_SERVICE,
+    (scope) =>
+      new UnbanClientService(
         scope.resolve(DB),
         scope.resolve(USER_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
