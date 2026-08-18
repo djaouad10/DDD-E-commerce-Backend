@@ -72,6 +72,7 @@ import {
   GET_SHIPPING_LABEL_SERVICE,
   BAN_CLIENT_SERVICE,
   UNBAN_CLIENT_SERVICE,
+  ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -112,6 +113,7 @@ import { GetProductUpdateDataService } from "#/application/services/get-product-
 import { GetShippingLabelService } from "#/application/services/get-shipping-label.service.js";
 import { BanClientService } from "#/application/services/ban-client.service.js";
 import { UnbanClientService } from "#/application/services/unban-client.service.js";
+import { AddSecondaryImageToProductService } from "#/application/services/add-secondary-image-to-product.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -540,6 +542,17 @@ export function buildIntegrationTestsContainer(): Container {
       new UnbanClientService(
         scope.resolve(DB),
         scope.resolve(USER_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE,
+    (scope) =>
+      new AddSecondaryImageToProductService(
+        scope.resolve(DB),
+        scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
     "scoped",

@@ -62,6 +62,7 @@ import type { GetProductUpdateDataService } from "#/application/services/get-pro
 import type { GetShippingLabelService } from "#/application/services/get-shipping-label.service.js";
 import type { BanClientService } from "#/application/services/ban-client.service.js";
 import type { UnbanClientService } from "#/application/services/unban-client.service.js";
+import type { AddSecondaryImageToProductService } from "#/application/services/add-secondary-image-to-product.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -324,3 +325,7 @@ export const BAN_CLIENT_SERVICE = Symbol(
 export const UNBAN_CLIENT_SERVICE = Symbol(
   "unbanClientService",
 ) as InjectionToken<UnbanClientService>;
+
+export const ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE = Symbol(
+  "addSecondaryImageToProductService",
+) as InjectionToken<AddSecondaryImageToProductService>;
