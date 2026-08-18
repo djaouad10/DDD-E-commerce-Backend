@@ -74,6 +74,7 @@ import {
   UNBAN_CLIENT_SERVICE,
   ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE,
   UPDATE_VARIATION_OF_PRODUCT_SERVICE,
+  CREATE_VARIATION_OF_PRODUCT_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -116,6 +117,7 @@ import { BanClientService } from "#/application/services/ban-client.service.js";
 import { UnbanClientService } from "#/application/services/unban-client.service.js";
 import { AddSecondaryImageToProductService } from "#/application/services/add-secondary-image-to-product.service.js";
 import { UpdateVariationOfProductService } from "#/application/services/update-variation-of-product.service.js";
+import { CreateVariationOfProductService } from "#/application/services/create-variation-of-product.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -564,6 +566,17 @@ export function buildIntegrationTestsContainer(): Container {
     UPDATE_VARIATION_OF_PRODUCT_SERVICE,
     (scope) =>
       new UpdateVariationOfProductService(
+        scope.resolve(DB),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_VARIATION_OF_PRODUCT_SERVICE,
+    (scope) =>
+      new CreateVariationOfProductService(
         scope.resolve(DB),
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
