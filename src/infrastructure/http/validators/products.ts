@@ -1,3 +1,4 @@
+import { Color, Size } from "#/domain/entities/product.js";
 import z from "zod";
 
 export const updateProductMainImageParamsSchema = z.object({
@@ -73,4 +74,15 @@ export const updateVariationOfProductParamsSchema = z.object({
 export const updateVariationOfProductBodySchema = z.object({
   newTotalQty: z.coerce.number().nonnegative().optional(),
   newWeightInGrams: z.coerce.number().positive().optional(),
+});
+
+export const createVariationOfProductParamsSchema = z.object({
+  id: z.string(),
+});
+
+export const createVariationOfProductBodySchema = z.object({
+  size: z.enum(Size),
+  color: z.enum(Color),
+  totalQty: z.coerce.number().nonnegative(),
+  weightInGrams: z.coerce.number().positive(),
 });

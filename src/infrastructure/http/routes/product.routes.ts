@@ -3,6 +3,7 @@ import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { UpdateProductMainImageCommand } from "#/application/commands/update-product-main-image.command.js";
 import {
   ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE,
+  CREATE_VARIATION_OF_PRODUCT_SERVICE,
   DELETE_PRODUCT_IMAGE_SERVICE,
   GET_LOW_STOCK_PRODUCTS_SERVICE,
   GET_PRODUCT_STATIC_DATA_SERVICE,
@@ -16,6 +17,8 @@ import {
 import {
   createProductImageBodySchema,
   createProductImageParamsSchema,
+  createVariationOfProductBodySchema,
+  createVariationOfProductParamsSchema,
   deleteProductImageParamsSchema,
   getLowStockProductsSearchParamsSchema,
   getProductsSearchParamsSchema,
@@ -39,6 +42,7 @@ import { GetProductStaticDataQuery } from "#/application/queries/get-product-sta
 import { GetProductUpdateDataQuery } from "#/application/queries/get-product-update-data.query.js";
 import { AddSecondaryImageToProductCommand } from "#/application/commands/add-secondary-image-to-product.command.js";
 import { UpdateVariationOfProductCommand } from "#/application/commands/update-variation-of-product.command.js";
+import { CreateVariationOfProductCommand } from "#/application/commands/create-variation-of-product.command.js";
 
 const router = Router();
 
@@ -230,6 +234,29 @@ router.patch(
     await service.execute(command);
 
     res.status(200).json({ success: true });
+  },
+);
+
+router.post(
+  "/:id/variations",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(
+      createVariationOfProductParamsSchema,
+      req.params,
+    );
+    const safeBody = validate(createVariationOfProductBodySchema, req.body);
+
+    const service = req.scope.resolve(CREATE_VARIATION_OF_PRODUCT_SERVICE);
+    const command = new CreateVariationOfProductCommand(
+      safeParams.id,
+      safeBody,
+    );
+
+    const result = await service.execute(command);
+
+    res.status(200).json(result);
   },
 );
 
