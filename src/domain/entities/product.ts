@@ -506,8 +506,8 @@ export class Product {
     // record domain events
     this.recordThat(
       new FileUploaded(
-        this.id.value,
         newImage.id.value,
+        this.id.value,
         newImage.getKey(),
         false,
       ),
