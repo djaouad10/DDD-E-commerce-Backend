@@ -1,3 +1,4 @@
+import type { VariationSnapshot } from "#/domain/entities-snapshots/variation.snapshot.js";
 import { Variation } from "#/domain/entities/variation.js";
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
@@ -17,7 +18,9 @@ export class CreateVariationOfProductService {
     private outboxRepository: OutboxRepository,
   ) {}
 
-  async execute(command: CreateVariationOfProductCommand): Promise<void> {
+  async execute(
+    command: CreateVariationOfProductCommand,
+  ): Promise<VariationSnapshot> {
     this.logger.info("CreateVariationOfProductService.execute called", {
       ...command,
     });
@@ -53,5 +56,7 @@ export class CreateVariationOfProductService {
         await this.outboxRepository.saveEvents(events, tx);
       }
     });
+
+    return newVariation.toSnapshot();
   }
 }
