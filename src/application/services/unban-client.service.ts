@@ -24,6 +24,8 @@ export class UnbanClientService {
 
     if (!user) throw new NotFoundError("user", clientId.value);
 
+    if (!user.isBanned()) return; // so we don't get duplicate events
+
     user.unBan();
 
     const events = user.pullEvents();
