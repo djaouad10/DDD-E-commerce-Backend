@@ -11,6 +11,7 @@ import {
   GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
   GET_PRODUCTS_SERVICE,
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
+  UPDATE_VARIATION_OF_PRODUCT_SERVICE,
 } from "#/composition/tokens.js";
 import {
   createProductImageBodySchema,
@@ -24,6 +25,8 @@ import {
   getProductVariationsWithCartFlagParamsSchema,
   updateProductMainImageBodySchema,
   updateProductMainImageParamsSchema,
+  updateVariationOfProductBodySchema,
+  updateVariationOfProductParamsSchema,
 } from "../validators/products.js";
 import { validate } from "../utils/validation.js";
 import { DeleteProductImageCommand } from "#/application/commands/delete-product-image.command.js";
@@ -35,6 +38,7 @@ import { GetLowStockProductsQuery } from "#/application/queries/get-low-stock-pr
 import { GetProductStaticDataQuery } from "#/application/queries/get-product-static-data.query.js";
 import { GetProductUpdateDataQuery } from "#/application/queries/get-product-update-data.query.js";
 import { AddSecondaryImageToProductCommand } from "#/application/commands/add-secondary-image-to-product.command.js";
+import { UpdateVariationOfProductCommand } from "#/application/commands/update-variation-of-product.command.js";
 
 const router = Router();
 
@@ -196,6 +200,31 @@ router.post(
     const command = new AddSecondaryImageToProductCommand(
       safeParams.id,
       safeBody,
+    );
+
+    await service.execute(command);
+
+    res.status(200).json({ success: true });
+  },
+);
+
+router.patch(
+  "/:productId/variations/:variationId",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(
+      updateVariationOfProductParamsSchema,
+      req.params,
+    );
+    const safeBody = validate(updateVariationOfProductBodySchema, req.body);
+
+    const service = req.scope.resolve(UPDATE_VARIATION_OF_PRODUCT_SERVICE);
+    const command = new UpdateVariationOfProductCommand(
+      safeParams.productId,
+      safeParams.variationId,
+      safeBody.newTotalQty,
+      safeBody.newWeightInGrams,
     );
 
     await service.execute(command);

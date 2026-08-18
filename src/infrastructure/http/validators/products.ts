@@ -64,3 +64,13 @@ export const createProductImageBodySchema = z.object({
   name: z.string(),
   public_url: z.url(),
 });
+
+export const updateVariationOfProductParamsSchema = z.object({
+  productId: z.string(),
+  variationId: z.string(),
+});
+
+export const updateVariationOfProductBodySchema = z.object({
+  newTotalQty: z.coerce.number().nonnegative().optional(),
+  newWeightInGrams: z.coerce.number().positive().optional(),
+});
