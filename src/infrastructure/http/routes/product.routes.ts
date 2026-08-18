@@ -2,6 +2,7 @@ import { Router } from "express";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { UpdateProductMainImageCommand } from "#/application/commands/update-product-main-image.command.js";
 import {
+  ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE,
   DELETE_PRODUCT_IMAGE_SERVICE,
   GET_LOW_STOCK_PRODUCTS_SERVICE,
   GET_PRODUCT_STATIC_DATA_SERVICE,
@@ -12,6 +13,8 @@ import {
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
 } from "#/composition/tokens.js";
 import {
+  createProductImageBodySchema,
+  createProductImageParamsSchema,
   deleteProductImageParamsSchema,
   getLowStockProductsSearchParamsSchema,
   getProductsSearchParamsSchema,
@@ -31,6 +34,7 @@ import { GetProductsQuery } from "#/application/queries/get-products.query.js";
 import { GetLowStockProductsQuery } from "#/application/queries/get-low-stock-products.query.js";
 import { GetProductStaticDataQuery } from "#/application/queries/get-product-static-data.query.js";
 import { GetProductUpdateDataQuery } from "#/application/queries/get-product-update-data.query.js";
+import { AddSecondaryImageToProductCommand } from "#/application/commands/add-secondary-image-to-product.command.js";
 
 const router = Router();
 
@@ -177,6 +181,26 @@ router.get(
     const result = await service.execute(query);
 
     res.status(200).json(result);
+  },
+);
+
+router.post(
+  "/:id/images",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(createProductImageParamsSchema, req.params);
+    const safeBody = validate(createProductImageBodySchema, req.body);
+
+    const service = req.scope.resolve(ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE);
+    const command = new AddSecondaryImageToProductCommand(
+      safeParams.id,
+      safeBody,
+    );
+
+    await service.execute(command);
+
+    res.status(200).json({ success: true });
   },
 );
 

@@ -54,3 +54,13 @@ export const getProductStaticDataParamsSchema = z.object({
 export const getProductUpdateDataParamsSchema = z.object({
   id: z.string(),
 });
+
+export const createProductImageParamsSchema = z.object({
+  id: z.string(),
+});
+
+export const createProductImageBodySchema = z.object({
+  key: z.string(),
+  name: z.string(),
+  public_url: z.url(),
+});
