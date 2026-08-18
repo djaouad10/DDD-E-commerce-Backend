@@ -651,6 +651,10 @@ export class Product {
     return this._images.find((i) => i.getKey() === key) ?? null;
   }
 
+  getVariation(variationId: VariationId): Variation | null {
+    return this._variations.find((v) => v.id.equals(variationId)) ?? null;
+  }
+
   // event methods
   pullEvents(): DomainEvent[] {
     const events = [...this._events];

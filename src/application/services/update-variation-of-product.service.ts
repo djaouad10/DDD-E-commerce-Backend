@@ -28,10 +28,17 @@ export class UpdateVariationOfProductService {
 
     if (!product) throw new NotFoundError("product", productId);
 
-    if (newTotalQty)
+    const variation = product.getVariation(VariationId.of(variationId));
+
+    if (!variation) throw new NotFoundError("variation", variationId);
+
+    if (newTotalQty !== undefined && variation.getTotalQty() !== newTotalQty)
       product.updateVariationTotalQty(VariationId.of(variationId), newTotalQty);
 
-    if (newWeightInGrams)
+    if (
+      newWeightInGrams !== undefined &&
+      variation.getWeight().weight !== newWeightInGrams
+    )
       product.updateVariationWeight(
         VariationId.of(variationId),
         Weight.of(newWeightInGrams, "g"),
