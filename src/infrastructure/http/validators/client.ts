@@ -28,3 +28,7 @@ export const banClientBodySchema = z.object({
   reason: z.string().optional(),
   banExpiresInSeconds: z.coerce.number().optional(),
 });
+
+export const unbanClientParamsSchema = z.object({
+  id: z.string(),
+});

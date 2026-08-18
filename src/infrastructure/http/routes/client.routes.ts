@@ -7,12 +7,14 @@ import {
   getClientsListSearchParamsSchema,
   banClientParamsSchema,
   banClientBodySchema,
+  unbanClientParamsSchema,
 } from "../validators/client.js";
 import {
   BAN_CLIENT_SERVICE,
   GET_CLIENT_BAN_STATUS_SERVICE,
   GET_CLIENT_PROFILE_SERVICE,
   GET_CLIENTS_LIST_SERVICE,
+  UNBAN_CLIENT_SERVICE,
 } from "#/composition/tokens.js";
 import { GetClientProfileQuery } from "#/application/queries/get-client-profile.query.js";
 import type { UserDTO } from "#/application/dto/user.dto.js";
@@ -20,6 +22,7 @@ import { GetClientBanStatusQuery } from "#/application/queries/get-client-ban-st
 import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { GetClientsListQuery } from "#/application/queries/get-clients-list.query.js";
 import { BanClientCommand } from "#/application/commands/ban-client.command.js";
+import { UnbanClientCommand } from "#/application/commands/unban-client.command.js";
 
 const router = Router();
 
@@ -100,6 +103,22 @@ router.patch(
       safeBody.banExpiresInSeconds ?? undefined,
       safeBody.reason ?? undefined,
     );
+
+    await service.execute(command);
+
+    return res.status(200).json({ success: true });
+  },
+);
+
+router.patch(
+  "/:id/status/unban",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(unbanClientParamsSchema, req.params);
+
+    const service = req.scope.resolve(UNBAN_CLIENT_SERVICE);
+    const command = new UnbanClientCommand(safeParams.id);
 
     await service.execute(command);
 
