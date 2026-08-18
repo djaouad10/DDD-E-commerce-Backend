@@ -13,14 +13,14 @@ export class UpdateVariationOfProductCommand {
   private validate(newTotalQty?: number, newWeightInGrams?: number) {
     if (newTotalQty && newTotalQty < 0) {
       throw new ValidationError(
-        "cart.item.qty",
-        "cart item qty must be greater than 0",
+        "product.variation.qty",
+        "variation qty must be greater than 0",
       );
     }
     if (newWeightInGrams && newWeightInGrams <= 0) {
       throw new ValidationError(
-        "cart.item.weightInGrams",
-        "cart item weightInGrams must be greater than 0",
+        "product.variation.weightInGrams",
+        "variation weightInGrams must be greater than 0",
       );
     }
   }
