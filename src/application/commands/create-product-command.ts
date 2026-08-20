@@ -8,10 +8,10 @@ export class CreateProductCommand {
     public readonly brand: string,
     public readonly material: string,
     public readonly price: number,
-    public readonly discount_price: number | null,
+    public readonly discountPrice: number | null,
     public readonly mainImage: {
       name: string;
-      public_url: string;
+      publicUrl: string;
       key: string;
     },
     public readonly variations: {
@@ -22,12 +22,12 @@ export class CreateProductCommand {
     }[],
     public readonly categoryId?: string,
   ) {
-    this.validate(price, discount_price, variations);
+    this.validate(price, discountPrice, variations);
   }
 
   private validate(
     price: number,
-    discount_price: number | null,
+    discountPrice: number | null,
     variations: {
       size: Size;
       color: Color;
@@ -39,16 +39,16 @@ export class CreateProductCommand {
       throw new ValidationError("product.price", "must be greater than 0");
     }
 
-    if (discount_price !== null && discount_price < 0) {
+    if (discountPrice !== null && discountPrice < 0) {
       throw new ValidationError(
-        "product.discount_price",
+        "product.discountPrice",
         "must be greater than 0",
       );
     }
 
-    if (discount_price !== null && discount_price >= price) {
+    if (discountPrice !== null && discountPrice >= price) {
       throw new ValidationError(
-        "product.discount_price",
+        "product.discountPrice",
         "must be less than price",
       );
     }

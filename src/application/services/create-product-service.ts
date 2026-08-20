@@ -29,7 +29,7 @@ export class CreateProductService {
     const image = File.create(
       mainImage.key,
       mainImage.name,
-      mainImage.public_url,
+      mainImage.publicUrl,
       true,
     );
 
@@ -53,7 +53,7 @@ export class CreateProductService {
       data.brand,
       data.material,
       Money.of(data.price, "DZD"),
-      data.discount_price ? Money.of(data.discount_price, "DZD") : null,
+      data.discountPrice ? Money.of(data.discountPrice, "DZD") : null,
       null,
     );
 
