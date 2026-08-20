@@ -109,3 +109,17 @@ export const createProductBodySchema = z.object({
     }),
   ),
 });
+
+export const updateProductParamsSchema = z.object({
+  id: z.string(),
+});
+
+export const updateProductBodySchema = z.object({
+  price: z.coerce.number().positive().optional(),
+  name: z.string().optional(),
+  description: z.string().nullable().optional(),
+  brand: z.string().optional(),
+  material: z.string().optional(),
+  discountPrice: z.coerce.number().positive().nullable().optional(),
+  categoryId: z.string().nullable().optional(),
+});

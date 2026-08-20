@@ -13,6 +13,7 @@ import {
   GET_PRODUCT_VARIATIONS_WITH_CART_FLAG_SERVICE,
   GET_PRODUCTS_SERVICE,
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
+  UPDATE_PRODUCT_SERVICE,
   UPDATE_VARIATION_OF_PRODUCT_SERVICE,
 } from "#/composition/tokens.js";
 import {
@@ -28,8 +29,10 @@ import {
   getProductUpdateDataParamsSchema,
   getProductVariationsParamsSchema,
   getProductVariationsWithCartFlagParamsSchema,
+  updateProductBodySchema,
   updateProductMainImageBodySchema,
   updateProductMainImageParamsSchema,
+  updateProductParamsSchema,
   updateVariationOfProductBodySchema,
   updateVariationOfProductParamsSchema,
 } from "../validators/products.js";
@@ -46,6 +49,7 @@ import { AddSecondaryImageToProductCommand } from "#/application/commands/add-se
 import { UpdateVariationOfProductCommand } from "#/application/commands/update-variation-of-product.command.js";
 import { CreateVariationOfProductCommand } from "#/application/commands/create-variation-of-product.command.js";
 import { CreateProductCommand } from "#/application/commands/create-product-command.js";
+import { UpdateProductCommand } from "#/application/commands/update-product.command.js";
 
 const router = Router();
 
@@ -292,6 +296,32 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
   const result = await service.execute(command);
 
   res.status(200).json(result);
+});
+
+router.patch("/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  const safeParams = validate(updateProductParamsSchema, req.params);
+  const safeBody = validate(updateProductBodySchema, req.body);
+
+  const service = req.scope.resolve(UPDATE_PRODUCT_SERVICE);
+  const command = new UpdateProductCommand(safeParams.id, {
+    ...(safeBody.name !== undefined && { name: safeBody.name }),
+    ...(safeBody.description !== undefined && {
+      description: safeBody.description,
+    }),
+    ...(safeBody.price !== undefined && { price: safeBody.price }),
+    ...(safeBody.discountPrice !== undefined && {
+      discountPrice: safeBody.discountPrice,
+    }),
+    ...(safeBody.categoryId !== undefined && {
+      categoryId: safeBody.categoryId,
+    }),
+    ...(safeBody.brand !== undefined && { brand: safeBody.brand }),
+    ...(safeBody.material !== undefined && { material: safeBody.material }),
+  });
+
+  await service.execute(command);
+
+  res.status(200).json({ success: true });
 });
 
 export default router;
