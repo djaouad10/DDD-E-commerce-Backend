@@ -3,6 +3,7 @@ import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { UpdateProductMainImageCommand } from "#/application/commands/update-product-main-image.command.js";
 import {
   ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE,
+  CREATE_PRODUCT_SERVICE,
   CREATE_VARIATION_OF_PRODUCT_SERVICE,
   DELETE_PRODUCT_IMAGE_SERVICE,
   GET_LOW_STOCK_PRODUCTS_SERVICE,
@@ -15,6 +16,7 @@ import {
   UPDATE_VARIATION_OF_PRODUCT_SERVICE,
 } from "#/composition/tokens.js";
 import {
+  createProductBodySchema,
   createProductImageBodySchema,
   createProductImageParamsSchema,
   createVariationOfProductBodySchema,
@@ -43,6 +45,7 @@ import { GetProductUpdateDataQuery } from "#/application/queries/get-product-upd
 import { AddSecondaryImageToProductCommand } from "#/application/commands/add-secondary-image-to-product.command.js";
 import { UpdateVariationOfProductCommand } from "#/application/commands/update-variation-of-product.command.js";
 import { CreateVariationOfProductCommand } from "#/application/commands/create-variation-of-product.command.js";
+import { CreateProductCommand } from "#/application/commands/create-product-command.js";
 
 const router = Router();
 
@@ -259,5 +262,36 @@ router.post(
     res.status(200).json(result);
   },
 );
+
+router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
+  const {
+    name,
+    description,
+    price,
+    discountPrice,
+    brand,
+    material,
+    mainImage,
+    variations,
+    categoryId,
+  } = validate(createProductBodySchema, req.body);
+
+  const service = req.scope.resolve(CREATE_PRODUCT_SERVICE);
+  const command = new CreateProductCommand(
+    name,
+    description,
+    brand,
+    material,
+    price,
+    discountPrice,
+    mainImage,
+    variations,
+    categoryId ?? undefined,
+  );
+
+  const result = await service.execute(command);
+
+  res.status(200).json(result);
+});
 
 export default router;

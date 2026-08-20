@@ -86,3 +86,26 @@ export const createVariationOfProductBodySchema = z.object({
   totalQty: z.coerce.number().nonnegative(),
   weightInGrams: z.coerce.number().positive(),
 });
+
+export const createProductBodySchema = z.object({
+  name: z.string(),
+  description: z.string().nullable(),
+  price: z.coerce.number().positive(),
+  discountPrice: z.coerce.number().positive().nullable(),
+  categoryId: z.string().nullable(),
+  brand: z.string(),
+  material: z.string(),
+  mainImage: z.object({
+    name: z.string(),
+    publicUrl: z.string(),
+    key: z.string(),
+  }),
+  variations: z.array(
+    z.object({
+      size: z.enum(Size),
+      color: z.enum(Color),
+      totalQty: z.coerce.number().nonnegative(),
+      weightInGrams: z.coerce.number().positive(),
+    }),
+  ),
+});
