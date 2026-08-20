@@ -32,5 +32,10 @@ export class UpdateProductCommand {
         "provide at least one field to update in product",
         { productId: this.productId },
       );
+
+    if (data.price && data.discountPrice && data.price <= data.discountPrice)
+      throw new BadRequestError("discount price must be less than price", {
+        productId: this.productId,
+      });
   }
 }
