@@ -72,6 +72,7 @@ import {
   UPDATE_VARIATION_OF_PRODUCT_SERVICE,
   CREATE_VARIATION_OF_PRODUCT_SERVICE,
   CREATE_PRODUCT_SERVICE,
+  UPDATE_PRODUCT_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -117,6 +118,7 @@ import { AddSecondaryImageToProductService } from "#/application/services/add-se
 import { UpdateVariationOfProductService } from "#/application/services/update-variation-of-product.service.js";
 import { CreateVariationOfProductService } from "#/application/services/create-variation-of-product.service.js";
 import { CreateProductService } from "#/application/services/create-product-service.js";
+import { UpdateProductService } from "#/application/services/update-product.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -580,6 +582,17 @@ export function buildApiContainer(): Container {
     CREATE_PRODUCT_SERVICE,
     (scope) =>
       new CreateProductService(
+        scope.resolve(DB),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    UPDATE_PRODUCT_SERVICE,
+    (scope) =>
+      new UpdateProductService(
         scope.resolve(DB),
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
