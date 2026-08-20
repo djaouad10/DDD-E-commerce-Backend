@@ -65,6 +65,7 @@ import type { UnbanClientService } from "#/application/services/unban-client.ser
 import type { AddSecondaryImageToProductService } from "#/application/services/add-secondary-image-to-product.service.js";
 import type { UpdateVariationOfProductService } from "#/application/services/update-variation-of-product.service.js";
 import type { CreateVariationOfProductService } from "#/application/services/create-variation-of-product.service.js";
+import type { CreateProductService } from "#/application/services/create-product-service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -340,3 +341,7 @@ export const UPDATE_VARIATION_OF_PRODUCT_SERVICE = Symbol(
 export const CREATE_VARIATION_OF_PRODUCT_SERVICE = Symbol(
   "createVariationOfProductService",
 ) as InjectionToken<CreateVariationOfProductService>;
+
+export const CREATE_PRODUCT_SERVICE = Symbol(
+  "createProductService",
+) as InjectionToken<CreateProductService>;
