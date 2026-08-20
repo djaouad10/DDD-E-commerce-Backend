@@ -26,32 +26,46 @@ export class UpdateProductService {
 
     if (!product) throw new NotFoundError("product", productId);
 
-    if (data.name !== undefined) {
+
+    // we check that fields are actually updated or not to avoid recording unnecessary product updated events
+
+    if (data.name !== undefined && data.name !== product.getName()) {
       product.updateName(data.name);
     }
 
-    if (data.description !== undefined) {
+    if (
+      data.description !== undefined &&
+      data.description !== product.getDescription()
+    ) {
       product.updateDescription(data.description);
     }
 
-    if (data.brand !== undefined) {
+    if (data.brand !== undefined && data.brand !== product.getBrand()) {
       product.updateBrand(data.brand);
     }
 
-    if (data.material !== undefined) {
+    if (
+      data.material !== undefined &&
+      data.material !== product.getMaterial()
+    ) {
       product.updateMaterial(data.material);
     }
 
-    if (data.price !== undefined) {
+    if (data.price !== undefined && data.price !== product.getPrice().amount) {
       product.updatePrice(Money.of(data.price, product.getPrice().currency));
     }
 
-    if (data.discountPrice !== undefined) {
+    if (
+      typeof data.discountPrice === "number" &&
+      data.discountPrice !== product.getDiscountedPrice()?.amount
+    ) {
       product.updateDiscountedPrice(
-        data.discountPrice
-          ? Money.of(data.discountPrice, product.getPrice().currency)
-          : null,
+        Money.of(data.discountPrice, product.getPrice().currency),
       );
+    }
+
+    if (data.discountPrice === null && product.getDiscountedPrice() !== null) {
+      product.updateDiscountedPrice(null);
     }
 
     if (data.categoryId !== undefined) {
