@@ -128,3 +128,7 @@ export const deleteVariationOfProductParamsSchema = z.object({
   productId: z.string(),
   variationId: z.string(),
 });
+
+export const deleteProductParamsSchema = z.object({
+  id: z.string(),
+});
