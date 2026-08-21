@@ -55,9 +55,9 @@ export class InsufficientInventoryError extends DomainError {
   readonly code = "INSUFFICIENT_INVENTORY";
   readonly statusCode = 409;
 
-  constructor(productId: string, requested: number, available: number) {
+  constructor(variationId: string, requested: number, available: number) {
     super(`Only ${available} units available, ${requested} requested`, {
-      productId,
+      variationId,
       requested,
       available,
     });
