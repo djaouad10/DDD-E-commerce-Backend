@@ -1,5 +1,7 @@
 import { Router } from "express";
 import {
+  createRatingBodySchema,
+  createRatingParamsSchema,
   didIRateProductParamsSchema,
   getApprovedRatingsOfProductParamsSchema,
   getApprovedRatingsOfProductSearchParamsSchema,
@@ -10,6 +12,7 @@ import {
 } from "../validators/ratings.js";
 import { validate } from "../utils/validation.js";
 import {
+  CREATE_RATING_SERVICE,
   DID_USER_RATE_PRODUCT_SERVICE,
   GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
   GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
@@ -22,6 +25,7 @@ import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { clientMiddleware } from "../middleware/client-middleware.js";
 import { DidUserRateProductQuery } from "#/application/queries/did-user-rate-product.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
+import { CreateRatingCommand } from "#/application/commands/create-rating.command.js";
 
 const router = Router();
 
@@ -130,6 +134,29 @@ router.get(
     const result = await service.execute(query);
 
     res.status(200).json(result);
+  },
+);
+
+router.post(
+  "/product/:productId",
+  authMiddleware,
+  clientMiddleware,
+  async (req, res) => {
+    const safeParams = validate(createRatingParamsSchema, req.params);
+    const safeBody = validate(createRatingBodySchema, req.body);
+    const userId = req.user!.id; // auth middleware ensures req.user is defined
+
+    const service = req.scope.resolve(CREATE_RATING_SERVICE);
+    const command = new CreateRatingCommand(
+      safeParams.productId,
+      userId,
+      safeBody.rating,
+      safeBody.comment,
+    );
+
+    await service.execute(command);
+
+    res.status(200).json({ success: true });
   },
 );
 

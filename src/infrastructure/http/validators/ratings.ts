@@ -45,3 +45,12 @@ export const getRatingsOfClientSearchParamsSchema = z.object({
 export const didIRateProductParamsSchema = z.object({
   productId: z.string(),
 });
+
+export const createRatingParamsSchema = z.object({
+  productId: z.string(),
+});
+
+export const createRatingBodySchema = z.object({
+  rating: z.coerce.number().min(0).max(5),
+  comment: z.string().nullable(),
+});
