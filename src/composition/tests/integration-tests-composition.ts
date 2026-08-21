@@ -81,6 +81,7 @@ import {
   DELETE_RATING_SERVICE,
   APPROVE_RATING_SERVICE,
   DELETE_VARIATION_OF_PRODUCT_SERVICE,
+  DELETE_PRODUCT_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -130,6 +131,7 @@ import { CreateRatingService } from "#/application/services/create-rating.servic
 import { DeleteRatingService } from "#/application/services/delete-rating.service.js";
 import { ApproveRatingService } from "#/application/services/approve-rating.service.js";
 import { DeleteVariationOfProductService } from "#/application/services/delete-variation-of-product.service.js";
+import { DeleteProductService } from "#/application/services/delete-product.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -657,6 +659,18 @@ export function buildIntegrationTestsContainer(): Container {
     DELETE_VARIATION_OF_PRODUCT_SERVICE,
     (scope) =>
       new DeleteVariationOfProductService(
+        scope.resolve(DB),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(ORDER_QUERIES),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DELETE_PRODUCT_SERVICE,
+    (scope) =>
+      new DeleteProductService(
         scope.resolve(DB),
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(ORDER_QUERIES),
