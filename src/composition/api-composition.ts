@@ -75,6 +75,7 @@ import {
   UPDATE_PRODUCT_SERVICE,
   CREATE_RATING_SERVICE,
   DELETE_RATING_SERVICE,
+  APPROVE_RATING_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -123,6 +124,7 @@ import { CreateProductService } from "#/application/services/create-product-serv
 import { UpdateProductService } from "#/application/services/update-product.service.js";
 import { CreateRatingService } from "#/application/services/create-rating.service.js";
 import { DeleteRatingService } from "#/application/services/delete-rating.service.js";
+import { ApproveRatingService } from "#/application/services/approve-rating.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -621,6 +623,17 @@ export function buildApiContainer(): Container {
     DELETE_RATING_SERVICE,
     (scope) =>
       new DeleteRatingService(
+        scope.resolve(DB),
+        scope.resolve(RATING_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    APPROVE_RATING_SERVICE,
+    (scope) =>
+      new ApproveRatingService(
         scope.resolve(DB),
         scope.resolve(RATING_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
