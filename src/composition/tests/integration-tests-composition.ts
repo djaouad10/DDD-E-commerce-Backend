@@ -77,6 +77,7 @@ import {
   CREATE_VARIATION_OF_PRODUCT_SERVICE,
   CREATE_PRODUCT_SERVICE,
   UPDATE_PRODUCT_SERVICE,
+  CREATE_RATING_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -122,6 +123,7 @@ import { UpdateVariationOfProductService } from "#/application/services/update-v
 import { CreateVariationOfProductService } from "#/application/services/create-variation-of-product.service.js";
 import { CreateProductService } from "#/application/services/create-product-service.js";
 import { UpdateProductService } from "#/application/services/update-product.service.js";
+import { CreateRatingService } from "#/application/services/create-rating.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -605,6 +607,19 @@ export function buildIntegrationTestsContainer(): Container {
       new UpdateProductService(
         scope.resolve(DB),
         scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_RATING_SERVICE,
+    (scope) =>
+      new CreateRatingService(
+        scope.resolve(DB),
+        scope.resolve(RATING_REPOSITORY),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(USER_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
     "scoped",
