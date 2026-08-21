@@ -54,3 +54,12 @@ export const createRatingBodySchema = z.object({
   rating: z.coerce.number().min(0).max(5),
   comment: z.string().nullable(),
 });
+
+
+export const deleteRatingParamsSchema = z.object({
+  productId: z.string(),
+})
+
+export const deleteRatingSearchParamsSchema = z.object({
+  clientId: z.string(),
+})

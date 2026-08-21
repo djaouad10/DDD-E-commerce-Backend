@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   createRatingBodySchema,
   createRatingParamsSchema,
+  deleteRatingParamsSchema,
+  deleteRatingSearchParamsSchema,
   didIRateProductParamsSchema,
   getApprovedRatingsOfProductParamsSchema,
   getApprovedRatingsOfProductSearchParamsSchema,
@@ -13,6 +15,7 @@ import {
 import { validate } from "../utils/validation.js";
 import {
   CREATE_RATING_SERVICE,
+  DELETE_RATING_SERVICE,
   DID_USER_RATE_PRODUCT_SERVICE,
   GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
   GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
@@ -26,6 +29,7 @@ import { clientMiddleware } from "../middleware/client-middleware.js";
 import { DidUserRateProductQuery } from "#/application/queries/did-user-rate-product.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import { CreateRatingCommand } from "#/application/commands/create-rating.command.js";
+import { DeleteRatingCommand } from "#/application/commands/delete-rating.command.js";
 
 const router = Router();
 
@@ -159,5 +163,23 @@ router.post(
     res.status(200).json({ success: true });
   },
 );
+
+router.delete("/product/:productId", authMiddleware, async (req, res) => {
+  const safeParams = validate(deleteRatingParamsSchema, req.params);
+  let userId = req.user!.id; // clients only deletes their own ratings
+
+  if (req.user!.role === "ADMIN") {
+    const safeSearchParams = validate(deleteRatingSearchParamsSchema, req.body);
+
+    userId = safeSearchParams.clientId; // admin deletes rating for client
+  }
+
+  const service = req.scope.resolve(DELETE_RATING_SERVICE);
+  const command = new DeleteRatingCommand(safeParams.productId, userId);
+
+  await service.execute(command);
+
+  res.status(200).json({ success: true });
+});
 
 export default router;
