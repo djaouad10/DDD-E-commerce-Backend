@@ -1,5 +1,7 @@
 import { Router } from "express";
 import {
+  approveRatingParamsSchema,
+  approveRatingSearchParamsSchema,
   createRatingBodySchema,
   createRatingParamsSchema,
   deleteRatingParamsSchema,
@@ -14,6 +16,7 @@ import {
 } from "../validators/ratings.js";
 import { validate } from "../utils/validation.js";
 import {
+  APPROVE_RATING_SERVICE,
   CREATE_RATING_SERVICE,
   DELETE_RATING_SERVICE,
   DID_USER_RATE_PRODUCT_SERVICE,
@@ -30,6 +33,7 @@ import { DidUserRateProductQuery } from "#/application/queries/did-user-rate-pro
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import { CreateRatingCommand } from "#/application/commands/create-rating.command.js";
 import { DeleteRatingCommand } from "#/application/commands/delete-rating.command.js";
+import { ApproveRatingCommand } from "#/application/commands/approve-rating.command.js";
 
 const router = Router();
 
@@ -181,5 +185,28 @@ router.delete("/product/:productId", authMiddleware, async (req, res) => {
 
   res.status(200).json({ success: true });
 });
+
+router.patch(
+  "/product/:productId",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(approveRatingParamsSchema, req.params);
+    const safeSearchParams = validate(
+      approveRatingSearchParamsSchema,
+      req.body,
+    );
+
+    const service = req.scope.resolve(APPROVE_RATING_SERVICE);
+    const command = new ApproveRatingCommand(
+      safeParams.productId,
+      safeSearchParams.clientId,
+    );
+
+    await service.execute(command);
+
+    res.status(200).json({ success: true });
+  },
+);
 
 export default router;

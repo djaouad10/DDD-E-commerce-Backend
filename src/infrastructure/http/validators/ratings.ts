@@ -55,11 +55,18 @@ export const createRatingBodySchema = z.object({
   comment: z.string().nullable(),
 });
 
-
 export const deleteRatingParamsSchema = z.object({
   productId: z.string(),
-})
+});
 
 export const deleteRatingSearchParamsSchema = z.object({
   clientId: z.string(),
-})
+});
+
+export const approveRatingParamsSchema = z.object({
+  productId: z.string(),
+});
+
+export const approveRatingSearchParamsSchema = z.object({
+  clientId: z.string(),
+});
