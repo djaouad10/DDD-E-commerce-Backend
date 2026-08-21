@@ -368,7 +368,7 @@ export const outbox = pgTable(
     // event_type could be like: "create_order_in_shipping_api" in case of a "outbox-job" category
     event_type: varchar("event_type", { length: 100 }).notNull(),
     // Optional but useful to query all domain events of a specific aggregate ordered by created_at for debugging.
-    aggregate_id: varchar("aggregate_id", { length: 40 }),
+    aggregate_id: varchar("aggregate_id", { length: 80 }),
     payload: jsonb("payload").notNull(),
     status: outboxStatusEnum("status").notNull().default("PENDING"),
     attempts: integer("attempts").notNull().default(0),
