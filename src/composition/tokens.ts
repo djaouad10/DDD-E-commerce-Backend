@@ -68,6 +68,7 @@ import type { CreateVariationOfProductService } from "#/application/services/cre
 import type { CreateProductService } from "#/application/services/create-product-service.js";
 import type { UpdateProductService } from "#/application/services/update-product.service.js";
 import type { CreateRatingService } from "#/application/services/create-rating.service.js";
+import type { DeleteRatingService } from "#/application/services/delete-rating.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -354,3 +355,8 @@ export const UPDATE_PRODUCT_SERVICE = Symbol(
 export const CREATE_RATING_SERVICE = Symbol(
   "createRatingService",
 ) as InjectionToken<CreateRatingService>;
+
+
+export const DELETE_RATING_SERVICE = Symbol(
+  "deleteRatingService",
+) as InjectionToken<DeleteRatingService>;
