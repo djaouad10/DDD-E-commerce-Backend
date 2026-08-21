@@ -7,6 +7,10 @@ import type {
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
+import type { VariationId } from "#/domain/value-objects/variation-id.js";
+import { order, orderItem, variation } from "../../schema.js";
+import { asc, eq } from "drizzle-orm";
+import type { ProductId } from "#/domain/value-objects/product-id.js";
 export class PostgresOrderQueries implements OrderQueries {
   private logger = createLogger("PostgresOrderQueries");
 
@@ -105,6 +109,157 @@ export class PostgresOrderQueries implements OrderQueries {
       this.logger.error("search failed", error as Error, { criteria });
 
       handleDrizzleErrors(error, "PostgresOrderQueries.search");
+    }
+  }
+
+  async getFirstOrderWithItemOfVariation(
+    variationId: VariationId,
+  ): Promise<OrderSearchResultDTO | null> {
+    this.logger.debug("getFirstOrderWithItemOfVariation called", {
+      variationId,
+    });
+
+    try {
+      const [orderRow] = await this.logger.measure(
+        "db.select.from.orderItem.join.order",
+        () =>
+          this.db
+            .select({
+              order: {
+                id: order.id,
+                user_id: order.user_id,
+                tracking_number: order.tracking_number,
+                status: order.status,
+                shipping_status: order.shipping_status,
+                shipping_price_at_order_time:
+                  order.shipping_price_at_order_time,
+                selected_shipping_provider: order.selected_shipping_provider,
+                created_at: order.created_at,
+                updated_at: order.updated_at,
+              },
+            })
+            .from(orderItem)
+            .innerJoin(order, eq(orderItem.orderId, order.id))
+            .where(eq(orderItem.variation_id, variationId.value))
+            .orderBy(asc(order.created_at))
+            .limit(1),
+      );
+
+      if (!orderRow) {
+        this.logger.debug("order not found", {
+          variationId: variationId.value,
+        });
+
+        return null;
+      }
+
+      const orderToReturn: OrderSearchResultDTO = {
+        id: orderRow.order.id,
+        userId: orderRow.order.user_id,
+        trackingNumber: orderRow.order.tracking_number,
+        status: orderRow.order.status,
+        shippingStatus: orderRow.order.shipping_status,
+        shippingPriceAtOrderTime: {
+          amount: orderRow.order.shipping_price_at_order_time,
+          currency: "DZD",
+        },
+        selectedShippingProvider: orderRow.order.selected_shipping_provider,
+        createdAt: orderRow.order.created_at.toISOString(),
+        updatedAt: orderRow.order.updated_at.toISOString(),
+      };
+
+      this.logger.debug("getFirstOrderWithItemOfVariation completed", {
+        order: orderToReturn,
+      });
+
+      return orderToReturn;
+    } catch (error) {
+      this.logger.error(
+        "getFirstOrderWithItemOfVariation failed",
+        error as Error,
+        { variationId: variationId.value },
+      );
+
+      handleDrizzleErrors(
+        error,
+        "PostgresOrderQueries.getFirstOrderWithItemOfVariation",
+      );
+    }
+  }
+
+  async getFirstOrderWithItemOfProduct(
+    productId: ProductId,
+  ): Promise<OrderSearchResultDTO | null> {
+    this.logger.debug("getFirstOrderWithItemOfProduct called", {
+      productId,
+    });
+
+    try {
+      const [orderRow] = await this.logger.measure(
+        "db.select.from.orderItem.join.variation",
+        () =>
+          this.db
+            .select({
+              order: {
+                id: order.id,
+                user_id: order.user_id,
+                tracking_number: order.tracking_number,
+                status: order.status,
+                shipping_status: order.shipping_status,
+                shipping_price_at_order_time:
+                  order.shipping_price_at_order_time,
+                selected_shipping_provider: order.selected_shipping_provider,
+                created_at: order.created_at,
+                updated_at: order.updated_at,
+              },
+            })
+            .from(orderItem)
+            .innerJoin(variation, eq(orderItem.variation_id, variation.id))
+            .innerJoin(order, eq(orderItem.orderId, order.id))
+            .where(eq(variation.product_id, productId.value))
+            .orderBy(asc(order.created_at))
+            .limit(1),
+      );
+
+      if (!orderRow) {
+        this.logger.debug("order not found", {
+          productId: productId.value,
+        });
+
+        return null;
+      }
+
+      const orderToReturn: OrderSearchResultDTO = {
+        id: orderRow.order.id,
+        userId: orderRow.order.user_id,
+        trackingNumber: orderRow.order.tracking_number,
+        status: orderRow.order.status,
+        shippingStatus: orderRow.order.shipping_status,
+        shippingPriceAtOrderTime: {
+          amount: orderRow.order.shipping_price_at_order_time,
+          currency: "DZD",
+        },
+        selectedShippingProvider: orderRow.order.selected_shipping_provider,
+        createdAt: orderRow.order.created_at.toISOString(),
+        updatedAt: orderRow.order.updated_at.toISOString(),
+      };
+
+      this.logger.debug("getFirstOrderWithItemOfProduct completed", {
+        order: orderToReturn,
+      });
+
+      return orderToReturn;
+    } catch (error) {
+      this.logger.error(
+        "getFirstOrderWithItemOfProduct failed",
+        error as Error,
+        { productId: productId.value },
+      );
+
+      handleDrizzleErrors(
+        error,
+        "PostgresOrderQueries.getFirstOrderWithItemOfProduct",
+      );
     }
   }
 }
