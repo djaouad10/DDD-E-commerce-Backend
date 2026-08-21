@@ -439,6 +439,9 @@ export class Product {
     if (!variationToRemove)
       throw new NotFoundError("product.variation", variationId.value);
 
+    if (this._variations.length === 1)
+      throw new ValidationError("variations", "cannot remove last variation");
+
     this._variations = this._variations.filter(
       (v) => !v.id.equals(variationId),
     );
