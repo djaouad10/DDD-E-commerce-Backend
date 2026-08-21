@@ -6,6 +6,7 @@ import {
   CREATE_PRODUCT_SERVICE,
   CREATE_VARIATION_OF_PRODUCT_SERVICE,
   DELETE_PRODUCT_IMAGE_SERVICE,
+  DELETE_VARIATION_OF_PRODUCT_SERVICE,
   GET_LOW_STOCK_PRODUCTS_SERVICE,
   GET_PRODUCT_STATIC_DATA_SERVICE,
   GET_PRODUCT_UPDATE_DATA_SERVICE,
@@ -23,6 +24,7 @@ import {
   createVariationOfProductBodySchema,
   createVariationOfProductParamsSchema,
   deleteProductImageParamsSchema,
+  deleteVariationOfProductParamsSchema,
   getLowStockProductsSearchParamsSchema,
   getProductsSearchParamsSchema,
   getProductStaticDataParamsSchema,
@@ -50,6 +52,7 @@ import { UpdateVariationOfProductCommand } from "#/application/commands/update-v
 import { CreateVariationOfProductCommand } from "#/application/commands/create-variation-of-product.command.js";
 import { CreateProductCommand } from "#/application/commands/create-product-command.js";
 import { UpdateProductCommand } from "#/application/commands/update-product.command.js";
+import { DeleteVariationOfProductCommand } from "#/application/commands/delete-variation-of-product.command.js";
 
 const router = Router();
 
@@ -323,5 +326,27 @@ router.patch("/:id", authMiddleware, adminMiddleware, async (req, res) => {
 
   res.status(200).json({ success: true });
 });
+
+router.delete(
+  "/:productId/variations/:variationId",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(
+      deleteVariationOfProductParamsSchema,
+      req.params,
+    );
+
+    const service = req.scope.resolve(DELETE_VARIATION_OF_PRODUCT_SERVICE);
+    const command = new DeleteVariationOfProductCommand(
+      safeParams.productId,
+      safeParams.variationId,
+    );
+
+    await service.execute(command);
+
+    res.status(200).json({ success: true });
+  },
+);
 
 export default router;

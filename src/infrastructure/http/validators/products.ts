@@ -123,3 +123,8 @@ export const updateProductBodySchema = z.object({
   discountPrice: z.coerce.number().positive().nullable().optional(),
   categoryId: z.string().nullable().optional(),
 });
+
+export const deleteVariationOfProductParamsSchema = z.object({
+  productId: z.string(),
+  variationId: z.string(),
+});
