@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { validate } from "../utils/validation.js";
 import {
+  createOrderBodySchema,
   getOrderByIdParamsSchema,
   getOrderByTrackingNumberParamsSchema,
   getOrdersOfClientSearchParamsSchema,
   getOrdersSearchParamsSchema,
 } from "../validators/orders.js";
 import {
+  CREATE_ORDER_SERVICE,
   GET_ORDER_BY_ID_SERVICE,
   GET_ORDER_BY_TRACKING_NUMBER_SERVICE,
   GET_ORDERS_OF_CLIENT_SERVICE,
@@ -18,6 +20,7 @@ import { GetOrderByTrackingNumberQuery } from "#/application/queries/get-order-b
 import { GetOrderByIdQuery } from "#/application/queries/get-order-by-id.query.js";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { GetOrdersQuery } from "#/application/queries/get-orders.query.js";
+import { CreateOrderCommand } from "#/application/commands/create-order.command.js";
 
 const router = Router();
 
@@ -100,6 +103,24 @@ router.get("/", authMiddleware, adminMiddleware, async (req, res) => {
   const result = await service.execute(query);
 
   res.status(200).json(result);
+});
+
+router.post("/", authMiddleware, async (req, res) => {
+  const safeBody = validate(createOrderBodySchema, req.body);
+  const userId = req.user!.id; // auth middleware ensures req.user is defined
+
+  const service = req.scope.resolve(CREATE_ORDER_SERVICE);
+  const command = new CreateOrderCommand(
+    safeBody.idempotencyKey,
+    userId,
+    safeBody.providedShippingPrice,
+    safeBody.selectedShippingProvider,
+    safeBody.shippingDetails,
+  );
+
+  const result = await service.execute(command);
+
+  res.status(200).json({ orderId: result.value });
 });
 
 export default router;

@@ -1,4 +1,5 @@
-import { OrderStatus } from "#/domain/entities/order.js";
+import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
+import { DeliveryType } from "#/domain/value-objects/shipping-details.js";
 import z from "zod";
 
 export const getOrdersOfClientSearchParamsSchema = z.object({
@@ -30,4 +31,32 @@ export const getOrdersSearchParamsSchema = z.object({
       orderId: z.string(),
     })
     .optional(),
+});
+
+const phoneNumberSchema = z
+  .string()
+  .trim()
+  .regex(/^(00213|\+213|0)(5|6|7)[0-9]{8}$/, "invalid algerian phone number");
+
+export const createOrderBodySchema = z.object({
+  idempotencyKey: z.uuid(),
+  providedShippingPrice: z.coerce.number().positive().max(1000000),
+  selectedShippingProvider: z.enum(ShippingProvider),
+  shippingDetails: z.object({
+    fullName: z.string().trim(),
+    firstPhone: phoneNumberSchema,
+    secondPhone: phoneNumberSchema.optional(),
+    wilayaCode: z.number().min(1).max(69),
+    commune: z.string().trim(),
+    postalCode: z
+      .string()
+      .trim()
+      .regex(/^\d{3,5}$/, "invalid postal code"),
+
+    address: z.string().trim(),
+    gpsLink: z.url().optional(),
+    clientNote: z.string().trim().optional(),
+    deliveryType: z.enum(DeliveryType),
+    fragile: z.boolean(),
+  }),
 });
