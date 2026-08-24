@@ -137,7 +137,7 @@ export class PostgresProductRepository implements ProductRepository {
   }
 
   async findByVariationIds(variationIds: VariationId[]): Promise<Product[]> {
-    this.logger.debug("findByVariationId called", {
+    this.logger.debug("findByVariationIds called", {
       variationIds: variationIds.map((id) => id.value),
     });
 
