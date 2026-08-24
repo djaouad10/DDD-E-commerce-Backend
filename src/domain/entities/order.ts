@@ -3,6 +3,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { OrderCancelled } from "../events/order/order-cancelled.js";
 import { OrderConfirmed } from "../events/order/order-confirmed.js";
+import { OrderCreated } from "../events/order/order-created.js";
 import { OrderDelivered } from "../events/order/order-delivered.js";
 import { OrderMarkedAsPreTransit } from "../events/order/order-marked-as-pre-transit.js";
 import { OrderMarkedAsShipping } from "../events/order/order-marked-as-shipping.js";
@@ -84,7 +85,7 @@ export class Order {
 
     const now = new Date();
 
-    return new Order(
+    const order = new Order(
       OrderId.generate(),
       userId,
       null,
@@ -97,6 +98,19 @@ export class Order {
       now,
       now,
     );
+
+    order.recordThat(
+      new OrderCreated(
+        order.id.value,
+        userId.value,
+        order.getOrderItems().length,
+        order.getTotalOrderPrice().amount,
+        order.getTotalOrderPrice().currency,
+        selectedShippingProvider,
+      ),
+    );
+
+    return order;
   }
 
   static reconstitute(
