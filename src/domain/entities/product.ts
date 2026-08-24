@@ -712,6 +712,8 @@ export class Product {
 
   // utils
   calculateDiscountPercentage(): number {
+    if (this._price.amount === 0) return 0; // should be impossible since price can never be 0 but just in case
+
     return Math.round(
       (this.getDiscountAmount().amount / this._price.amount) * 100,
     );
