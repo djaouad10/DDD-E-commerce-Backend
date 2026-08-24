@@ -69,6 +69,7 @@ export class PostgresProductMapper {
       averageRating,
       row.created_at,
       row.updated_at,
+      row.version,
     );
   }
 
@@ -85,6 +86,7 @@ export class PostgresProductMapper {
       discount_price: product.getDiscountedPrice()?.amount ?? null,
       created_at: product.getCreatedAt(),
       updated_at: product.getUpdatedAt(),
+      version: product.getVersion(),
     };
   }
 
