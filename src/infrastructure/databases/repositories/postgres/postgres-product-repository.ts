@@ -15,6 +15,7 @@ import type { Slug } from "#/domain/value-objects/slug.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { VariationId } from "#/domain/value-objects/variation-id.js";
 
 export class PostgresProductRepository implements ProductRepository {
   private readonly logger = createLogger("PostgresProductRepository");
@@ -131,6 +132,89 @@ export class PostgresProductRepository implements ProductRepository {
       });
 
       handleDrizzleErrors(error, "PostgresProductRepository.findBySlug");
+    }
+  }
+
+  async findByVariationIds(variationIds: VariationId[]): Promise<Product[]> {
+    this.logger.debug("findByVariationId called", {
+      variationIds: variationIds.map((id) => id.value),
+    });
+
+    if (variationIds.length === 0) {
+      this.logger.debug("findByVariationId completed", {
+        variationIds: variationIds.map((id) => id.value),
+      });
+
+      return [];
+    }
+
+    try {
+      const productWithVariationsAndFilesRow: ProductWithVariationsAndFilesRow[] =
+        await this.logger.measure("db.query.product.findMany", () =>
+          this.db.query.product.findMany({
+            where: (product, { exists, and, eq, inArray }) =>
+              exists(
+                this.db
+                  .select({ id: variation.id })
+                  .from(variation)
+                  .where(
+                    and(
+                      inArray(
+                        variation.id,
+                        variationIds.map((id) => id.value),
+                      ),
+                      eq(variation.product_id, product.id),
+                    ),
+                  ),
+              ),
+            with: { variations: true, images: true },
+          }),
+        );
+
+      const uniqueProducts = [
+        ...new Map(
+          productWithVariationsAndFilesRow.map((p) => [p.id, p]),
+        ).values(),
+      ];
+
+      // get average rating of products
+      const ratings = await this.logger.measure("db.select.from.rating", () =>
+        this.db
+          .select({
+            productId: rating.product_id,
+            avg: avg(rating.rating).mapWith(Number),
+          })
+          .from(rating)
+          .where(
+            inArray(
+              rating.product_id,
+              uniqueProducts.map((p) => p.id),
+            ),
+          )
+          .groupBy(rating.product_id),
+      );
+
+      // create a map of productId to average rating
+      const ratingMap = new Map(ratings.map((r) => [r.productId, r.avg]));
+
+      const productsToReturn = uniqueProducts.map((row) =>
+        PostgresProductMapper.toDomain(row, ratingMap.get(row.id) ?? null),
+      );
+
+      this.logger.debug("findByVariationIds completed", {
+        productsCount: productsToReturn.length,
+      });
+
+      return productsToReturn;
+    } catch (error) {
+      this.logger.error("findByVariationIds failed", error as Error, {
+        variationIds: variationIds.map((id) => id.value),
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresProductRepository.findByVariationIds",
+      );
     }
   }
 
