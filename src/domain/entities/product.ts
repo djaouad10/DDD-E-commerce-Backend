@@ -85,6 +85,8 @@ export class Product {
     private readonly _averageRating: number | null,
     private _createdAt: Date,
     private _updatedAt: Date,
+    private _version: number,
+    private _isNew: boolean,
   ) {}
 
   // factory
@@ -159,6 +161,8 @@ export class Product {
       averageRating,
       now,
       now,
+      0,
+      true,
     );
 
     product.recordThat(
@@ -192,6 +196,7 @@ export class Product {
     averageRating: number | null,
     createdAt: Date,
     updatedAt: Date,
+    version: number,
   ): Product {
     // validation
     if (images.length === 0)
@@ -250,6 +255,8 @@ export class Product {
       averageRating,
       createdAt,
       updatedAt,
+      version,
+      false,
     );
   }
 
@@ -615,6 +622,14 @@ export class Product {
 
   getAverageRating(): number | null {
     return this._averageRating;
+  }
+
+  getVersion(): number {
+    return this._version;
+  }
+
+  isNew(): boolean {
+    return this._isNew;
   }
 
   getCreatedAt(): Date {
