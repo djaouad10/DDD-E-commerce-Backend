@@ -1,5 +1,6 @@
 import { relations, type InferSelectModel } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   index,
   integer,
@@ -196,6 +197,7 @@ export const product = pgTable(
   "product",
   {
     id: varchar("id", { length: 40 }).notNull().primaryKey(),
+    version: bigint("version", {mode: "number"}).notNull().default(0),
     name: varchar("name", { length: 200 }).notNull(),
     slug: varchar("slug", { length: 300 }).notNull().unique(),
     description: varchar("description", { length: 5000 }),
