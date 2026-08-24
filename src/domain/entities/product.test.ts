@@ -103,17 +103,19 @@ describe("Product", () => {
       null,
       new Date(),
       new Date(),
+      1,
     ];
   };
 
   describe("Product.create()", () => {
-    test("when called with valid arguments, it should return a Product instance with a generated id", () => {
+    test("when called with valid arguments, it should return a Product instance with a generated id and version 0", () => {
       // Arrange & Act
       const product = Product.create(...makeValidCreateArguments());
 
       // Assert
       expect(product).toBeInstanceOf(Product);
       expect(product.id).toBeInstanceOf(ProductId);
+      expect(product.getVersion()).toBe(0);
     });
 
     test("when a product is created with no images, it should throw a ValidationError", () => {
