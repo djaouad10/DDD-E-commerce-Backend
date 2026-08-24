@@ -5,7 +5,7 @@ import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { avg, eq, inArray } from "drizzle-orm";
+import { and, avg, eq, inArray, sql } from "drizzle-orm";
 import {
   PostgresProductMapper,
   type ProductWithVariationsAndFilesRow,
@@ -16,6 +16,7 @@ import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { VariationId } from "#/domain/value-objects/variation-id.js";
+import { ConflictError } from "#/shared/errors/domain-error.js";
 
 export class PostgresProductRepository implements ProductRepository {
   private readonly logger = createLogger("PostgresProductRepository");
@@ -295,20 +296,32 @@ export class PostgresProductRepository implements ProductRepository {
     const variationsRows = PostgresProductMapper.toVariationRows(productAgg);
     const filesRows = PostgresProductMapper.toFileRows(productAgg);
 
-    // onConflictDoUpdate will update the createdAt timestamp, so we don't include it in the "set" clause
-    const { created_at, ...productRowToUpsert } = productRow;
+    // if product is newly created, insert it (the default version is 0)
     try {
-      // already in a transaction orchestrated by application service
+      if (productAgg.isNew()) {
+        await this.logger.measure("db.insert(product)", () =>
+          db.insert(product).values(productRow),
+        );
 
-      const [_, existingVariationIds] = await Promise.all([
+        return;
+      }
+
+      // else product is not new, update it with optimistic locking
+      const [productUpdateResult, existingVariationIds] = await Promise.all([
         this.logger.measure("db.insert(product)", () =>
           db
-            .insert(product)
-            .values(productRow)
-            .onConflictDoUpdate({
-              target: [product.id],
-              set: productRowToUpsert,
-            }),
+            .update(product)
+            .set({
+              ...productRow,
+              version: sql`${productRow.version} + 1`,
+            })
+            .where(
+              and(
+                eq(product.id, productRow.id),
+                eq(product.version, productAgg.getVersion()), // check for version conflict
+              ),
+            )
+            .returning({ id: product.id }),
         ),
 
         this.logger.measure("db.query.variation.findMany", () =>
@@ -319,6 +332,14 @@ export class PostgresProductRepository implements ProductRepository {
           }),
         ),
       ]);
+
+      if (productUpdateResult.length === 0) {
+        throw new ConflictError(
+          "product",
+          productAgg.id.value,
+          "concurrent modification detected",
+        );
+      }
 
       // diff them with the new variations derived from the aggregate
       const newVariationIds = new Set(variationsRows.map((v) => v.id));
