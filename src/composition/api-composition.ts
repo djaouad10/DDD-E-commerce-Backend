@@ -78,6 +78,8 @@ import {
   APPROVE_RATING_SERVICE,
   DELETE_VARIATION_OF_PRODUCT_SERVICE,
   DELETE_PRODUCT_SERVICE,
+  CREATE_ORDER_SERVICE,
+  IDEMPOTENCY_KEYS_REPOSITORY,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -129,6 +131,8 @@ import { DeleteRatingService } from "#/application/services/delete-rating.servic
 import { ApproveRatingService } from "#/application/services/approve-rating.service.js";
 import { DeleteVariationOfProductService } from "#/application/services/delete-variation-of-product.service.js";
 import { DeleteProductService } from "#/application/services/delete-product.service.js";
+import { CreateOrderService } from "#/application/services/create-order-service.js";
+import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/postgres/postgres-idempotency-keys-repository.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -177,6 +181,12 @@ export function buildApiContainer(): Container {
   container.register(
     OUTBOX_REPOSITORY,
     (scope) => new PostgresOutboxRepository(scope.resolve(DB)),
+    "singleton",
+  );
+
+  container.register(
+    IDEMPOTENCY_KEYS_REPOSITORY,
+    (scope) => new PostgresIdempotencyKeysRepository(scope.resolve(DB)),
     "singleton",
   );
 
@@ -664,6 +674,22 @@ export function buildApiContainer(): Container {
         scope.resolve(DB),
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(ORDER_QUERIES),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_ORDER_SERVICE,
+    (scope) =>
+      new CreateOrderService(
+        scope.resolve(DB),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(CART_REPOSITORY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
     "scoped",
