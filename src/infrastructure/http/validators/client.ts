@@ -35,5 +35,5 @@ export const unbanClientParamsSchema = z.object({
 
 export const updateClientProfileBodySchema = z.object({
   name: z.string().optional(),
-  image: z.string().optional(),
+  image: z.string().optional().nullable(),
 });
