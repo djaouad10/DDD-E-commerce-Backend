@@ -9,6 +9,8 @@ import {
   getOrdersOfClientSearchParamsSchema,
   getOrdersSearchParamsSchema,
   shipOrderParamsSchema,
+  updateShippingDetailsBodySchema,
+  updateShippingDetailsParamsSchema,
 } from "../validators/orders.js";
 import {
   CANCEL_ORDER_SERVICE,
@@ -19,6 +21,7 @@ import {
   GET_ORDERS_OF_CLIENT_SERVICE,
   GET_ORDERS_SERVICE,
   SHIP_ORDER_SERVICE,
+  UPDATE_SHIPPING_DETAILS_SERVICE,
 } from "#/composition/tokens.js";
 import { GetOrdersOfClientQuery } from "#/application/queries/get-orders-of-client.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
@@ -30,6 +33,7 @@ import { CreateOrderCommand } from "#/application/commands/create-order.command.
 import { CancelOrderCommand } from "#/application/commands/cancel-order.command.js";
 import { ConfirmOrderCommand } from "#/application/commands/confirm-order.command.js";
 import { ShipOrderCommand } from "#/application/commands/ship-order-command.js";
+import { UpdateShippingDetailsCommand } from "#/application/commands/update-shipping-details.command.js";
 
 const router = Router();
 
@@ -170,5 +174,27 @@ router.patch("/:id/ship", authMiddleware, adminMiddleware, async (req, res) => {
 
   res.status(200).json({ success: true });
 });
+
+router.patch(
+  "/:id/shipping-details",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(updateShippingDetailsParamsSchema, req.params);
+    const safeBody = validate(updateShippingDetailsBodySchema, req.body);
+
+    const service = req.scope.resolve(UPDATE_SHIPPING_DETAILS_SERVICE);
+    const command = new UpdateShippingDetailsCommand(safeParams.id, {
+      ...safeBody,
+      phone2: safeBody.phone2 ?? null,
+      note: safeBody.note ?? null,
+      gpsLink: safeBody.gpsLink ?? null,
+    });
+
+    await service.execute(command);
+
+    res.status(200).json({ success: true });
+  },
+);
 
 export default router;

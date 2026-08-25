@@ -72,3 +72,17 @@ export const confirmOrderParamsSchema = z.object({
 export const shipOrderParamsSchema = z.object({
   id: z.string(),
 });
+
+export const updateShippingDetailsParamsSchema = z.object({
+  id: z.string(),
+});
+
+export const updateShippingDetailsBodySchema = z.object({
+  clientName: z.string().trim(),
+  phone: phoneNumberSchema,
+  phone2: phoneNumberSchema.optional().nullable(),
+  address: z.string().trim(),
+  note: z.string().trim().optional().nullable(),
+  isFragile: z.boolean(),
+  gpsLink: z.url().optional().nullable(),
+});
