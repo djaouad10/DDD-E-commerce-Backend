@@ -399,6 +399,7 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
   id: varchar("id", { length: 40 }).primaryKey(), // Maps directly to BullMQ jobId / Outbox ID
   handler_name: varchar("handler_name", { length: 100 }).notNull(),
   created_at: timestamp("created_at").notNull().defaultNow(),
+  payload: jsonb("payload"),
 });
 
 // Relations
