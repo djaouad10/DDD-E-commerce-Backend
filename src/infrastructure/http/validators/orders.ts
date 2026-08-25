@@ -64,3 +64,7 @@ export const createOrderBodySchema = z.object({
 export const cancelOrderParamsSchema = z.object({
   id: z.string(),
 });
+
+export const confirmOrderParamsSchema = z.object({
+  id: z.string(),
+});

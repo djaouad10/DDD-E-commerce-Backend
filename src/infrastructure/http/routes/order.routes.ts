@@ -2,6 +2,7 @@ import { Router } from "express";
 import { validate } from "../utils/validation.js";
 import {
   cancelOrderParamsSchema,
+  confirmOrderParamsSchema,
   createOrderBodySchema,
   getOrderByIdParamsSchema,
   getOrderByTrackingNumberParamsSchema,
@@ -10,6 +11,7 @@ import {
 } from "../validators/orders.js";
 import {
   CANCEL_ORDER_SERVICE,
+  CONFIRM_ORDER_SERVICE,
   CREATE_ORDER_SERVICE,
   GET_ORDER_BY_ID_SERVICE,
   GET_ORDER_BY_TRACKING_NUMBER_SERVICE,
@@ -24,6 +26,7 @@ import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { GetOrdersQuery } from "#/application/queries/get-orders.query.js";
 import { CreateOrderCommand } from "#/application/commands/create-order.command.js";
 import { CancelOrderCommand } from "#/application/commands/cancel-order.command.js";
+import { ConfirmOrderCommand } from "#/application/commands/confirm-order.command.js";
 
 const router = Router();
 
@@ -137,5 +140,21 @@ router.patch("/:id/cancel", authMiddleware, async (req, res) => {
 
   res.status(200).json({ success: true });
 });
+
+router.patch(
+  "/:id/confirm",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    const safeParams = validate(confirmOrderParamsSchema, req.params);
+
+    const service = req.scope.resolve(CONFIRM_ORDER_SERVICE);
+    const command = new ConfirmOrderCommand(safeParams.id);
+
+    await service.execute(command);
+
+    res.status(200).json({ success: true });
+  },
+);
 
 export default router;
