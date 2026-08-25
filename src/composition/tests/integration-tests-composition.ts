@@ -241,11 +241,7 @@ export function buildIntegrationTestsContainer(): Container {
   );
 
   // register gateways and http client
-  container.register(
-    HTTP_CLIENT,
-    () => new FetchHttpClient(15000),
-    "singleton",
-  );
+  container.register(HTTP_CLIENT, () => new FetchHttpClient(5000), "singleton");
 
   const utApi = new UTApi({});
   container.registerInstance(UTAPI, utApi);
