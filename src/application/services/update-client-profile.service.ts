@@ -27,9 +27,9 @@ export class UpdateClientProfileService {
     if (user.role !== "CLIENT")
       throw new ForbiddenError("update client profile", user.id.value);
 
-    if (command.name) user.updateName(command.name);
+    if (command.name !== undefined) user.updateName(command.name);
 
-    if (command.image) user.updateImage(command.image);
+    if (command.image !== undefined) user.updateImage(command.image);
 
     const events = user.pullEvents();
 
