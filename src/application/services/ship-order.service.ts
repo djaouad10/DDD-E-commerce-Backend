@@ -28,12 +28,12 @@ export class ShipOrderService {
 
     if (!order) throw new NotFoundError("order", orderId.value);
 
-    order.markAsPreTransit();
-
     const trackingNumber = order.getTrackingNumber(); // should be defined
 
     if (!trackingNumber)
       throw new NotFoundError("order.trackingNumber", orderId.value);
+
+    order.markAsPreTransit();
 
     const events = order.pullEvents();
 
