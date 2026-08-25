@@ -8,6 +8,7 @@ import {
   banClientParamsSchema,
   banClientBodySchema,
   unbanClientParamsSchema,
+  updateClientProfileBodySchema,
 } from "../validators/client.js";
 import {
   BAN_CLIENT_SERVICE,
@@ -15,6 +16,7 @@ import {
   GET_CLIENT_PROFILE_SERVICE,
   GET_CLIENTS_LIST_SERVICE,
   UNBAN_CLIENT_SERVICE,
+  UPDATE_CLIENT_PROFILE_SERVICE,
 } from "#/composition/tokens.js";
 import { GetClientProfileQuery } from "#/application/queries/get-client-profile.query.js";
 import type { UserDTO } from "#/application/dto/user.dto.js";
@@ -23,6 +25,8 @@ import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { GetClientsListQuery } from "#/application/queries/get-clients-list.query.js";
 import { BanClientCommand } from "#/application/commands/ban-client.command.js";
 import { UnbanClientCommand } from "#/application/commands/unban-client.command.js";
+import { clientMiddleware } from "../middleware/client-middleware.js";
+import { UpdateClientProfileCommand } from "#/application/commands/update-client-profile.command.js";
 
 const router = Router();
 
@@ -125,5 +129,21 @@ router.patch(
     return res.status(200).json({ success: true });
   },
 );
+
+router.patch("/profile", authMiddleware, clientMiddleware, async (req, res) => {
+  const safeBody = validate(updateClientProfileBodySchema, req.body);
+  const userId = req.user!.id; // auth middleware ensures req.user is defined
+
+  const service = req.scope.resolve(UPDATE_CLIENT_PROFILE_SERVICE);
+  const command = new UpdateClientProfileCommand(
+    userId,
+    safeBody.name,
+    safeBody.image,
+  );
+
+  await service.execute(command);
+
+  return res.status(200).json({ success: true });
+});
 
 export default router;
