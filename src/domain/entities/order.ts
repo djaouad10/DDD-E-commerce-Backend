@@ -342,9 +342,12 @@ export class Order {
     this._shippingDetails.updateAddress(details.address);
     this._shippingDetails.updateIsFragile(details.isFragile);
 
-    if (details.phone2) this._shippingDetails.updateSecondPhone(details.phone2);
-    if (details.note) this._shippingDetails.updateClientNote(details.note);
-    if (details.gpsLink) this._shippingDetails.updateGpsLink(details.gpsLink);
+    if (details.phone2 !== undefined)
+      this._shippingDetails.updateSecondPhone(details.phone2);
+    if (details.note !== undefined)
+      this._shippingDetails.updateClientNote(details.note);
+    if (details.gpsLink !== undefined)
+      this._shippingDetails.updateGpsLink(details.gpsLink);
 
     this._updatedAt = new Date();
 
