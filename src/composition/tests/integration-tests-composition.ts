@@ -88,6 +88,7 @@ import {
   CONFIRM_ORDER_SERVICE,
   SHIP_ORDER_SERVICE,
   UPDATE_SHIPPING_DETAILS_SERVICE,
+  UPDATE_CLIENT_PROFILE_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -144,6 +145,7 @@ import { CancelOrderService } from "#/application/services/cancel-order.service.
 import { ConfirmOrderService } from "#/application/services/confirm-order.service.js";
 import { ShipOrderService } from "#/application/services/ship-order.service.js";
 import { UpdateShippingDetailsService } from "#/application/services/update-shipping-details.service.js";
+import { UpdateClientProfileService } from "#/application/services/update-client-profile.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -749,6 +751,17 @@ export function buildIntegrationTestsContainer(): Container {
       new UpdateShippingDetailsService(
         scope.resolve(DB),
         scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    UPDATE_CLIENT_PROFILE_SERVICE,
+    (scope) =>
+      new UpdateClientProfileService(
+        scope.resolve(DB),
+        scope.resolve(USER_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
     "scoped",
