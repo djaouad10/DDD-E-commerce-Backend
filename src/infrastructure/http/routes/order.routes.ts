@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { validate } from "../utils/validation.js";
 import {
+  cancelOrderParamsSchema,
   createOrderBodySchema,
   getOrderByIdParamsSchema,
   getOrderByTrackingNumberParamsSchema,
@@ -8,6 +9,7 @@ import {
   getOrdersSearchParamsSchema,
 } from "../validators/orders.js";
 import {
+  CANCEL_ORDER_SERVICE,
   CREATE_ORDER_SERVICE,
   GET_ORDER_BY_ID_SERVICE,
   GET_ORDER_BY_TRACKING_NUMBER_SERVICE,
@@ -21,6 +23,7 @@ import { GetOrderByIdQuery } from "#/application/queries/get-order-by-id.query.j
 import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { GetOrdersQuery } from "#/application/queries/get-orders.query.js";
 import { CreateOrderCommand } from "#/application/commands/create-order.command.js";
+import { CancelOrderCommand } from "#/application/commands/cancel-order.command.js";
 
 const router = Router();
 
@@ -121,6 +124,18 @@ router.post("/", authMiddleware, async (req, res) => {
   const result = await service.execute(command);
 
   res.status(200).json({ orderId: result.value });
+});
+
+router.patch("/:id/cancel", authMiddleware, async (req, res) => {
+  const safeParams = validate(cancelOrderParamsSchema, req.params);
+  const userId = req.user!.role === "CLIENT" ? req.user!.id : undefined; // auth middleware ensures req.user is defined"
+
+  const service = req.scope.resolve(CANCEL_ORDER_SERVICE);
+  const command = new CancelOrderCommand(safeParams.id, userId);
+
+  await service.execute(command);
+
+  res.status(200).json({ success: true });
 });
 
 export default router;

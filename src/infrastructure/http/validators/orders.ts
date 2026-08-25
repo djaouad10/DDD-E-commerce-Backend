@@ -60,3 +60,7 @@ export const createOrderBodySchema = z.object({
     fragile: z.boolean(),
   }),
 });
+
+export const cancelOrderParamsSchema = z.object({
+  id: z.string(),
+});
