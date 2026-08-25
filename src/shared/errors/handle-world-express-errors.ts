@@ -1,6 +1,7 @@
 import {
   BadRequestError,
   ConflictError,
+  DomainError,
   GatewayError,
   NotFoundError,
   UnauthorizedError,
@@ -29,6 +30,10 @@ export function handleWorldExpressErrors(
   error: unknown,
   context: string,
 ): never {
+  if (error instanceof DomainError) {
+    throw error;
+  }
+
   if (error instanceof WorldExpressApiError) {
     switch (error.statusCode) {
       case 400:
@@ -37,7 +42,6 @@ export function handleWorldExpressErrors(
       case 403:
         throw new UnauthorizedError(
           "Access to the requested resource is forbidden.",
-          "unknown-user",
         );
 
       case 404:

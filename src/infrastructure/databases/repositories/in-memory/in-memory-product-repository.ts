@@ -2,6 +2,8 @@ import type { Product } from "#/domain/entities/product.js";
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { Slug } from "#/domain/value-objects/slug.js";
+import type { VariationId } from "#/domain/value-objects/variation-id.js";
+import { ConflictError } from "#/shared/errors/domain-error.js";
 
 export class InMemoryProductRepository implements ProductRepository {
   private products: Product[] = [];
@@ -16,6 +18,12 @@ export class InMemoryProductRepository implements ProductRepository {
     );
   }
 
+  async findByVariationIds(variationIds: VariationId[]): Promise<Product[]> {
+    return this.products.filter((product) =>
+      product.getVariations().some((v) => variationIds.includes(v.id)),
+    );
+  }
+
   async findMany(ids: ProductId[]): Promise<Product[]> {
     return this.products.filter((product) =>
       ids.some((id) => id.equals(product.id)),
@@ -26,6 +34,14 @@ export class InMemoryProductRepository implements ProductRepository {
     const index = this.products.findIndex((p) => p.id.equals(product.id));
 
     if (index >= 0) {
+      if (product.getVersion() !== this.products[index]!.getVersion()) {
+        throw new ConflictError(
+          "product",
+          product.id.value,
+          "concurrent modification detected",
+        );
+      }
+
       this.products[index] = product;
     } else {
       this.products.push(product);

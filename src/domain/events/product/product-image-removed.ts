@@ -6,6 +6,6 @@ export class ProductImageRemoved implements DomainEvent {
 
   constructor(
     readonly aggregateId: string,
-    readonly imageId: string,
+    readonly imageKey: string,
   ) {}
 }

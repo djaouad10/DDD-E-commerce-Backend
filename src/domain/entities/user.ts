@@ -1,4 +1,5 @@
 import type { UserSnapshot } from "#/domain/entities-snapshots/user.snapshot.js";
+import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { UserBanned } from "../events/user/user-banned.js";
 import { UserProfileUpdated } from "../events/user/user-profile-updated.js";
@@ -97,6 +98,10 @@ export class User {
   // business commands
 
   updateName(newName: string): void {
+    if (newName === this._name) return;
+
+    if (!newName) throw new ValidationError("name", "name cannot be empty");
+
     this._name = newName;
 
     this._updatedAt = new Date();
@@ -106,6 +111,13 @@ export class User {
   }
 
   updateImage(newImage: string | null): void {
+    if (newImage === this._image) return;
+
+    if (typeof newImage === "string" && !newImage)
+      throw new ValidationError("image", "image cannot be empty");
+
+    this._image = newImage;
+
     this._image = newImage;
     this._updatedAt = new Date();
 
@@ -199,7 +211,7 @@ export class User {
     return [...this._events];
   }
 
-  recordThat(event: DomainEvent): void {
+  private recordThat(event: DomainEvent): void {
     this._events.push(event);
   }
 

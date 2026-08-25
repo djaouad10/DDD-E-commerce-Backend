@@ -1,5 +1,9 @@
 import type { ProductSnapshot } from "#/domain/entities-snapshots/product.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { FileUploaded } from "../events/file/file-uploaded.js";
 import { ProductCreated } from "../events/product/product-created.js";
@@ -81,6 +85,8 @@ export class Product {
     private readonly _averageRating: number | null,
     private _createdAt: Date,
     private _updatedAt: Date,
+    private _version: number,
+    private _isNew: boolean,
   ) {}
 
   // factory
@@ -155,6 +161,8 @@ export class Product {
       averageRating,
       now,
       now,
+      0,
+      true,
     );
 
     product.recordThat(
@@ -188,6 +196,7 @@ export class Product {
     averageRating: number | null,
     createdAt: Date,
     updatedAt: Date,
+    version: number,
   ): Product {
     // validation
     if (images.length === 0)
@@ -246,6 +255,8 @@ export class Product {
       averageRating,
       createdAt,
       updatedAt,
+      version,
+      false,
     );
   }
 
@@ -344,9 +355,10 @@ export class Product {
     });
 
     if (existingVariation)
-      throw new ValidationError(
-        "newVariation",
-        "variation with same color and size already exists",
+      throw new ConflictError(
+        "product.variation",
+        existingVariation.id.value,
+        "color + size combo already exists",
       );
 
     this._variations.push(newVariation);
@@ -381,7 +393,7 @@ export class Product {
     );
 
     if (!variationToUpdate)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     const prevTotalQty = variationToUpdate.getTotalQty();
 
@@ -407,7 +419,7 @@ export class Product {
     );
 
     if (!variationToUpdate)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     const prevWeightInGrams = variationToUpdate.getWeight();
 
@@ -432,7 +444,10 @@ export class Product {
     );
 
     if (!variationToRemove)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
+
+    if (this._variations.length === 1)
+      throw new ValidationError("variations", "cannot remove last variation");
 
     this._variations = this._variations.filter(
       (v) => !v.id.equals(variationId),
@@ -453,7 +468,7 @@ export class Product {
     );
 
     if (!variationToReserve)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     variationToReserve.reserve(qty);
 
@@ -476,7 +491,7 @@ export class Product {
     );
 
     if (!variationToRelease)
-      throw new ValidationError("variationId", "variation not found");
+      throw new NotFoundError("product.variation", variationId.value);
 
     variationToRelease.release(qty);
 
@@ -501,8 +516,8 @@ export class Product {
     // record domain events
     this.recordThat(
       new FileUploaded(
-        this.id.value,
         newImage.id.value,
+        this.id.value,
         newImage.getKey(),
         false,
       ),
@@ -536,8 +551,8 @@ export class Product {
     this.recordThat(
       new ProductMainImageUpdated(
         this.id.value,
-        newMainImage.id.value,
-        oldMainImage?.id.value ?? null,
+        newMainImage.getKey(),
+        oldMainImage?.getKey() ?? null,
       ),
     );
   }
@@ -545,7 +560,8 @@ export class Product {
   removeImage(imageId: FileId): void {
     const targetImage = this._images.find((i) => i.id.equals(imageId));
 
-    if (!targetImage) throw new ValidationError("imageId", "image not found");
+    if (!targetImage)
+      throw new NotFoundError("product.image.id", imageId.value);
 
     if (targetImage.isMain())
       throw new ValidationError("imageId", "cannot remove main image");
@@ -554,7 +570,9 @@ export class Product {
     this._updatedAt = new Date();
 
     // record domain events
-    this.recordThat(new ProductImageRemoved(this.id.value, imageId.value));
+    this.recordThat(
+      new ProductImageRemoved(this.id.value, targetImage.getKey()),
+    );
   }
 
   // query methods
@@ -606,6 +624,14 @@ export class Product {
     return this._averageRating;
   }
 
+  getVersion(): number {
+    return this._version;
+  }
+
+  isNew(): boolean {
+    return this._isNew;
+  }
+
   getCreatedAt(): Date {
     return this._createdAt;
   }
@@ -628,6 +654,23 @@ export class Product {
     }
 
     return this._price.subtract(this._discountedPrice!);
+  }
+
+  getMainImage(): File {
+    const mainImage = this._images.find((i) => i.isMain());
+
+    if (!mainImage)
+      throw new NotFoundError("product.mainImage", "main image not found");
+
+    return mainImage;
+  }
+
+  getImageByKey(key: string): File | null {
+    return this._images.find((i) => i.getKey() === key) ?? null;
+  }
+
+  getVariation(variationId: VariationId): Variation | null {
+    return this._variations.find((v) => v.id.equals(variationId)) ?? null;
   }
 
   // event methods
@@ -658,7 +701,7 @@ export class Product {
       material: this._material,
       price: this._price.toSnapshot(),
       discountedPrice: this._discountedPrice?.toSnapshot() ?? null,
-      category: this._categoryId?.toString() ?? null,
+      categoryId: this._categoryId?.toString() ?? null,
       averageRating: this._averageRating,
       discountAmount: this.getDiscountAmount().toSnapshot(),
       discountPercentage: this.calculateDiscountPercentage(),
@@ -669,6 +712,8 @@ export class Product {
 
   // utils
   calculateDiscountPercentage(): number {
+    if (this._price.amount === 0) return 0; // should be impossible since price can never be 0 but just in case
+
     return Math.round(
       (this.getDiscountAmount().amount / this._price.amount) * 100,
     );

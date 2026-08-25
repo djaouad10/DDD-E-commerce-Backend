@@ -1,5 +1,5 @@
 import { ForbiddenError } from "#/shared/errors/domain-error.js";
-import type { NextFunction, Request } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 export async function clientMiddleware(
   req: Request,
@@ -7,7 +7,7 @@ export async function clientMiddleware(
   next: NextFunction,
 ) {
   if (req.user && req.user.role === "CLIENT") {
-    next();
+    return next();
   }
 
   throw new ForbiddenError(

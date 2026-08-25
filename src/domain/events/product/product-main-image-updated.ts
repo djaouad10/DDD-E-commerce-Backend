@@ -6,7 +6,7 @@ export class ProductMainImageUpdated implements DomainEvent {
 
   constructor(
     readonly aggregateId: string,
-    readonly newMainImageId: string,
-    readonly previousMainImageId: string | null,
+    readonly newMainImageKey: string,
+    readonly previousMainImageKey: string | null,
   ) {}
 }

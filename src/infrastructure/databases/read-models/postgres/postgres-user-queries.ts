@@ -38,7 +38,7 @@ export class PostgresUserQueries implements UserQueries {
               ),
             );
           },
-          orderBy: (user, { asc }) => [asc(user.id)],
+          orderBy: (user, { desc }) => [desc(user.createdAt), desc(user.id)],
           limit: criteria.limit + 1,
           columns: {
             id: true,

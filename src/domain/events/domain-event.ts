@@ -10,6 +10,7 @@ export const DomainEventCode = {
   ORDER_SUSPENDED: "order.suspended",
   ORDER_RESUMED_FROM_SUSPENSION: "order.resumed-from-suspension",
   ORDER_SHIPPING_STATUS_UPDATED: "order.shipping-status-updated",
+  ORDER_SHIPPING_DETAILS_UPDATED: "order.shipping-details-updated",
 
   // User events
   USER_REGISTERED: "user.registered",

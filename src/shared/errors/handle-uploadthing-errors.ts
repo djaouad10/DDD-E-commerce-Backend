@@ -1,8 +1,9 @@
 import { UploadThingError } from "uploadthing/server";
 import {
   BadRequestError,
+  DomainError,
+  ForbiddenError,
   GatewayError,
-  UnauthorizedError,
   ValidationError,
 } from "./domain-error.js";
 
@@ -10,6 +11,10 @@ export function handleUploadThingErrors(
   error: unknown,
   context: string,
 ): never {
+  if (error instanceof DomainError) {
+    throw error;
+  }
+
   if (error instanceof UploadThingError) {
     switch (error.code) {
       // Client errors → domain validation
@@ -26,7 +31,7 @@ export function handleUploadThingErrors(
 
       // Authorization
       case "FORBIDDEN":
-        throw new UnauthorizedError("upload file", "unknown");
+        throw new ForbiddenError("upload a file", "unknown user");
 
       // UploadThing is broken/down → infrastructure problem
       case "UPLOAD_FAILED":

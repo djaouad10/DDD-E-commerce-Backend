@@ -10,7 +10,7 @@ export class PostgresCartQueries implements CartQueries {
 
   constructor(private db: DrizzleDBClient) {}
 
-  async getCartByUserId(userId: UserId): Promise<CartDTO | null> {
+  async getCartByUserId(userId: UserId): Promise<CartDTO> {
     this.logger.debug("getCartByUserId called", { userId });
 
     try {

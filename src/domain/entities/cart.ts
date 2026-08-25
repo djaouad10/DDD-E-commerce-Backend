@@ -1,5 +1,8 @@
 import type { CartSnapshot } from "#/domain/entities-snapshots/cart.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import {
+  NotFoundError,
+  ValidationError,
+} from "#/shared/errors/domain-error.js";
 import { CartCleared } from "../events/cart/cart-cleared.js";
 import { CartItemAdded } from "../events/cart/cart-item-added.js";
 import { CartItemQtyUpdated } from "../events/cart/cart-item-qty-updated.js";
@@ -14,7 +17,6 @@ export class Cart {
   private _events: DomainEvent[] = [];
 
   private constructor(
-    
     readonly id: CartId, // for equality checks or event sourcing since it's regenrated on every load, rely on userId instead
     readonly userId: UserId,
     private _items: CartItem[],
@@ -74,7 +76,7 @@ export class Cart {
 
   removeItem(itemId: CartItemId): void {
     if (!this._items.find((i) => i.id.equals(itemId)))
-      throw new ValidationError("item", "item not found");
+      throw new NotFoundError("cart.item", itemId.value);
 
     this._items = this._items.filter((i) => !i.id.equals(itemId));
     this._updatedAt = new Date();
@@ -104,6 +106,8 @@ export class Cart {
   }
 
   clear(): void {
+    if (this._items.length === 0) return;
+
     this._items = [];
     this._updatedAt = new Date();
 

@@ -4,6 +4,7 @@ import {
   NotFoundError,
   ValidationError,
   DatabaseError,
+  DomainError,
 } from "#/shared/errors/domain-error.js";
 
 const PG = {
@@ -44,6 +45,10 @@ function extractPostgresError(error: unknown): PostgresError | null {
 
 export function handleDrizzleErrors(err: unknown, context?: string): never {
   const pg = extractPostgresError(err);
+
+  if (err instanceof DomainError) {
+    throw err;
+  }
 
   if (!pg) {
     throw new DatabaseError(

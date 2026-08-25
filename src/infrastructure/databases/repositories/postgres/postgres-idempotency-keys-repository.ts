@@ -1,4 +1,7 @@
-import type { IdempotencyKeysRepository } from "#/application/repositories/idempotency-keys.repository.js";
+import type {
+  IdempotencyKeyEntry,
+  IdempotencyKeysRepository,
+} from "#/application/repositories/idempotency-keys.repository.js";
 
 import type {
   DrizzleDBClient,
@@ -15,24 +18,65 @@ export class PostgresIdempotencyKeysRepository implements IdempotencyKeysReposit
   constructor(private db: DrizzleDBClient) {}
 
   async create(
-    id: string,
+    key: string,
     handlerName: string,
     tx: TransactionClient,
+    payload: unknown,
   ): Promise<void> {
-    this.logger.debug("create called", { id, handlerName });
+    this.logger.debug("create called", { key, handlerName });
 
     const db = tx as DrizzleTransactionClient;
 
     try {
-      this.logger.measure("db.insert(idempotencyKeys)", () =>
-        db.insert(idempotencyKeys).values({ id, handler_name: handlerName }),
+      await this.logger.measure("db.insert(idempotencyKeys)", () =>
+        db
+          .insert(idempotencyKeys)
+          .values({ id: key, handler_name: handlerName, payload }),
       );
 
-      this.logger.debug("create completed", { id, handlerName });
+      this.logger.debug("create completed", { key, handlerName });
     } catch (error) {
-      this.logger.error("create failed", error as Error, { id, handlerName });
+      this.logger.error("create failed", error as Error, { key, handlerName });
 
       handleDrizzleErrors(error, "PostgresIdempotencyKeysRepository.create");
+    }
+  }
+
+  async find(
+    key: string,
+    tx: TransactionClient,
+  ): Promise<IdempotencyKeyEntry | null> {
+    this.logger.debug("find called", { key });
+
+    const db = tx as DrizzleTransactionClient;
+
+    try {
+      const idempotencyKeyRow = await this.logger.measure(
+        "db.query.idempotencyKeys.findFirst",
+        () =>
+          db.query.idempotencyKeys.findFirst({
+            where: (idempotencyKeys, { eq }) => eq(idempotencyKeys.id, key),
+          }),
+      );
+
+      if (!idempotencyKeyRow) {
+        this.logger.debug("idempotency key not found", { key });
+        return null;
+      }
+
+      const idempotencyKeyEntry: IdempotencyKeyEntry = {
+        id: idempotencyKeyRow.id,
+        handlerName: idempotencyKeyRow.handler_name,
+        payload: idempotencyKeyRow.payload,
+        createdAt: idempotencyKeyRow.created_at,
+      };
+
+      this.logger.debug("find completed", { idempotencyKeyEntry });
+      return idempotencyKeyEntry;
+    } catch (error) {
+      this.logger.error("find failed", error as Error, { key });
+
+      handleDrizzleErrors(error, "PostgresIdempotencyKeysRepository.find");
     }
   }
 }

@@ -11,6 +11,7 @@ export type RatingCursor = {
 export type RatingSearchCriteria = {
   limit: number;
   productId?: ProductId;
+  userId?: UserId;
   cursor?: RatingCursor;
   isApproved?: boolean;
 };

@@ -5,7 +5,7 @@ import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { avg, eq, inArray } from "drizzle-orm";
+import { and, avg, eq, inArray, sql } from "drizzle-orm";
 import {
   PostgresProductMapper,
   type ProductWithVariationsAndFilesRow,
@@ -15,6 +15,8 @@ import type { Slug } from "#/domain/value-objects/slug.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { VariationId } from "#/domain/value-objects/variation-id.js";
+import { ConflictError } from "#/shared/errors/domain-error.js";
 
 export class PostgresProductRepository implements ProductRepository {
   private readonly logger = createLogger("PostgresProductRepository");
@@ -134,6 +136,89 @@ export class PostgresProductRepository implements ProductRepository {
     }
   }
 
+  async findByVariationIds(variationIds: VariationId[]): Promise<Product[]> {
+    this.logger.debug("findByVariationIds called", {
+      variationIds: variationIds.map((id) => id.value),
+    });
+
+    if (variationIds.length === 0) {
+      this.logger.debug("findByVariationId completed", {
+        variationIds: variationIds.map((id) => id.value),
+      });
+
+      return [];
+    }
+
+    try {
+      const productWithVariationsAndFilesRow: ProductWithVariationsAndFilesRow[] =
+        await this.logger.measure("db.query.product.findMany", () =>
+          this.db.query.product.findMany({
+            where: (product, { exists, and, eq, inArray }) =>
+              exists(
+                this.db
+                  .select({ id: variation.id })
+                  .from(variation)
+                  .where(
+                    and(
+                      inArray(
+                        variation.id,
+                        variationIds.map((id) => id.value),
+                      ),
+                      eq(variation.product_id, product.id),
+                    ),
+                  ),
+              ),
+            with: { variations: true, images: true },
+          }),
+        );
+
+      const uniqueProducts = [
+        ...new Map(
+          productWithVariationsAndFilesRow.map((p) => [p.id, p]),
+        ).values(),
+      ];
+
+      // get average rating of products
+      const ratings = await this.logger.measure("db.select.from.rating", () =>
+        this.db
+          .select({
+            productId: rating.product_id,
+            avg: avg(rating.rating).mapWith(Number),
+          })
+          .from(rating)
+          .where(
+            inArray(
+              rating.product_id,
+              uniqueProducts.map((p) => p.id),
+            ),
+          )
+          .groupBy(rating.product_id),
+      );
+
+      // create a map of productId to average rating
+      const ratingMap = new Map(ratings.map((r) => [r.productId, r.avg]));
+
+      const productsToReturn = uniqueProducts.map((row) =>
+        PostgresProductMapper.toDomain(row, ratingMap.get(row.id) ?? null),
+      );
+
+      this.logger.debug("findByVariationIds completed", {
+        productsCount: productsToReturn.length,
+      });
+
+      return productsToReturn;
+    } catch (error) {
+      this.logger.error("findByVariationIds failed", error as Error, {
+        variationIds: variationIds.map((id) => id.value),
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresProductRepository.findByVariationIds",
+      );
+    }
+  }
+
   async findMany(ids: ProductId[]): Promise<Product[]> {
     this.logger.debug("findMany called");
 
@@ -211,88 +296,126 @@ export class PostgresProductRepository implements ProductRepository {
     const variationsRows = PostgresProductMapper.toVariationRows(productAgg);
     const filesRows = PostgresProductMapper.toFileRows(productAgg);
 
-    // onConflictDoUpdate will update the createdAt timestamp, so we don't include it in the "set" clause
-    const { created_at, ...productRowToUpsert } = productRow;
+    // if product is newly created, insert it (the default version is 0)
     try {
-      // already in a transaction orchestrated by application service
+      if (productAgg.isNew()) {
+        await this.logger.measure("db.insert(product)", () =>
+          db.insert(product).values(productRow),
+        );
 
-      const [_, existingVariationIds] = await Promise.all([
-        this.logger.measure("db.insert(product)", () =>
-          db
-            .insert(product)
-            .values(productRow)
-            .onConflictDoUpdate({
-              target: [product.id],
-              set: productRowToUpsert,
-            }),
-        ),
+        const inserts: Promise<unknown>[] = [];
 
-        this.logger.measure("db.query.variation.findMany", () =>
-          // get current variationIds of this product in DB
-          db.query.variation.findMany({
-            where: eq(variation.product_id, productRow.id),
-            columns: { id: true },
-          }),
-        ),
-      ]);
+        if (filesRows.length > 0) {
+          inserts.push(
+            this.logger.measure("db.insert(file)", () =>
+              db.insert(file).values(filesRows),
+            ),
+          );
+        }
 
-      // diff them with the new variations derived from the aggregate
-      const newVariationIds = new Set(variationsRows.map((v) => v.id));
+        if (variationsRows.length > 0) {
+          inserts.push(
+            this.logger.measure("db.insert(variation)", () =>
+              db.insert(variation).values(variationsRows),
+            ),
+          );
+        }
 
-      const toBeDeletedVariationIds = existingVariationIds
-        .map((v) => v.id)
-        .filter((v) => !newVariationIds.has(v));
-
-      // collect all deletion promises in one list
-      const deletions: Promise<unknown>[] = [
-        // the query to delete all files of this product
-        this.logger.measure("db.delete(file)", () =>
-          db.delete(file).where(eq(file.product_id, productRow.id)),
-        ),
-      ];
-
-      if (toBeDeletedVariationIds.length > 0) {
-        // if there are variations to be deleted, add their deletion query to the deletion list
-        deletions.push(
-          this.logger.measure("db.delete(variation)", () =>
+        await Promise.all(inserts);
+      } else {
+        // else product is not new, update it with optimistic locking
+        const [productUpdateResult, existingVariationIds] = await Promise.all([
+          this.logger.measure("db.insert(product)", () =>
             db
-              .delete(variation)
-              .where(inArray(variation.id, toBeDeletedVariationIds)),
+              .update(product)
+              .set({
+                ...productRow,
+                version: sql`${productRow.version} + 1`,
+              })
+              .where(
+                and(
+                  eq(product.id, productRow.id),
+                  eq(product.version, productAgg.getVersion()), // check for version conflict
+                ),
+              )
+              .returning({ id: product.id }),
           ),
-        );
-      }
 
-      // delete all files + to be deleted variations
-      await Promise.all(deletions);
-
-      // collect all upserts + inserts promises in one list
-      const upserts: Promise<unknown>[] = variationsRows.map((v) => {
-        // it initially contains the variation upserts queries
-
-        // to avoid overwriting the createdAt timestamp by the onConflictDoUpdate
-        const { created_at, ...variationToUpsert } = v;
-        return this.logger.measure("db.insert(variation)", () =>
-          db
-            .insert(variation)
-            .values(v)
-            .onConflictDoUpdate({
-              target: [variation.id],
-              set: variationToUpsert,
+          this.logger.measure("db.query.variation.findMany", () =>
+            // get current variationIds of this product in DB
+            db.query.variation.findMany({
+              where: eq(variation.product_id, productRow.id),
+              columns: { id: true },
             }),
-        );
-      });
-
-      if (filesRows.length > 0) {
-        // if there are files to be inserted add their insertion query to the upserts list
-        upserts.push(
-          this.logger.measure("db.insert(file)", () =>
-            db.insert(file).values(filesRows),
           ),
-        );
-      }
+        ]);
 
-      // upsert all variations + files
-      await Promise.all(upserts);
+        if (productUpdateResult.length === 0) {
+          throw new ConflictError(
+            "product",
+            productAgg.id.value,
+            "concurrent modification detected",
+          );
+        }
+
+        // diff them with the new variations derived from the aggregate
+        const newVariationIds = new Set(variationsRows.map((v) => v.id));
+
+        const toBeDeletedVariationIds = existingVariationIds
+          .map((v) => v.id)
+          .filter((v) => !newVariationIds.has(v));
+
+        // collect all deletion promises in one list
+        const deletions: Promise<unknown>[] = [
+          // the query to delete all files of this product
+          this.logger.measure("db.delete(file)", () =>
+            db.delete(file).where(eq(file.product_id, productRow.id)),
+          ),
+        ];
+
+        if (toBeDeletedVariationIds.length > 0) {
+          // if there are variations to be deleted, add their deletion query to the deletion list
+          deletions.push(
+            this.logger.measure("db.delete(variation)", () =>
+              db
+                .delete(variation)
+                .where(inArray(variation.id, toBeDeletedVariationIds)),
+            ),
+          );
+        }
+
+        // delete all files + to be deleted variations
+        await Promise.all(deletions);
+
+        // collect all upserts + inserts promises in one list
+        const upserts: Promise<unknown>[] = variationsRows.map((v) => {
+          // it initially contains the variation upserts queries
+
+          // to avoid overwriting the createdAt timestamp by the onConflictDoUpdate
+          const { created_at, ...variationToUpsert } = v;
+          return this.logger.measure("db.insert(variation)", () =>
+            db
+              .insert(variation)
+              .values(v)
+              .onConflictDoUpdate({
+                target: [variation.id],
+                set: variationToUpsert,
+              }),
+          );
+        });
+
+        if (filesRows.length > 0) {
+          // if there are files to be inserted add their insertion query to the upserts list
+          upserts.push(
+            this.logger.measure("db.insert(file)", () =>
+              db.insert(file).values(filesRows),
+            ),
+          );
+        }
+
+        // upsert all variations + files
+        await Promise.all(upserts);
+      }
 
       this.logger.debug("save completed", { id: productAgg.id.value });
     } catch (error) {

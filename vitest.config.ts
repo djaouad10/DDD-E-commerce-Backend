@@ -7,5 +7,6 @@ export default defineConfig({
     setupFiles: ["./src/tests/fixtures/global-setup.ts"],
     include: ["src/**/*.{test,spec}.{js,ts}"],
     exclude: ["node_modules", "dist"],
+    fileParallelism: false,
   },
 });

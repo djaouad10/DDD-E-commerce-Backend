@@ -3,6 +3,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { OrderCancelled } from "../events/order/order-cancelled.js";
 import { OrderConfirmed } from "../events/order/order-confirmed.js";
+import { OrderCreated } from "../events/order/order-created.js";
 import { OrderDelivered } from "../events/order/order-delivered.js";
 import { OrderMarkedAsPreTransit } from "../events/order/order-marked-as-pre-transit.js";
 import { OrderMarkedAsShipping } from "../events/order/order-marked-as-shipping.js";
@@ -10,6 +11,7 @@ import { OrderResumedFromSuspension } from "../events/order/order-resumed-from-s
 import { OrderReturned } from "../events/order/order-returned.js";
 import { OrderShippingStatusUpdated } from "../events/order/order-shipping-status-updated.js";
 import { OrderSuspended } from "../events/order/order-suspended.js";
+import { OrderShippingDetailsUpdated } from "../events/order/order.shipping-details-updated.js";
 import { Currency, Money } from "../value-objects/money.js";
 import { OrderId } from "../value-objects/order-id.js";
 import type { ShippingDetails } from "../value-objects/shipping-details.js";
@@ -84,7 +86,7 @@ export class Order {
 
     const now = new Date();
 
-    return new Order(
+    const order = new Order(
       OrderId.generate(),
       userId,
       null,
@@ -97,6 +99,19 @@ export class Order {
       now,
       now,
     );
+
+    order.recordThat(
+      new OrderCreated(
+        order.id.value,
+        userId.value,
+        order.getOrderItems().length,
+        order.getTotalOrderPrice().amount,
+        order.getTotalOrderPrice().currency,
+        selectedShippingProvider,
+      ),
+    );
+
+    return order;
   }
 
   static reconstitute(
@@ -303,6 +318,48 @@ export class Order {
     );
   }
 
+  updateShippingDetails(details: {
+    clientName: string;
+    phone: string;
+    phone2?: string | null;
+    address: string;
+    note?: string | null;
+    isFragile: boolean;
+    gpsLink?: string | null;
+  }): void {
+    if (
+      this._status !== OrderStatus.PENDING &&
+      this._status !== OrderStatus.CONFIRMED
+    ) {
+      throw new ValidationError(
+        "status",
+        "can't update shipping details when order is not PENDING or CONFIRMED",
+      );
+    }
+
+    this._shippingDetails.updateClientName(details.clientName);
+    this._shippingDetails.updateFirstPhone(details.phone);
+    this._shippingDetails.updateAddress(details.address);
+    this._shippingDetails.updateIsFragile(details.isFragile);
+
+    if (details.phone2 !== undefined)
+      this._shippingDetails.updateSecondPhone(details.phone2);
+    if (details.note !== undefined)
+      this._shippingDetails.updateClientNote(details.note);
+    if (details.gpsLink !== undefined)
+      this._shippingDetails.updateGpsLink(details.gpsLink);
+
+    this._updatedAt = new Date();
+
+    this.recordThat(
+      new OrderShippingDetailsUpdated(
+        this.id.value,
+        this.userId.value,
+        this._selectedShippingProvider,
+      ),
+    );
+  }
+
   // query methods
   getTrackingNumber(): string | null {
     return this._trackingNumber;
@@ -418,7 +475,7 @@ export class Order {
     return [...this._events];
   }
 
-  recordThat(event: DomainEvent): void {
+  private recordThat(event: DomainEvent): void {
     this._events.push(event);
   }
 }

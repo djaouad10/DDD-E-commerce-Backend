@@ -14,4 +14,7 @@ export class InMemoryUserRepository implements UserRepository {
   async findMany(ids: UserId[]): Promise<User[]> {
     return this.users.filter((user) => ids.some((id) => id.equals(user.id)));
   }
+  async save(user: User): Promise<void> {
+    this.users.push(user);
+  }
 }

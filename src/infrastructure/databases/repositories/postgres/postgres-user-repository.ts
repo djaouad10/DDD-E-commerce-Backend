@@ -10,6 +10,7 @@ import {
 import { user } from "../../schema.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
 export class PostgresUserRepository implements UserRepository {
   private logger = createLogger("PostgresUserRepository");
@@ -114,6 +115,35 @@ export class PostgresUserRepository implements UserRepository {
       this.logger.error("findByEmail failed", error as Error, { email: email });
 
       handleDrizzleErrors(error, "PostgresUserRepository.findByEmail");
+    }
+  }
+
+  async save(userAgg: User, tx: TransactionClient): Promise<void> {
+    this.logger.debug("save called", { id: userAgg.id.value });
+
+    const db = tx as DrizzleDBClient;
+
+    const userRow: UserRow = PostgresUserMapper.toRow(userAgg);
+
+    try {
+      await this.logger.measure("db.insertOrUpdate", () =>
+        db
+          .update(user)
+          .set({
+            name: userRow.name,
+            image: userRow.image,
+            banned: userRow.banned,
+            banReason: userRow.banReason,
+            banExpires: userRow.banExpires,
+          })
+          .where(eq(user.id, userRow.id)),
+      );
+
+      this.logger.debug("save completed", { id: userAgg.id.value });
+    } catch (error) {
+      this.logger.error("save failed", error as Error, {
+        id: userAgg.id.value,
+      });
     }
   }
 }

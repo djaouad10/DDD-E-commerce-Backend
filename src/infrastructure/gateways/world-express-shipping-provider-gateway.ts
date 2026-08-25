@@ -185,7 +185,7 @@ export class WorldExpressShippingProviderGateway implements ShippingProviderGate
       wilaya_id: String(wilayaCode),
     });
 
-    const url = `/get/communes?${searchParams.toString()}`;
+    const url = `${this.baseUrl}/get/communes?${searchParams.toString()}`;
 
     try {
       const reponse = await this.logger.measure(

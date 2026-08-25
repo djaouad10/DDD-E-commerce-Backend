@@ -1,5 +1,6 @@
 import { relations, type InferSelectModel } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   index,
   integer,
@@ -196,6 +197,7 @@ export const product = pgTable(
   "product",
   {
     id: varchar("id", { length: 40 }).notNull().primaryKey(),
+    version: bigint("version", {mode: "number"}).notNull().default(0),
     name: varchar("name", { length: 200 }).notNull(),
     slug: varchar("slug", { length: 300 }).notNull().unique(),
     description: varchar("description", { length: 5000 }),
@@ -368,7 +370,7 @@ export const outbox = pgTable(
     // event_type could be like: "create_order_in_shipping_api" in case of a "outbox-job" category
     event_type: varchar("event_type", { length: 100 }).notNull(),
     // Optional but useful to query all domain events of a specific aggregate ordered by created_at for debugging.
-    aggregate_id: varchar("aggregate_id", { length: 40 }),
+    aggregate_id: varchar("aggregate_id", { length: 80 }),
     payload: jsonb("payload").notNull(),
     status: outboxStatusEnum("status").notNull().default("PENDING"),
     attempts: integer("attempts").notNull().default(0),
@@ -397,6 +399,7 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
   id: varchar("id", { length: 40 }).primaryKey(), // Maps directly to BullMQ jobId / Outbox ID
   handler_name: varchar("handler_name", { length: 100 }).notNull(),
   created_at: timestamp("created_at").notNull().defaultNow(),
+  payload: jsonb("payload"),
 });
 
 // Relations

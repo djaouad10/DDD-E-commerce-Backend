@@ -512,7 +512,7 @@ export class PostgresProductQueries implements ProductQueries {
         weightInGrams: { weight: row.weightInGrams, unit: "g" },
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
-        cartItemId: row.cartItemId ?? undefined,
+        cartItemId: row.cartItemId,
       }));
 
       this.logger.debug("findVariationsWithCartItems completed", {

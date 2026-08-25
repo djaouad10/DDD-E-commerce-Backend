@@ -71,7 +71,7 @@ export class PostgresRatingQueries implements RatingQueries {
     this.logger.debug("search called", { criteria });
 
     try {
-      const { limit, isApproved, cursor, productId } = criteria;
+      const { limit, isApproved, cursor, productId, userId } = criteria;
 
       const ratingRows = await this.logger.measure(
         "db.query.rating.findMany",
@@ -86,6 +86,10 @@ export class PostgresRatingQueries implements RatingQueries {
 
               if (productId) {
                 conditions.push(eq(rating.product_id, productId.value));
+              }
+
+              if (userId) {
+                conditions.push(eq(rating.user_id, userId.value));
               }
 
               if (!cursor) {

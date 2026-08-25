@@ -1,0 +1,1 @@
+ALTER TABLE "outbox" ALTER COLUMN "aggregate_id" SET DATA TYPE varchar(80);
