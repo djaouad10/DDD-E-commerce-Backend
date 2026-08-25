@@ -28,7 +28,7 @@ export class PostgresIdempotencyKeysRepository implements IdempotencyKeysReposit
     const db = tx as DrizzleTransactionClient;
 
     try {
-      this.logger.measure("db.insert(idempotencyKeys)", () =>
+      await this.logger.measure("db.insert(idempotencyKeys)", () =>
         db
           .insert(idempotencyKeys)
           .values({ id: key, handler_name: handlerName, payload }),
