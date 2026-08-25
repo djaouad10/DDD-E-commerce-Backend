@@ -83,6 +83,7 @@ import {
   CANCEL_ORDER_SERVICE,
   CONFIRM_ORDER_SERVICE,
   SHIP_ORDER_SERVICE,
+  UPDATE_SHIPPING_DETAILS_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -139,6 +140,7 @@ import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/re
 import { CancelOrderService } from "#/application/services/cancel-order.service.js";
 import { ConfirmOrderService } from "#/application/services/confirm-order.service.js";
 import { ShipOrderService } from "#/application/services/ship-order.service.js";
+import { UpdateShippingDetailsService } from "#/application/services/update-shipping-details.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -728,6 +730,17 @@ export function buildApiContainer(): Container {
     SHIP_ORDER_SERVICE,
     (scope) =>
       new ShipOrderService(
+        scope.resolve(DB),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    UPDATE_SHIPPING_DETAILS_SERVICE,
+    (scope) =>
+      new UpdateShippingDetailsService(
         scope.resolve(DB),
         scope.resolve(ORDER_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),

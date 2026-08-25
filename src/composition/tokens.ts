@@ -76,6 +76,7 @@ import type { CreateOrderService } from "#/application/services/create-order-ser
 import type { CancelOrderService } from "#/application/services/cancel-order.service.js";
 import type { ConfirmOrderService } from "#/application/services/confirm-order.service.js";
 import type { ShipOrderService } from "#/application/services/ship-order.service.js";
+import type { UpdateShippingDetailsService } from "#/application/services/update-shipping-details.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -395,3 +396,7 @@ export const CONFIRM_ORDER_SERVICE = Symbol(
 export const SHIP_ORDER_SERVICE = Symbol(
   "shipOrderService",
 ) as InjectionToken<ShipOrderService>;
+
+export const UPDATE_SHIPPING_DETAILS_SERVICE = Symbol(
+  "updateShippingDetailsService",
+) as InjectionToken<UpdateShippingDetailsService>;
