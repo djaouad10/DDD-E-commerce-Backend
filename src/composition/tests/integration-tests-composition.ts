@@ -84,6 +84,7 @@ import {
   DELETE_PRODUCT_SERVICE,
   IDEMPOTENCY_KEYS_REPOSITORY,
   CREATE_ORDER_SERVICE,
+  CANCEL_ORDER_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -136,6 +137,7 @@ import { DeleteVariationOfProductService } from "#/application/services/delete-v
 import { DeleteProductService } from "#/application/services/delete-product.service.js";
 import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/postgres/postgres-idempotency-keys-repository.js";
 import { CreateOrderService } from "#/application/services/create-order-service.js";
+import { CancelOrderService } from "#/application/services/cancel-order.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -696,6 +698,18 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(SHIPPING_PROVIDER_GATEWAY),
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CANCEL_ORDER_SERVICE,
+    (scope) =>
+      new CancelOrderService(
+        scope.resolve(DB),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
     "scoped",

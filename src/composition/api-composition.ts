@@ -80,6 +80,7 @@ import {
   DELETE_PRODUCT_SERVICE,
   CREATE_ORDER_SERVICE,
   IDEMPOTENCY_KEYS_REPOSITORY,
+  CANCEL_ORDER_SERVICE,
 } from "./tokens.js";
 
 import { UTApi } from "uploadthing/server";
@@ -133,6 +134,7 @@ import { DeleteVariationOfProductService } from "#/application/services/delete-v
 import { DeleteProductService } from "#/application/services/delete-product.service.js";
 import { CreateOrderService } from "#/application/services/create-order-service.js";
 import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/postgres/postgres-idempotency-keys-repository.js";
+import { CancelOrderService } from "#/application/services/cancel-order.service.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -690,6 +692,18 @@ export function buildApiContainer(): Container {
         scope.resolve(SHIPPING_PROVIDER_GATEWAY),
         scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CANCEL_ORDER_SERVICE,
+    (scope) =>
+      new CancelOrderService(
+        scope.resolve(DB),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(PRODUCT_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
     "scoped",
