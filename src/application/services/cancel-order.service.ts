@@ -5,6 +5,7 @@ import type { ProductRepository } from "#/domain/repositories/product.repository
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
+import type { OutboxJobPayloadType } from "#/infrastructure/messaging/jobs/validation.js";
 import {
   ForbiddenError,
   NotFoundError,
@@ -94,14 +95,17 @@ export class CancelOrderService {
 
       // if the order has a tracking number, it means this order was created in the shipping api, so we need to schedule a transactional outbox job to delete it, since we don't wanna make external(gateway) write requests inside of a transaction
       if (trackingNumber) {
+        const payload: OutboxJobPayloadType<
+          typeof OutboxAction.DELETE_ORDER_IN_SHIPPING_API
+        > = {
+          shippingProvider: order.getSelectedShippingProvider(),
+          trackingNumber,
+        };
+
         await this.outboxRepository.saveJob(
           {
             action: OutboxAction.DELETE_ORDER_IN_SHIPPING_API,
-            payload: {
-              orderId: order.id.value,
-              trackingNumber,
-              shippingProvider: order.getSelectedShippingProvider(),
-            },
+            payload: payload,
           },
           tx,
         );

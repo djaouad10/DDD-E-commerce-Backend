@@ -635,7 +635,6 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       );
       expect(deleteJob).toBeDefined();
       expect(deleteJob!.payload).toMatchObject({
-        orderId: order.id.value,
         trackingNumber: "TRACK123456",
         shippingProvider: ShippingProvider.WORLD_EXPRESS,
       });
@@ -1015,7 +1014,6 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       );
       expect(deleteJob).toBeDefined();
       expect(deleteJob!.payload).toMatchObject({
-        orderId: order.id.value,
         trackingNumber: "TRACK789012",
         shippingProvider: order.getSelectedShippingProvider(),
       });
