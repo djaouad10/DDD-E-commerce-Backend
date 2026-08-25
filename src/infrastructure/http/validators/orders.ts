@@ -68,3 +68,7 @@ export const cancelOrderParamsSchema = z.object({
 export const confirmOrderParamsSchema = z.object({
   id: z.string(),
 });
+
+export const shipOrderParamsSchema = z.object({
+  id: z.string(),
+});

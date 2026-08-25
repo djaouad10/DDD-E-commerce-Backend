@@ -8,6 +8,7 @@ import {
   getOrderByTrackingNumberParamsSchema,
   getOrdersOfClientSearchParamsSchema,
   getOrdersSearchParamsSchema,
+  shipOrderParamsSchema,
 } from "../validators/orders.js";
 import {
   CANCEL_ORDER_SERVICE,
@@ -17,6 +18,7 @@ import {
   GET_ORDER_BY_TRACKING_NUMBER_SERVICE,
   GET_ORDERS_OF_CLIENT_SERVICE,
   GET_ORDERS_SERVICE,
+  SHIP_ORDER_SERVICE,
 } from "#/composition/tokens.js";
 import { GetOrdersOfClientQuery } from "#/application/queries/get-orders-of-client.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
@@ -27,6 +29,7 @@ import { GetOrdersQuery } from "#/application/queries/get-orders.query.js";
 import { CreateOrderCommand } from "#/application/commands/create-order.command.js";
 import { CancelOrderCommand } from "#/application/commands/cancel-order.command.js";
 import { ConfirmOrderCommand } from "#/application/commands/confirm-order.command.js";
+import { ShipOrderCommand } from "#/application/commands/ship-order-command.js";
 
 const router = Router();
 
@@ -156,5 +159,16 @@ router.patch(
     res.status(200).json({ success: true });
   },
 );
+
+router.patch("/:id/ship", authMiddleware, adminMiddleware, async (req, res) => {
+  const safeParams = validate(shipOrderParamsSchema, req.params);
+
+  const service = req.scope.resolve(SHIP_ORDER_SERVICE);
+  const command = new ShipOrderCommand(safeParams.id);
+
+  await service.execute(command);
+
+  res.status(200).json({ success: true });
+});
 
 export default router;
