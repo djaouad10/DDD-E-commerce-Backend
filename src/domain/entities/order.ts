@@ -432,7 +432,7 @@ export class Order {
     return [...this._events];
   }
 
-  recordThat(event: DomainEvent): void {
+ private recordThat(event: DomainEvent): void {
     this._events.push(event);
   }
 }
