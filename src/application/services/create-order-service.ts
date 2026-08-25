@@ -6,10 +6,9 @@ import type { CartRepository } from "#/domain/repositories/cart.repository.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
-import type { OrderId } from "#/domain/value-objects/order-id.js";
+import { OrderId } from "#/domain/value-objects/order-id.js";
 import { ShippingDetails } from "#/domain/value-objects/shipping-details.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import type { VariationId } from "#/domain/value-objects/variation-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import {
   ForbiddenError,
@@ -45,6 +44,24 @@ export class CreateOrderService {
       shippingDetails,
       idempotencyKey,
     } = command;
+
+    // check if idempotency key exists
+    const existingOrderId = await this.db.transaction(async (tx) => {
+      const existingKey = await this.idempotencyKeysRepository.find(
+        idempotencyKey,
+        tx,
+      );
+
+      if (!existingKey) {
+        return null;
+      }
+
+      return this.parseOrderIdFromPayload(existingKey.payload);
+    });
+
+    if (existingOrderId) {
+      return existingOrderId;
+    }
 
     // check if the shipping price selected by client is actually the one listed by the provider (so clients aren't charged a different price than they agreed to on the frontend)
     const [providerDeliveryPriceOfWilaya, communesOfWilaya, user, cart] =
@@ -105,17 +122,17 @@ export class CreateOrderService {
     const products =
       await this.productRepository.findByVariationIds(variationIds);
 
-    const variationToProductMap = new Map<VariationId, Product>();
+    const variationToProductMap = new Map<string, Product>();
 
     for (const product of products) {
       for (const variation of product.getVariations()) {
-        variationToProductMap.set(variation.id, product);
+        variationToProductMap.set(variation.id.value, product);
       }
     }
 
     // for each cart item create an order item:
     const orderItems: OrderItem[] = cart.getItems().map((item) => {
-      const targetProduct = variationToProductMap.get(item.variationId);
+      const targetProduct = variationToProductMap.get(item.variationId.value);
 
       if (!targetProduct) {
         throw new ValidationError(
@@ -180,6 +197,9 @@ export class CreateOrderService {
         idempotencyKey,
         "CreateOrderService",
         tx,
+        {
+          orderId: order.id.value,
+        },
       );
 
       await Promise.all([
@@ -197,5 +217,23 @@ export class CreateOrderService {
     });
 
     return order.id;
+  }
+
+  private parseOrderIdFromPayload(payload: unknown): OrderId | null {
+    if (
+      payload &&
+      typeof payload === "object" &&
+      "orderId" in payload &&
+      typeof (payload as Record<string, unknown>).orderId === "string"
+    ) {
+      try {
+        return OrderId.of(
+          (payload as Record<string, unknown>).orderId as string,
+        );
+      } catch {
+        return null;
+      }
+    }
+    return null;
   }
 }
