@@ -30,8 +30,6 @@ export class ConfirmOrderService {
 
     order.confirm();
 
-    const trackingNumber = order.getTrackingNumber();
-
     const events = order.pullEvents();
 
     this.logger.debug("Saving order", { id: order.id.value });
@@ -41,16 +39,17 @@ export class ConfirmOrderService {
         this.outboxRepository.saveEvents(events, tx),
       ]);
 
-      if (trackingNumber) {
-        const payload: OutboxJobPayloadType<
-          typeof OutboxAction.CREATE_ORDER_IN_SHIPPING_API
-        > = { orderId: order.id.value };
+      const payload: OutboxJobPayloadType<
+        typeof OutboxAction.CREATE_ORDER_IN_SHIPPING_API
+      > = { orderId: order.id.value };
 
-        await this.outboxRepository.saveJob({
+      await this.outboxRepository.saveJob(
+        {
           action: OutboxAction.CREATE_ORDER_IN_SHIPPING_API,
           payload,
-        }, tx);
-      }
+        },
+        tx,
+      );
     });
   }
 }
