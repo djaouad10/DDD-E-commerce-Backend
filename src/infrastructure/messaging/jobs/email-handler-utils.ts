@@ -16,10 +16,10 @@ import type { EmailQueueRatingApprovedHandlerService } from "#/application/servi
 import type { EmailQueueRatingRejectedHandlerService } from "#/application/services/event-handlers/email-queue-rating-rejected-handler.service.js";
 import type { EmailQueueRatingSubmittedHandlerService } from "#/application/services/event-handlers/email-queue-rating-submitted-handler.service.js";
 import type { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
-import type {
+import {
+  EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
   EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
   EMAIL_QUEUE_ORDER_CONFIRMED_HANDLER_SERVICE,
-  EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
   EMAIL_QUEUE_ORDER_DELIVERED_HANDLER_SERVICE,
   EMAIL_QUEUE_ORDER_RETURNED_HANDLER_SERVICE,
   EMAIL_QUEUE_RATING_APPROVED_HANDLER_SERVICE,
@@ -227,3 +227,80 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
   }
 }
 
+type EmailQueueEventHandlerRegistryEntry<T extends EmailQueueDomainEvents> = {
+  token: EmailQueueEventToToken[T];
+  handlerMethod: (
+    handler: EmailQueueEventToService[T],
+    command: EmailQueueEventToCommand[T],
+    jobId: string,
+  ) => Promise<void>;
+};
+
+const emailQueuEventeHandlerRegistry: {
+  [K in EmailQueueDomainEvents]: EmailQueueEventHandlerRegistryEntry<K>;
+} = {
+  [DomainEventCode.ORDER_CREATED]: {
+    token: EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.ORDER_CONFIRMED]: {
+    token: EMAIL_QUEUE_ORDER_CONFIRMED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.ORDER_CANCELLED]: {
+    token: EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.ORDER_DELIVERED]: {
+    token: EMAIL_QUEUE_ORDER_DELIVERED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.ORDER_RETURNED]: {
+    token: EMAIL_QUEUE_ORDER_RETURNED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.RATING_APPROVED]: {
+    token: EMAIL_QUEUE_RATING_APPROVED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.RATING_REJECTED]: {
+    token: EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.RATING_SUBMITTED]: {
+    token: EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.USER_REGISTERED]: {
+    token: EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+};
+
+function executeEmailQueueEventHandler() {}
