@@ -12,7 +12,7 @@ import {
   type OutboxJobPayloadType,
 } from "../../jobs/validation.js";
 import type { OutboxAction } from "#/application/repositories/outbox.repository.js";
-import { buildOutboxCommand, executeOutboxHandler } from "../../jobs/utils.js";
+import { buildOutboxCommand, executeOutboxHandler } from "../../jobs/outbox-handler-utils.js";
 import { runWithContext } from "#/shared/context/request-context.js";
 
 export class OutboxHandlerWorker {
