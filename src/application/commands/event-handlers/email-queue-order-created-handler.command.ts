@@ -4,7 +4,7 @@ import type { Currency } from "#/domain/value-objects/money.js";
 
 export class EmailQueueOrderCreatedHandlerCommand {
   constructor(
-    public readonly eventType: typeof DomainEventCode.ORDER_CONFIRMED,
+    public readonly eventType: typeof DomainEventCode.ORDER_CREATED,
     public readonly occurredOn: Date,
     public readonly aggregateId: string,
     public readonly userId: string,
