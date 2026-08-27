@@ -1,13 +1,13 @@
-import type { EmailQueueOrderCancelledHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-cancelled-handler.command.js";
-import type { EmailQueueOrderConfirmedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-confirmed-handler.command.js";
-import type { EmailQueueOrderCreatedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-created-handler.command.js";
-import type { EmailQueueOrderDeliveredHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-delivered-handler.command.js";
-import type { EmailQueueOrderReturnedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-returned-handler.command.js";
-import type { EmailQueueRatingApprovedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-approved-handler.command.js";
-import type { EmailQueueRatingRejectedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-rejected-handler.command.js";
-import type { EmailQueueRatingSubmittedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-submitted-handler.command.js";
-import type { EmailQueueUserRegisteredHandlerCommand } from "#/application/commands/event-handlers/email-queue-user-registered-handler.command.js";
-import type { EmailQueueOrderCancelledHandlerService } from "#/application/services/event-handlers/email-queue-order-cancelled-handler.service.js";
+import { EmailQueueOrderCancelledHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-cancelled-handler.command.js";
+import { EmailQueueOrderConfirmedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-confirmed-handler.command.js";
+import { EmailQueueOrderCreatedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-created-handler.command.js";
+import { EmailQueueOrderDeliveredHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-delivered-handler.command.js";
+import { EmailQueueOrderReturnedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-returned-handler.command.js";
+import { EmailQueueRatingApprovedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-approved-handler.command.js";
+import { EmailQueueRatingRejectedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-rejected-handler.command.js";
+import { EmailQueueRatingSubmittedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-submitted-handler.command.js";
+import { EmailQueueUserRegisteredHandlerCommand } from "#/application/commands/event-handlers/email-queue-user-registered-handler.command.js";
+import { EmailQueueOrderCancelledHandlerService } from "#/application/services/event-handlers/email-queue-order-cancelled-handler.service.js";
 import type { EmailQueueOrderConfirmedHandlerService } from "#/application/services/event-handlers/email-queue-order-confirmed-handler.service.js";
 import type { EmailQueueOrderCreatedHandlerService } from "#/application/services/event-handlers/email-queue-order-created-handler.service.js";
 import type { EmailQueueOrderDeliveredHandlerService } from "#/application/services/event-handlers/email-queue-order-delivered-handler.service.js";
@@ -27,11 +27,12 @@ import type {
   EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
   EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
 } from "#/composition/tokens.js";
-import type { DomainEventCode } from "#/domain/events/domain-event.js";
+import { DomainEventCode } from "#/domain/events/domain-event.js";
+import type { DomainEventsPayloadTypes } from "./validation.js";
 
 // build services and commands first
 
-type EmailQueueDomainEvents =
+export type EmailQueueDomainEvents =
   | typeof DomainEventCode.ORDER_CREATED
   | typeof DomainEventCode.ORDER_CONFIRMED
   | typeof DomainEventCode.ORDER_CANCELLED
@@ -78,4 +79,151 @@ type EmailQueueEventToToken = {
   [DomainEventCode.USER_REGISTERED]: typeof EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE;
 };
 
+export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
+  event: T,
+  payload: DomainEventsPayloadTypes<T>,
+): EmailQueueEventToCommand[T] {
+  switch (event) {
+    case DomainEventCode.ORDER_CREATED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.ORDER_CREATED
+      >;
+
+      return new EmailQueueOrderCreatedHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.userId,
+        p.itemCount,
+        p.totalPrice,
+        p.currency,
+        p.selectedShippingProvider,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    case DomainEventCode.ORDER_CONFIRMED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.ORDER_CONFIRMED
+      >;
+
+      return new EmailQueueOrderConfirmedHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.userId,
+        p.itemCount,
+        p.totalPrice,
+        p.currency,
+        p.selectedShippingProvider,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    case DomainEventCode.ORDER_CANCELLED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.ORDER_CANCELLED
+      >;
+
+      return new EmailQueueOrderCancelledHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.userId,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    case DomainEventCode.ORDER_DELIVERED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.ORDER_DELIVERED
+      >;
+
+      return new EmailQueueOrderDeliveredHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.userId,
+        p.deliveredAt,
+        p.selectedShippingProvider,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    case DomainEventCode.ORDER_RETURNED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.ORDER_RETURNED
+      >;
+
+      return new EmailQueueOrderReturnedHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.userId,
+        p.reason,
+        p.selectedShippingProvider,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    case DomainEventCode.RATING_APPROVED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.RATING_APPROVED
+      >;
+
+      return new EmailQueueRatingApprovedHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.userId,
+        p.productId,
+        p.rating,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    case DomainEventCode.RATING_REJECTED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.RATING_REJECTED
+      >;
+
+      return new EmailQueueRatingRejectedHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.userId,
+        p.productId,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    case DomainEventCode.RATING_SUBMITTED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.RATING_SUBMITTED
+      >;
+
+      return new EmailQueueRatingSubmittedHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.userId,
+        p.productId,
+        p.rating,
+        p.comment,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    case DomainEventCode.USER_REGISTERED: {
+      const p = payload as DomainEventsPayloadTypes<
+        typeof DomainEventCode.USER_REGISTERED
+      >;
+
+      return new EmailQueueUserRegisteredHandlerCommand(
+        p.eventType,
+        p.occurredOn,
+        p.aggregateId,
+        p.email,
+        p.name,
+        p.role,
+      ) as EmailQueueEventToCommand[T];
+    }
+
+    default:
+      const _exhaustive: never = event;
+      throw new Error(`Unhandled Email Queue Domain Event: ${_exhaustive}`);
+  }
+}
 
