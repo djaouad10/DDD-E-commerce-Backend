@@ -16,6 +16,7 @@ import type { EmailQueueRatingApprovedHandlerService } from "#/application/servi
 import type { EmailQueueRatingRejectedHandlerService } from "#/application/services/event-handlers/email-queue-rating-rejected-handler.service.js";
 import type { EmailQueueRatingSubmittedHandlerService } from "#/application/services/event-handlers/email-queue-rating-submitted-handler.service.js";
 import type { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
+import type { InjectionToken, Scope } from "#/composition/container.js";
 import {
   EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
   EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
@@ -236,7 +237,7 @@ type EmailQueueEventHandlerRegistryEntry<T extends EmailQueueDomainEvents> = {
   ) => Promise<void>;
 };
 
-const emailQueuEventeHandlerRegistry: {
+const emailQueueEventeHandlerRegistry: {
   [K in EmailQueueDomainEvents]: EmailQueueEventHandlerRegistryEntry<K>;
 } = {
   [DomainEventCode.ORDER_CREATED]: {
@@ -303,4 +304,19 @@ const emailQueuEventeHandlerRegistry: {
   },
 };
 
-function executeEmailQueueEventHandler() {}
+export async function executeEmailQueueEventHandler<
+  T extends EmailQueueDomainEvents,
+>(
+  event: T,
+  scope: Scope,
+  command: EmailQueueEventToCommand[T],
+  jobId: string,
+): Promise<unknown> {
+  const entry = emailQueueEventeHandlerRegistry[event];
+
+  const service = scope.resolve<EmailQueueEventToService[T]>(
+    entry.token as InjectionToken<EmailQueueEventToService[T]>,
+  );
+
+  return entry.handlerMethod(service, command, jobId);
+}
