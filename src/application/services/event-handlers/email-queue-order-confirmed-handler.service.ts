@@ -24,15 +24,6 @@ export class EmailQueueOrderConfirmedHandlerService {
   ): Promise<void> {
     this.logger.info("EmailQueueOrderConfirmedHandlerService.execute called");
 
-    await this.db.transaction(async (tx) => {
-      // if job was already processed this will throw unique constraint violation error
-      await this.idempotencyKeysRepository.create(
-        jobId,
-        "EmailQueueOrderConfirmedHandlerService",
-        tx,
-      );
-    });
-
     const { userId, ...data } = command;
 
     const user = await this.userRepository.find(UserId.of(command.userId));
@@ -47,10 +38,18 @@ export class EmailQueueOrderConfirmedHandlerService {
       ...data,
     });
 
-    await this.emailGateway.sendEmail(
-      user.email,
-      "Order Confirmed",
-      orderConfirmedEmailTemplate,
-    );
+    await this.db.transaction(async (tx) => {
+      // if job was already processed this will throw unique constraint violation error
+      await this.idempotencyKeysRepository.create(
+        jobId,
+        "EmailQueueOrderConfirmedHandlerService",
+        tx,
+      );
+      await this.emailGateway.sendEmail(
+        user.email,
+        "Order Confirmed",
+        orderConfirmedEmailTemplate,
+      );
+    });
   }
 }
