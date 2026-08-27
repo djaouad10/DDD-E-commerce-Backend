@@ -8,7 +8,7 @@ import { buildUserRegisteredEmailTemplate } from "#/infrastructure/notifications
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 
-export class EmailQuUserRegisteredHanHandlerService {
+export class EmailQueueUserRegisteredHandlerService {
   private logger = createLogger("EmailQueueUserRegisteredHandlerService");
 
   constructor(
