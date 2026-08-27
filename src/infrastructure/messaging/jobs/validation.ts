@@ -4,6 +4,8 @@ import { Color, Size } from "#/domain/entities/product.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { Currency } from "#/domain/value-objects/money.js";
 import z from "zod";
+import type { EmailQueueDomainEvents } from "./email-handler-utils.js";
+import { UserRole } from "#/domain/entities/user.js";
 
 export const outboxJobPayloadsSchemas = z.object({
   [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: z.object({
@@ -161,7 +163,7 @@ export const domainEventsPayloadSchemas = z.object({
     aggregateId: z.string(),
     email: z.string(),
     name: z.string(),
-    role: z.string(),
+    role: z.enum(UserRole),
   }),
   [DomainEventCode.USER_PROFILE_UPDATED]: z.object({
     eventType: z.literal(DomainEventCode.USER_PROFILE_UPDATED),
@@ -330,6 +332,5 @@ export const domainEventsPayloadSchemas = z.object({
   }),
 });
 
-export type DomainEventsPayloadTypes = z.infer<
-  typeof domainEventsPayloadSchemas
->;
+export type DomainEventsPayloadTypes<T extends EmailQueueDomainEvents> =
+  z.infer<typeof domainEventsPayloadSchemas>[T];
