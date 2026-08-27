@@ -87,6 +87,7 @@ import type { EmailQueueRatingApprovedHandlerService } from "#/application/servi
 import type { EmailQueueRatingRejectedHandlerService } from "#/application/services/event-handlers/email-queue-rating-rejected-handler.service.js";
 import type { EmailQueueRatingSubmittedHandlerService } from "#/application/services/event-handlers/email-queue-rating-submitted-handler.service.js";
 import type { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
+import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -163,6 +164,10 @@ export const FILE_STORE_GATEWAY = Symbol(
 export const SHIPPING_PROVIDER_GATEWAY = Symbol(
   "shippingProviderGateway",
 ) as InjectionToken<ShippingProviderGateway>;
+
+export const EMAIL_GATEWAY = Symbol(
+  "emailGateway",
+) as InjectionToken<EmailGateway>;
 
 // Queues
 export const OUTBOX_QUEUE = Symbol("outboxQueue") as InjectionToken<Queue>;
