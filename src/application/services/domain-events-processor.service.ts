@@ -2,9 +2,9 @@ import {
   OutboxStatus,
   type OutboxRepository,
 } from "../repositories/outbox.repository.js";
-import type { OutboxProcessorCommand } from "../commands/outbox-processor.command.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { EventPublisher } from "../ports/event-publisher.port.js";
+import type { DomainEventsProcessorCommand } from "../commands/domain-events-processor.command.js";
 
 export class DomainEventsProcessorService {
   private logger = createLogger("DomainEventsProcessorService");
@@ -13,7 +13,7 @@ export class DomainEventsProcessorService {
     private eventPublisher: EventPublisher,
   ) {}
 
-  async execute(command: OutboxProcessorCommand) {
+  async execute(command: DomainEventsProcessorCommand) {
     // should I wrap the try block in a tx?
 
     this.logger.debug("Processing event jobs");

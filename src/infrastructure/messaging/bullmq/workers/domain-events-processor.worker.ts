@@ -1,10 +1,10 @@
 // src/workers/domain-events-processor.worker.ts
 import { buildDomainEventsProcessorContainer } from "#/composition/domain-events-processor-composition.js";
 import { DOMAIN_EVENTS_PROCESSOR_SERVICE } from "#/composition/tokens.js";
-import { OutboxProcessorCommand } from "#/application/commands/outbox-processor.command.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { runWithContext } from "#/shared/context/request-context.js";
+import { DomainEventsProcessorCommand } from "#/application/commands/domain-events-processor.command.js";
 
 const logger = createLogger("DomainEventsProcessorWorker");
 
@@ -21,7 +21,7 @@ async function startDomainEventsProcessor() {
 
         try {
           const service = scope.resolve(DOMAIN_EVENTS_PROCESSOR_SERVICE);
-          await service.execute(new OutboxProcessorCommand(5));
+          await service.execute(new DomainEventsProcessorCommand(5));
         } catch (error) {
           logger.error(
             "Domain events processor iteration failed",
