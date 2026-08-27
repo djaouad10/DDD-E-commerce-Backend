@@ -1,6 +1,8 @@
 import { OutboxAction } from "#/application/repositories/outbox.repository.js";
-import { ShippingProvider } from "#/domain/entities/order.js";
+import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
+import { Color, Size } from "#/domain/entities/product.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
+import { Currency } from "#/domain/value-objects/money.js";
 import z from "zod";
 
 export const outboxJobPayloadsSchemas = z.object({
@@ -70,8 +72,8 @@ export const domainEventsPayloadSchemas = z.object({
     userId: z.string(),
     itemCount: z.number(),
     totalPrice: z.number(),
-    currency: z.string(),
-    selectedShippingProvider: z.string(),
+    currency: z.enum(Currency),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_CONFIRMED]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_CONFIRMED),
@@ -80,8 +82,8 @@ export const domainEventsPayloadSchemas = z.object({
     userId: z.string(),
     itemCount: z.number(),
     totalPrice: z.number(),
-    currency: z.string(),
-    selectedShippingProvider: z.string(),
+    currency: z.enum(Currency),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_CANCELLED]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_CANCELLED),
@@ -95,7 +97,7 @@ export const domainEventsPayloadSchemas = z.object({
     aggregateId: z.string(),
     userId: z.string(),
     trackingNumber: z.string(),
-    selectedShippingProvider: z.string(),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_MARKED_AS_SHIPPING]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_MARKED_AS_SHIPPING),
@@ -103,7 +105,7 @@ export const domainEventsPayloadSchemas = z.object({
     aggregateId: z.string(),
     userId: z.string(),
     trackingNumber: z.string(),
-    selectedShippingProvider: z.string(),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_DELIVERED]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_DELIVERED),
@@ -111,7 +113,7 @@ export const domainEventsPayloadSchemas = z.object({
     aggregateId: z.string(),
     userId: z.string(),
     deliveredAt: z.iso.datetime().pipe(z.coerce.date()),
-    selectedShippingProvider: z.string(),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_RETURNED]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_RETURNED),
@@ -119,22 +121,22 @@ export const domainEventsPayloadSchemas = z.object({
     aggregateId: z.string(),
     userId: z.string(),
     reason: z.string().nullable(),
-    selectedShippingProvider: z.string(),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_SUSPENDED]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_SUSPENDED),
     occurredOn: z.iso.datetime().pipe(z.coerce.date()),
     aggregateId: z.string(),
     userId: z.string(),
-    previousStatus: z.string(),
-    selectedShippingProvider: z.string(),
+    previousStatus: z.enum(OrderStatus),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_RESUMED_FROM_SUSPENSION]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_RESUMED_FROM_SUSPENSION),
     occurredOn: z.iso.datetime().pipe(z.coerce.date()),
     aggregateId: z.string(),
     userId: z.string(),
-    selectedShippingProvider: z.string(),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_SHIPPING_STATUS_UPDATED]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_SHIPPING_STATUS_UPDATED),
@@ -142,14 +144,14 @@ export const domainEventsPayloadSchemas = z.object({
     aggregateId: z.string(),
     shippingStatus: z.string(),
     previousStatus: z.string().nullable(),
-    selectedShippingProvider: z.string(),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
   [DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED]: z.object({
     eventType: z.literal(DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED),
     occurredOn: z.iso.datetime().pipe(z.coerce.date()),
     aggregateId: z.string(),
     userId: z.string(),
-    selectedShippingProvider: z.string(),
+    selectedShippingProvider: z.enum(ShippingProvider),
   }),
 
   // User events
@@ -202,7 +204,7 @@ export const domainEventsPayloadSchemas = z.object({
     categoryId: z.string().nullable(),
     brand: z.string(),
     price: z.number(),
-    currency: z.string(),
+    currency: z.enum(Currency),
   }),
   [DomainEventCode.PRODUCT_UPDATED]: z.object({
     eventType: z.literal(DomainEventCode.PRODUCT_UPDATED),
@@ -215,8 +217,8 @@ export const domainEventsPayloadSchemas = z.object({
     occurredOn: z.iso.datetime().pipe(z.coerce.date()),
     aggregateId: z.string(),
     variationId: z.string(),
-    size: z.string(),
-    color: z.string(),
+    size: z.enum(Size),
+    color: z.enum(Color),
   }),
   [DomainEventCode.PRODUCT_VARIATION_REMOVED]: z.object({
     eventType: z.literal(DomainEventCode.PRODUCT_VARIATION_REMOVED),
@@ -251,8 +253,8 @@ export const domainEventsPayloadSchemas = z.object({
     occurredOn: z.iso.datetime().pipe(z.coerce.date()),
     aggregateId: z.string(),
     variationId: z.string(),
-    size: z.string(),
-    color: z.string(),
+    size: z.enum(Size),
+    color: z.enum(Color),
     totalQty: z.number(),
     weightInGrams: z.number(),
   }),
