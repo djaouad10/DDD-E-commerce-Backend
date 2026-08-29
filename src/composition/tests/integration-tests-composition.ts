@@ -171,7 +171,7 @@ import { EmailQueueRatingSubmittedHandlerService } from "#/application/services/
 import { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
 import { BrevoEmailGateway } from "#/infrastructure/gateways/brevo-email-gateway.js";
 import { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
-import { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
+import { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";
 import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
 
@@ -963,9 +963,10 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
     (scope) =>
-      new CreateShipmentInShippingProviderService(
+      new ActivateShipmentInShippingProviderService(
         scope.resolve(DB),
         scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(ORDER_REPOSITORY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
     "scoped",

@@ -26,7 +26,7 @@ import type { IdempotencyKeysRepository } from "#/application/repositories/idemp
 import type { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import type { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
-import type { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
+import type { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";
 import type { Auth } from "#/infrastructure/config/auth.js";
 import type GetCategoriesService from "#/application/services/get-categories.service.js";
 import type { CreateCategoryService } from "#/application/services/create-category.service.js";
@@ -216,8 +216,8 @@ export const UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
 ) as InjectionToken<UpdateOrderInShippingProviderService>;
 
 export const CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
-  "createShipmentInShippingProviderService",
-) as InjectionToken<CreateShipmentInShippingProviderService>;
+  "ActivateShipmentInShippingProviderService",
+) as InjectionToken<ActivateShipmentInShippingProviderService>;
 
 export const GET_CATEGORIES_SERVICE = Symbol(
   "getCategoriesService",
