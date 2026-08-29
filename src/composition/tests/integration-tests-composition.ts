@@ -89,6 +89,16 @@ import {
   SHIP_ORDER_SERVICE,
   UPDATE_SHIPPING_DETAILS_SERVICE,
   UPDATE_CLIENT_PROFILE_SERVICE,
+  EMAIL_GATEWAY,
+  EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
+  EMAIL_QUEUE_ORDER_CONFIRMED_HANDLER_SERVICE,
+  EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
+  EMAIL_QUEUE_ORDER_DELIVERED_HANDLER_SERVICE,
+  EMAIL_QUEUE_ORDER_RETURNED_HANDLER_SERVICE,
+  EMAIL_QUEUE_RATING_APPROVED_HANDLER_SERVICE,
+  EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE,
+  EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
+  EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -146,6 +156,16 @@ import { ConfirmOrderService } from "#/application/services/confirm-order.servic
 import { ShipOrderService } from "#/application/services/ship-order.service.js";
 import { UpdateShippingDetailsService } from "#/application/services/update-shipping-details.service.js";
 import { UpdateClientProfileService } from "#/application/services/update-client-profile.service.js";
+import { EmailQueueOrderCancelledHandlerService } from "#/application/services/event-handlers/email-queue-order-cancelled-handler.service.js";
+import { EmailQueueOrderConfirmedHandlerService } from "#/application/services/event-handlers/email-queue-order-confirmed-handler.service.js";
+import { EmailQueueOrderCreatedHandlerService } from "#/application/services/event-handlers/email-queue-order-created-handler.service.js";
+import { EmailQueueOrderDeliveredHandlerService } from "#/application/services/event-handlers/email-queue-order-delivered-handler.service.js";
+import { EmailQueueOrderReturnedHandlerService } from "#/application/services/event-handlers/email-queue-order-returned-handler.service.js";
+import { EmailQueueRatingApprovedHandlerService } from "#/application/services/event-handlers/email-queue-rating-approved-handler.service.js";
+import { EmailQueueRatingRejectedHandlerService } from "#/application/services/event-handlers/email-queue-rating-rejected-handler.service.js";
+import { EmailQueueRatingSubmittedHandlerService } from "#/application/services/event-handlers/email-queue-rating-submitted-handler.service.js";
+import { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
+import { BrevoEmailGateway } from "#/infrastructure/gateways/brevo-email-gateway.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -271,6 +291,17 @@ export function buildIntegrationTestsContainer(): Container {
         env.WORLD_EXPRESS_API_KEY,
       ),
     "scoped",
+  );
+
+  container.register(
+    EMAIL_GATEWAY,
+    (scope) =>
+      new BrevoEmailGateway(
+        scope.resolve(HTTP_CLIENT),
+        env.BREVO_BASE_URL,
+        env.BREVO_API_KEY,
+      ),
+    "singleton",
   );
 
   // other
@@ -763,6 +794,124 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(DB),
         scope.resolve(USER_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderCreatedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderCancelledHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_CONFIRMED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderConfirmedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_DELIVERED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderDeliveredHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_RETURNED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderReturnedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_RATING_APPROVED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueRatingApprovedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(RATING_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueRatingRejectedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(RATING_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueRatingSubmittedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_QUERIES),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(RATING_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueUserRegisteredHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
     "scoped",
   );
