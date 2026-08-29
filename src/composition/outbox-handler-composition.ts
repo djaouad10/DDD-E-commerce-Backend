@@ -84,6 +84,7 @@ export function buildOutboxHandlerContainer(): Container {
       new UpdateOrderInShippingProviderService(
         scope.resolve(DB),
         scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(ORDER_REPOSITORY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
     "scoped",
