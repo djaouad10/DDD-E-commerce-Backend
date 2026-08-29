@@ -99,6 +99,10 @@ import {
   EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE,
   EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
   EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
+  CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+  CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+  DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
+  UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -166,6 +170,10 @@ import { EmailQueueRatingRejectedHandlerService } from "#/application/services/e
 import { EmailQueueRatingSubmittedHandlerService } from "#/application/services/event-handlers/email-queue-rating-submitted-handler.service.js";
 import { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
 import { BrevoEmailGateway } from "#/infrastructure/gateways/brevo-email-gateway.js";
+import { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
+import { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
+import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
+import { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -912,6 +920,52 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(DB),
         scope.resolve(EMAIL_GATEWAY),
         scope.resolve(USER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new CreateOrderInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new DeleteOrderFromShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new UpdateOrderInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new CreateShipmentInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
     "scoped",
