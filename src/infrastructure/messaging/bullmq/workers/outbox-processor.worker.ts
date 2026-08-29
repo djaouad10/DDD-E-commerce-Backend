@@ -4,11 +4,12 @@ import { OutboxProcessorCommand } from "#/application/commands/outbox-processor.
 import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { runWithContext } from "#/shared/context/request-context.js";
+import type { Container } from "#/composition/container.js";
 
 const logger = createLogger("OutboxProcessorWorker");
 
-async function startOutboxProcessor() {
-  const container = buildOutboxProcessorContainer();
+async function startOutboxProcessor(buildContainer: () => Container) {
+  const container = buildContainer();
 
   while (true) {
     const iterationId = `iter_${crypto.randomUUID().replace(/-/g, "")}`;
@@ -35,4 +36,4 @@ async function startOutboxProcessor() {
   }
 }
 
-startOutboxProcessor();
+startOutboxProcessor(buildOutboxProcessorContainer);

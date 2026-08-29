@@ -6,17 +6,27 @@ import {
   ValidationError,
 } from "#/shared/errors/domain-error.js";
 
-
 import { runWithContext } from "#/shared/context/request-context.js";
 import { buildEmailQueueHandlerContainer } from "#/composition/email-queue-handler.composition.js";
-import { buildEmailQueueEventCommand, executeEmailQueueEventHandler, type EmailQueueDomainEvents } from "../../jobs/email-handler-utils.js";
-import { domainEventsPayloadSchemas, type DomainEventsPayloadTypes } from "../../jobs/validation.js";
+import {
+  buildEmailQueueEventCommand,
+  executeEmailQueueEventHandler,
+  type EmailQueueDomainEvents,
+} from "../../jobs/email-handler-utils.js";
+import {
+  domainEventsPayloadSchemas,
+  type DomainEventsPayloadTypes,
+} from "../../jobs/validation.js";
+import type { Container } from "#/composition/container.js";
 
 export class EmailQueueHandlerWorker {
   private logger = createLogger("EmailQueueHandlerWorker");
   private worker: Worker | null = null;
 
-  constructor(private connection: Redis) {}
+  constructor(
+    private connection: Redis,
+    private buildContainer: () => Container = buildEmailQueueHandlerContainer,
+  ) {}
 
   start(): void {
     if (this.worker) {
@@ -37,20 +47,22 @@ export class EmailQueueHandlerWorker {
             startTime: performance.now(),
           },
           async () => {
-            const container = buildEmailQueueHandlerContainer();
+            const container = this.buildContainer();
             const scope = container.createScope();
 
             const jobId = job.id;
             const eventCode = job.name as EmailQueueDomainEvents;
 
-            this.logger.info("Processing email queue job", { jobId, eventCode });
+            this.logger.info("Processing email queue job", {
+              jobId,
+              eventCode,
+            });
 
             if (!jobId) throw new BadRequestError("jobId is required");
 
             try {
               // 1. Schema lookup + validation
-              const payloadSchema =
-                domainEventsPayloadSchemas.shape[eventCode];
+              const payloadSchema = domainEventsPayloadSchemas.shape[eventCode];
 
               if (!payloadSchema) {
                 throw new ValidationError(
@@ -67,9 +79,17 @@ export class EmailQueueHandlerWorker {
               const command = buildEmailQueueEventCommand(eventCode, payload);
 
               // 3. Resolve service & execute (fully typed end-to-end)
-              await executeEmailQueueEventHandler(eventCode, scope, command, jobId);
+              await executeEmailQueueEventHandler(
+                eventCode,
+                scope,
+                command,
+                jobId,
+              );
 
-              this.logger.info("Domain Event job completed", { jobId, eventCode });
+              this.logger.info("Domain Event job completed", {
+                jobId,
+                eventCode,
+              });
             } catch (error) {
               this.logger.error("Domain Event job failed", error as Error, {
                 jobId,

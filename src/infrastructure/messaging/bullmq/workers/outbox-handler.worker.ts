@@ -12,14 +12,21 @@ import {
   type OutboxJobPayloadType,
 } from "../../jobs/validation.js";
 import type { OutboxAction } from "#/application/repositories/outbox.repository.js";
-import { buildOutboxCommand, executeOutboxHandler } from "../../jobs/outbox-handler-utils.js";
+import {
+  buildOutboxCommand,
+  executeOutboxHandler,
+} from "../../jobs/outbox-handler-utils.js";
 import { runWithContext } from "#/shared/context/request-context.js";
+import type { Container } from "#/composition/container.js";
 
 export class OutboxHandlerWorker {
   private logger = createLogger("OutboxHandlerWorker");
   private worker: Worker | null = null;
 
-  constructor(private connection: Redis) {}
+  constructor(
+    private connection: Redis,
+    private buildContainer: () => Container = buildOutboxHandlerContainer,
+  ) {}
 
   start(): void {
     if (this.worker) {
@@ -40,7 +47,7 @@ export class OutboxHandlerWorker {
             startTime: performance.now(),
           },
           async () => {
-            const container = buildOutboxHandlerContainer();
+            const container = this.buildContainer();
             const scope = container.createScope();
 
             const jobId = job.id;

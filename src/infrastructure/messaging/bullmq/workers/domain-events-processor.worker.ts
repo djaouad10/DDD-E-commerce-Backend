@@ -5,11 +5,12 @@ import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { runWithContext } from "#/shared/context/request-context.js";
 import { DomainEventsProcessorCommand } from "#/application/commands/domain-events-processor.command.js";
+import type { Container } from "#/composition/container.js";
 
 const logger = createLogger("DomainEventsProcessorWorker");
 
-async function startDomainEventsProcessor() {
-  const container = buildDomainEventsProcessorContainer();
+async function startDomainEventsProcessor(buildContainer: () => Container) {
+  const container = buildContainer();
 
   while (true) {
     const iterationId = `iter_${crypto.randomUUID().replace(/-/g, "")}`;
@@ -38,4 +39,4 @@ async function startDomainEventsProcessor() {
   }
 }
 
-startDomainEventsProcessor();
+startDomainEventsProcessor(buildDomainEventsProcessorContainer);
