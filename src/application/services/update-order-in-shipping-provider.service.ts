@@ -8,7 +8,7 @@ import type { UpdateOrderInShippingProviderCommand } from "../commands/update-or
 import type { IdempotencyKeysRepository } from "../repositories/idempotency-keys.repository.js";
 
 export class UpdateOrderInShippingProviderService {
-  private logger = createLogger("CreateShipmentInShippingProviderService");
+  private logger = createLogger("UpdateOrderInShippingProviderService");
 
   constructor(
     private db: DrizzleDBClient,
@@ -36,6 +36,7 @@ export class UpdateOrderInShippingProviderService {
 
       const order = await this.orderRepository.find(
         OrderId.of(command.orderId),
+        tx,
       );
 
       if (!order) throw new NotFoundError("order", command.orderId);
