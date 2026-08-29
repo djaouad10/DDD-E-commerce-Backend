@@ -28,19 +28,11 @@ export class CreateOrderInShippingProviderService {
       const order = await this.orderRepository.find(orderId);
 
       if (!order) {
-        this.logger.error(
-          "Order not found",
-          new NotFoundError("Order", orderId.value),
-          {
-            orderId: orderId.value,
-          },
-        );
-
-        // return so worker knows the job succeeded, since there's nothing to process
-        return;
+        this.logger.debug("Order not found", { orderId });
+        throw new NotFoundError("order", orderId.value);
       }
 
-      await this.db.transaction(async (tx) => {
+      const trackingNumber = await this.db.transaction(async (tx) => {
         // create idempotency key first with this jobId to make sure it wasn't successfully processed before
         await this.idempotencyKeysRepository.create(
           jobId,
@@ -50,14 +42,17 @@ export class CreateOrderInShippingProviderService {
 
         // must be made inside the transaction that creates the idempotency key
         const { trackingNumber } =
-          await this.shippingProviderGateway.createShipment(order);
+          await this.shippingProviderGateway.createShipment(order); // we should also send idempotency key to the shipping provider if he supports it, in case our connection timeoud out but the request was successfully processed by the shipping provider
+        // but my current shipping provider doesn't support idempotency keys
 
         // what if API call succeeds but order.trackingNumber update fails?
-        // in this case we have a reconsilation logic when fetching a single order, if the trackingNumber of a CONFIRMED order is null, we fetch it from the shipping provider and reconcile
-        order.setTrackingNumber(trackingNumber);
-
-        await this.orderRepository.save(order, tx);
+        // in this case we have a cron reconsilation worker, it fetches orders with a trackingNumber of null and a CONFIRMED status, and fetches their tracking numbers from the shipping provider (if their API supports lookup-by-external-reference) and updates them in DB.
+        return trackingNumber;
       });
+
+      order.setTrackingNumber(trackingNumber);
+
+      await this.orderRepository.save(order); // shouldn't be inside the transaction, so that the idempotency key is created successfully whenever the shipment creation succeeds, we don't want the transaction to be rolled back at the save() method after the shipping provider already saved the order, this will cause the order to be created more than once at shipping provider
     } catch (error) {
       this.logger.error(
         "Failed to create order in shipping provider",
