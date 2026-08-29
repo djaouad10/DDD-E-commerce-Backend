@@ -1,7 +1,9 @@
 import type { EmailQueueOrderConfirmedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-confirmed-handler.command.js";
 import type { IdempotencyKeysRepository } from "#/application/repositories/idempotency-keys.repository.js";
 import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
+import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
+import { OrderId } from "#/domain/value-objects/order-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { buildOrderConfirmedEmailTemplate } from "#/infrastructure/notifications/templates/order-confirmed.email.template.js";
@@ -15,6 +17,7 @@ export class EmailQueueOrderConfirmedHandlerService {
     private db: DrizzleDBClient,
     private emailGateway: EmailGateway,
     private userRepository: UserRepository,
+    private orderRepository: OrderRepository,
     private idempotencyKeysRepository: IdempotencyKeysRepository,
   ) {}
 
@@ -24,15 +27,22 @@ export class EmailQueueOrderConfirmedHandlerService {
   ): Promise<void> {
     this.logger.info("EmailQueueOrderConfirmedHandlerService.execute called");
 
-    const { userId, ...data } = command;
+    const { userId, aggregateId: orderId, ...data } = command;
 
-    const user = await this.userRepository.find(UserId.of(command.userId));
+    const [user, order] = await Promise.all([
+      this.userRepository.find(UserId.of(userId)),
+      this.orderRepository.find(OrderId.of(orderId)),
+    ]);
 
     if (!user) {
       this.logger.debug("User not found", { userId });
       throw new NotFoundError("user", userId);
     }
 
+    if (!order) {
+      this.logger.debug("Order not found", { orderId });
+      throw new NotFoundError("order", orderId);
+    }
     const orderConfirmedEmailTemplate = buildOrderConfirmedEmailTemplate({
       orderId: command.aggregateId,
       ...data,

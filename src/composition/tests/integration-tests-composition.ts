@@ -831,6 +831,7 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(DB),
         scope.resolve(EMAIL_GATEWAY),
         scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
     "scoped",
