@@ -3,6 +3,7 @@ import {
   CART_REPOSITORY,
   CATEGORY_REPOSITORY,
   DB,
+  IDEMPOTENCY_KEYS_REPOSITORY,
   ORDER_REPOSITORY,
   PRODUCT_REPOSITORY,
   RATING_REPOSITORY,
@@ -157,6 +158,20 @@ export async function createRatingInDB(container: Container, rating: Rating) {
 
   await db.transaction(async (tx) => {
     await ratingRepository.save(rating, tx);
+  });
+}
+
+export async function findIdempotencyKeyInDB(
+  container: Container,
+  key: string,
+) {
+  const db = container.resolveSingleton(DB);
+  const idempotencyKeysRepository = container.resolveSingleton(
+    IDEMPOTENCY_KEYS_REPOSITORY,
+  );
+
+  return await db.transaction(async (tx) => {
+    return await idempotencyKeysRepository.find(key, tx);
   });
 }
 
