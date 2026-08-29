@@ -57,13 +57,18 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
-  async findByTracking(trackingNumber: string): Promise<Order | null> {
+  async findByTracking(
+    trackingNumber: string,
+    tx?: TransactionClient,
+  ): Promise<Order | null> {
     this.logger.debug("findByTracking called", { trackingNumber });
+
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
 
     try {
       const orderWithItemsRow: OrderWithItemsRow | undefined =
         await this.logger.measure("db.query.order.findFirst", () =>
-          this.db.query.order.findFirst({
+          db.query.order.findFirst({
             where: eq(order.tracking_number, trackingNumber),
             with: { order_items: true },
           }),
