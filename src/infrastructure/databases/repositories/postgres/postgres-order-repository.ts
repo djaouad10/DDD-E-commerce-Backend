@@ -22,13 +22,15 @@ export class PostgresOrderRepository implements OrderRepository {
 
   constructor(private db: DrizzleDBClient) {}
 
-  async find(orderId: OrderId): Promise<Order | null> {
+  async find(orderId: OrderId, tx?: TransactionClient): Promise<Order | null> {
     this.logger.debug("find called", { id: orderId.value });
+
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
 
     try {
       const orderWithItemsRow: OrderWithItemsRow | undefined =
         await this.logger.measure("db.query.order.findFirst", () =>
-          this.db.query.order.findFirst({
+          db.query.order.findFirst({
             where: eq(order.id, orderId.value),
             with: { order_items: true },
           }),
