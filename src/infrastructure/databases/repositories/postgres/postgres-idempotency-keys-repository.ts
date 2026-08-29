@@ -21,7 +21,7 @@ export class PostgresIdempotencyKeysRepository implements IdempotencyKeysReposit
     key: string,
     handlerName: string,
     tx: TransactionClient,
-    payload: unknown,
+    payload?: unknown,
   ): Promise<void> {
     this.logger.debug("create called", { key, handlerName });
 
