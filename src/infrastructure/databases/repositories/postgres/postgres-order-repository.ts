@@ -135,10 +135,10 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
-  async save(orderAgg: Order, tx: TransactionClient): Promise<void> {
+  async save(orderAgg: Order, tx?: TransactionClient): Promise<void> {
     this.logger.debug("save called", { id: orderAgg.id.value });
 
-    const db = tx as DrizzleTransactionClient;
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
 
     // had to name it orderAgg because order is a reserved keyword for the schema table
     const orderRow: OrderRow = PostgresOrderMapper.toRow(orderAgg);
