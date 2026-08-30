@@ -980,7 +980,6 @@ export function buildIntegrationTestsContainer(): Container {
       new CleanOutboxService(
         scope.resolve(DB),
         scope.resolve(OUTBOX_REPOSITORY),
-        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
     "scoped",
   );
