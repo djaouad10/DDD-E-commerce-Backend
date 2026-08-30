@@ -1,4 +1,3 @@
-// clean-outbox-worker.ts  (the testable, importable part — no side effects on import)
 import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { runWithContext } from "#/shared/context/request-context.js";
@@ -11,7 +10,7 @@ const logger = createLogger("CleanOutboxWorker");
 export type CleanOutboxWorkerOptions = {
   pollIntervalMs: number;
   sleepAfterFailMs: number;
-  retentionMs: number; 
+  retentionMs: number;
 };
 
 export const defaultCleanOutboxWorkerOptions: CleanOutboxWorkerOptions = {
