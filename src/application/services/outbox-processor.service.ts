@@ -14,8 +14,6 @@ export class OutboxProcessorService {
   ) {}
 
   async execute(command: OutboxProcessorCommand) {
-    // should I wrap the try block in a tx?
-
     this.logger.debug("Processing outbox jobs");
     const pendingJobs = await this.outboxRepository.getPendingJobs(
       command.batchSize,
@@ -48,6 +46,7 @@ export class OutboxProcessorService {
           id: job.id,
           status: OutboxStatus.COMPLETED,
           processedAt: new Date(),
+          attempts: job.attempts + 1,
         });
 
         this.logger.debug("Outbox job completed", { id: job.id });

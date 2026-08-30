@@ -62,7 +62,12 @@ export type OutboxDomainEventEntry = {
 
 // Used only by the processor worker
 export type UpdateOutboxEntryParams =
-  | { id: string; status: typeof OutboxStatus.COMPLETED; processedAt: Date }
+  | {
+      id: string;
+      status: typeof OutboxStatus.COMPLETED;
+      processedAt: Date;
+      attempts: number;
+    }
   | {
       id: string;
       status: typeof OutboxStatus.FAILED;
