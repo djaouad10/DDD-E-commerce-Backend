@@ -104,6 +104,8 @@ import {
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
   UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
   CLEAN_OUTBOX_SERVICE,
+  OUTBOX_QUEUE,
+  OUTBOX_PROCESSOR_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -176,6 +178,8 @@ import { ActivateShipmentInShippingProviderService } from "#/application/service
 import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
 import { CleanOutboxService } from "#/application/services/clean-outbox.service.js";
+import { createBullMqOutboxQueue } from "#/infrastructure/messaging/bullmq/queue/outbox.queue.js";
+import { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -193,6 +197,12 @@ export function buildIntegrationTestsContainer(): Container {
   });
 
   container.registerInstance(REDIS, testRedis);
+
+  container.register(
+    OUTBOX_QUEUE,
+    (scope) => createBullMqOutboxQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
 
   // register repositories (singletons)
   container.register(
@@ -980,6 +990,16 @@ export function buildIntegrationTestsContainer(): Container {
       new CleanOutboxService(
         scope.resolve(DB),
         scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    OUTBOX_PROCESSOR_SERVICE,
+    (scope) =>
+      new OutboxProcessorService(
+        scope.resolve(OUTBOX_REPOSITORY),
+        scope.resolve(OUTBOX_QUEUE),
       ),
     "scoped",
   );
