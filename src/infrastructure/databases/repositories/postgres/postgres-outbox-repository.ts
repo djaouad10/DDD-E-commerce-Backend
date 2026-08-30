@@ -208,7 +208,31 @@ export class PostgresOutboxRepository implements OutboxRepository {
 
     try {
       await this.logger.measure("db.update(outbox)", () =>
-        this.db.update(outbox).set(updateParams).where(eq(outbox.id, rowId)),
+        this.db
+          .update(outbox)
+          .set({
+            ...(updateParams.status === "COMPLETED" && {
+              status: updateParams.status,
+              processed_at: updateParams.processedAt,
+              attempts: updateParams.attempts,
+            }),
+            ...(updateParams.status === "FAILED" && {
+              processed_at: updateParams.processedAt,
+              error_message: updateParams.errorMessage,
+              status: updateParams.status,
+              attempts: updateParams.attempts,
+            }),
+            ...(updateParams.status === "PROCESSING" && {
+              status: updateParams.status,
+            }),
+            ...(updateParams.status === "PENDING" && {
+              status: updateParams.status,
+              error_message: updateParams.errorMessage,
+              attempts: updateParams.attempts,
+              scheduledAt: updateParams.scheduledAt,
+            }),
+          })
+          .where(eq(outbox.id, rowId)),
       );
 
       this.logger.debug("updateRow completed", { id: params.id });
