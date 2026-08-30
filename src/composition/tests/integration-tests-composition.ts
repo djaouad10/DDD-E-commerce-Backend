@@ -103,6 +103,7 @@ import {
   CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
   UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+  CLEAN_OUTBOX_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -174,6 +175,7 @@ import { CreateOrderInShippingProviderService } from "#/application/services/cre
 import { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";
 import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
+import { CleanOutboxService } from "#/application/services/clean-outbox.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -967,6 +969,17 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(DB),
         scope.resolve(SHIPPING_PROVIDER_GATEWAY),
         scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CLEAN_OUTBOX_SERVICE,
+    (scope) =>
+      new CleanOutboxService(
+        scope.resolve(DB),
+        scope.resolve(OUTBOX_REPOSITORY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
       ),
     "scoped",
