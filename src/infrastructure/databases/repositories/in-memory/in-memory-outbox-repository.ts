@@ -171,6 +171,16 @@ export class InMemoryOutboxRepository implements OutboxRepository {
     Object.assign(entry, updates);
   }
 
+  async deleteCompletedRows(olderThan: Date): Promise<void> {
+    this.entries = this.entries.filter((e) => {
+      if (e.status === OutboxStatus.COMPLETED) {
+        if (e.processedAt && e.processedAt <= olderThan) {
+          return false; // should be deleted
+        }
+      }
+      return true; // should not be deleted
+    });
+  }
   // ── Test helpers (not part of interface) ──
 
   getAllEntries(): InMemoryEntry[] {

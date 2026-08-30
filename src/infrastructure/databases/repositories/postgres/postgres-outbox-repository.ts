@@ -218,4 +218,40 @@ export class PostgresOutboxRepository implements OutboxRepository {
       handleDrizzleErrors(error, "PostgresOutboxRepository.updateRow");
     }
   }
+
+  async deleteCompletedRows(
+    olderThan: Date,
+    tx: TransactionClient,
+  ): Promise<void> {
+    this.logger.debug("deleteCompletedRows called", { olderThan });
+
+    const db = tx as DrizzleTransactionClient;
+
+    try {
+      const deletedRows = await this.logger.measure("db.delete(outbox)", () =>
+        db
+          .delete(outbox)
+          .where(
+            and(
+              eq(outbox.status, OutboxStatus.COMPLETED),
+              lte(outbox.processed_at, olderThan),
+            ),
+          )
+          .returning(),
+      );
+
+      this.logger.debug("deleteCompletedRows completed", {
+        deletedRowsCount: deletedRows.length,
+      });
+    } catch (error) {
+      this.logger.error("deleteCompletedRows failed", error as Error, {
+        olderThan,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresOutboxRepository.deleteCompletedRows",
+      );
+    }
+  }
 }

@@ -97,4 +97,6 @@ export interface OutboxRepository {
   getPendingEvents(limit: number): Promise<OutboxDomainEventEntry[]>;
 
   updateRow(params: UpdateOutboxEntryParams): Promise<void>;
+
+  deleteCompletedRows(olderThan: Date, tx: TransactionClient): Promise<void>;
 }
