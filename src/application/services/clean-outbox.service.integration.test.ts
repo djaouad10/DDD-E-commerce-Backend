@@ -5,6 +5,7 @@ import {
   clearDatabase,
   createOutboxEnrtyInDB,
   getAllOutboxRowsFromDB,
+  seedOutboxTableWithCompletedRows,
 } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import { CleanOutboxCommand } from "../commands/clean-outbox.command.js";
@@ -33,27 +34,6 @@ describe("CleanOutboxService", () => {
     cleanupTestApp();
   });
 
-  async function seedOutboxTableWithCompletedRows(payload: {
-    outboxActions: { id: string; processedAt: Date }[];
-    outboxEvents: { id: string; processedAt: Date }[];
-  }) {
-    for (const action of payload.outboxActions) {
-      await createOutboxEnrtyInDB(container, "outbox-job", {
-        id: action.id,
-        status: "COMPLETED",
-        processedAt: action.processedAt,
-      });
-    }
-
-    for (const event of payload.outboxEvents) {
-      await createOutboxEnrtyInDB(container, "domain-event", {
-        id: event.id,
-        status: "COMPLETED",
-        processedAt: event.processedAt,
-      });
-    }
-  }
-
   describe("Success Path", () => {
     test("when called with some completed outbox rows in DB, it should delete the ones before the provided date", async () => {
       // Arrange
@@ -63,7 +43,7 @@ describe("CleanOutboxService", () => {
       const jobId2 = generateOutboxId();
       const eventId1 = generateOutboxId();
 
-      await seedOutboxTableWithCompletedRows({
+      await seedOutboxTableWithCompletedRows(container, {
         outboxActions: [
           { id: jobId1, processedAt: new Date("2026-01-01T00:00:00Z") },
           { id: jobId2, processedAt: new Date("2026-01-03T00:00:00Z") },
@@ -93,7 +73,7 @@ describe("CleanOutboxService", () => {
       const jobId2 = generateOutboxId();
       const eventId1 = generateOutboxId();
 
-      await seedOutboxTableWithCompletedRows({
+      await seedOutboxTableWithCompletedRows(container, {
         outboxActions: [
           { id: jobId1, processedAt: new Date("2026-01-11T00:00:00Z") },
           { id: jobId2, processedAt: new Date("2026-01-03T00:00:00Z") },
@@ -122,7 +102,7 @@ describe("CleanOutboxService", () => {
       const jobId1 = generateOutboxId();
       const jobId2 = generateOutboxId();
 
-      await seedOutboxTableWithCompletedRows({
+      await seedOutboxTableWithCompletedRows(container, {
         outboxActions: [
           { id: jobId1, processedAt: new Date("2026-01-01T00:00:00Z") },
           { id: jobId2, processedAt: new Date("2026-01-03T00:00:00Z") },
@@ -179,7 +159,7 @@ describe("CleanOutboxService", () => {
       const jobId1 = generateOutboxId();
       const jobId2 = generateOutboxId();
 
-      await seedOutboxTableWithCompletedRows({
+      await seedOutboxTableWithCompletedRows(container, {
         outboxActions: [
           { id: jobId1, processedAt: new Date("2026-01-01T00:00:00Z") },
           { id: jobId2, processedAt: olderThan },

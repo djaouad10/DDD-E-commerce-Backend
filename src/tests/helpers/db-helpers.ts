@@ -225,6 +225,30 @@ export async function getAllOutboxRowsFromDB(container: Container) {
   });
 }
 
+export async function seedOutboxTableWithCompletedRows(
+  container: Container,
+  payload: {
+    outboxActions: { id: string; processedAt: Date }[];
+    outboxEvents: { id: string; processedAt: Date }[];
+  },
+) {
+  for (const action of payload.outboxActions) {
+    await createOutboxEnrtyInDB(container, "outbox-job", {
+      id: action.id,
+      status: "COMPLETED",
+      processedAt: action.processedAt,
+    });
+  }
+
+  for (const event of payload.outboxEvents) {
+    await createOutboxEnrtyInDB(container, "domain-event", {
+      id: event.id,
+      status: "COMPLETED",
+      processedAt: event.processedAt,
+    });
+  }
+}
+
 export async function clearDatabase(container: Container): Promise<void> {
   const db = container.resolveSingleton(DB);
 
