@@ -1,7 +1,10 @@
 import { ValidationError } from "#/shared/errors/domain-error.js";
 
 export class OutboxProcessorCommand {
-  constructor(readonly maxPublicationAttempts: number = 3) {
+  constructor(
+    public readonly maxPublicationAttempts: number = 3,
+    public readonly batchSize: number,
+  ) {
     this.validate();
   }
 
@@ -11,6 +14,10 @@ export class OutboxProcessorCommand {
         "maxPublicationAttempts",
         "must be greater than 0",
       );
+    }
+
+    if (this.batchSize <= 0) {
+      throw new ValidationError("batchSize", "must be greater than 0");
     }
   }
 }

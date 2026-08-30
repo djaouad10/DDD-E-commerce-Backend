@@ -17,7 +17,9 @@ export class OutboxProcessorService {
     // should I wrap the try block in a tx?
 
     this.logger.debug("Processing outbox jobs");
-    const pendingJobs = await this.outboxRepository.getPendingJobs(10);
+    const pendingJobs = await this.outboxRepository.getPendingJobs(
+      command.batchSize,
+    );
 
     this.logger.debug("Found pending jobs", { count: pendingJobs.length });
     if (pendingJobs.length === 0) return;
