@@ -17,7 +17,9 @@ export class DomainEventsProcessorService {
     // should I wrap the try block in a tx?
 
     this.logger.debug("Processing event jobs");
-    const pendingJobs = await this.outboxRepository.getPendingEvents(10);
+    const pendingJobs = await this.outboxRepository.getPendingEvents(
+      command.batchSize,
+    );
 
     this.logger.debug("Found pending jobs", { count: pendingJobs.length });
     if (pendingJobs.length === 0) return;
