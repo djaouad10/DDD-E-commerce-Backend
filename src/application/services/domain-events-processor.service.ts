@@ -14,8 +14,6 @@ export class DomainEventsProcessorService {
   ) {}
 
   async execute(command: DomainEventsProcessorCommand) {
-    // should I wrap the try block in a tx?
-
     this.logger.debug("Processing event jobs");
     const pendingJobs = await this.outboxRepository.getPendingEvents(
       command.batchSize,
@@ -41,6 +39,7 @@ export class DomainEventsProcessorService {
           id: job.id,
           status: OutboxStatus.COMPLETED,
           processedAt: new Date(),
+          attempts: job.attempts + 1,
         });
 
         this.logger.debug("Event job completed", { id: job.id });
