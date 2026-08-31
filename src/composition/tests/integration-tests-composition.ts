@@ -109,6 +109,9 @@ import {
   ANALYTICS_QUEUE,
   INVENTORY_QUEUE,
   BULLMQ_FLOW_PRODUCER,
+  EMAIL_QUEUE,
+  DOMAIN_EVENTS_PROCESSOR_SERVICE,
+  EVENT_PUBLISHER,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -186,6 +189,9 @@ import { OutboxProcessorService } from "#/application/services/outbox-processor.
 import { createBullMqAnalyticsQueue } from "#/infrastructure/messaging/bullmq/queue/analytics.queue.js";
 import { createBullMqInventoryQueue } from "#/infrastructure/messaging/bullmq/queue/inventory.queue.js";
 import { createBullMqFlowProducer } from "#/infrastructure/messaging/bullmq/utils/bullmq-flow-producer.js";
+import { createBullMqEmailQueue } from "#/infrastructure/messaging/bullmq/queue/email.queue.js";
+import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
+import { BullMqEventPublisher } from "#/infrastructure/messaging/bullmq/bullmq-event-publisher.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -211,6 +217,12 @@ export function buildIntegrationTestsContainer(): Container {
   );
 
   container.register(
+    EMAIL_QUEUE,
+    (scope) => createBullMqEmailQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
     ANALYTICS_QUEUE,
     (scope) => createBullMqAnalyticsQueue(scope.resolve(REDIS)),
     "singleton",
@@ -225,6 +237,18 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     BULLMQ_FLOW_PRODUCER,
     (scope) => createBullMqFlowProducer(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    EVENT_PUBLISHER,
+    (scope) =>
+      new BullMqEventPublisher(
+        scope.resolve(BULLMQ_FLOW_PRODUCER),
+        scope.resolve(EMAIL_QUEUE),
+        scope.resolve(INVENTORY_QUEUE),
+        scope.resolve(ANALYTICS_QUEUE),
+      ),
     "singleton",
   );
 
@@ -1024,6 +1048,16 @@ export function buildIntegrationTestsContainer(): Container {
       new OutboxProcessorService(
         scope.resolve(OUTBOX_REPOSITORY),
         scope.resolve(OUTBOX_QUEUE),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DOMAIN_EVENTS_PROCESSOR_SERVICE,
+    (scope) =>
+      new DomainEventsProcessorService(
+        scope.resolve(OUTBOX_REPOSITORY),
+        scope.resolve(EVENT_PUBLISHER),
       ),
     "scoped",
   );
