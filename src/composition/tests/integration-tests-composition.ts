@@ -106,6 +106,9 @@ import {
   CLEAN_OUTBOX_SERVICE,
   OUTBOX_QUEUE,
   OUTBOX_PROCESSOR_SERVICE,
+  ANALYTICS_QUEUE,
+  INVENTORY_QUEUE,
+  BULLMQ_FLOW_PRODUCER,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -180,6 +183,9 @@ import { UpdateOrderInShippingProviderService } from "#/application/services/upd
 import { CleanOutboxService } from "#/application/services/clean-outbox.service.js";
 import { createBullMqOutboxQueue } from "#/infrastructure/messaging/bullmq/queue/outbox.queue.js";
 import { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
+import { createBullMqAnalyticsQueue } from "#/infrastructure/messaging/bullmq/queue/analytics.queue.js";
+import { createBullMqInventoryQueue } from "#/infrastructure/messaging/bullmq/queue/inventory.queue.js";
+import { createBullMqFlowProducer } from "#/infrastructure/messaging/bullmq/utils/bullmq-flow-producer.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -201,6 +207,24 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     OUTBOX_QUEUE,
     (scope) => createBullMqOutboxQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    ANALYTICS_QUEUE,
+    (scope) => createBullMqAnalyticsQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    INVENTORY_QUEUE,
+    (scope) => createBullMqInventoryQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    BULLMQ_FLOW_PRODUCER,
+    (scope) => createBullMqFlowProducer(scope.resolve(REDIS)),
     "singleton",
   );
 

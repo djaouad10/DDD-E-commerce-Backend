@@ -2,7 +2,6 @@ import { PostgresOutboxRepository } from "#/infrastructure/databases/repositorie
 import { createBullMqAnalyticsQueue } from "#/infrastructure/messaging/bullmq/queue/analytics.queue.js";
 import { createBullMqEmailQueue } from "#/infrastructure/messaging/bullmq/queue/email.queue.js";
 import { createBullMqInventoryQueue } from "#/infrastructure/messaging/bullmq/queue/inventory.queue.js";
-import { FlowProducer } from "bullmq";
 import { Container } from "./container.js";
 import { registerSharedInfrastructure } from "./shared-registry.js";
 import {
@@ -40,12 +39,6 @@ export function buildDomainEventsProcessorContainer(): Container {
   container.register(
     INVENTORY_QUEUE,
     (scope) => createBullMqInventoryQueue(scope.resolve(REDIS)),
-    "singleton",
-  );
-
-  container.register(
-    FlowProducer,
-    (scope) => createBullMqFlowProducer(scope.resolve(REDIS)),
     "singleton",
   );
 
