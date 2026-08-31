@@ -278,4 +278,79 @@ export class PostgresOutboxRepository implements OutboxRepository {
       );
     }
   }
+
+  async getStuckRows(
+    batchSize: number,
+    stuckBefore: Date,
+    tx?: TransactionClient,
+  ): Promise<(OutboxJobEntry | OutboxDomainEventEntry)[]> {
+    this.logger.debug("getStuckRows called", { batchSize, stuckBefore });
+
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
+
+    try {
+      const rows = await this.logger.measure("db.query.outbox.findMany", () =>
+        db.query.outbox.findMany({
+          where: and(
+            eq(outbox.status, OutboxStatus.PROCESSING),
+            lte(outbox.scheduledAt, stuckBefore),
+          ),
+          orderBy: (outbox, { asc }) => asc(outbox.scheduledAt),
+          limit: batchSize,
+        }),
+      );
+
+      const eventRows: (OutboxDomainEventEntry | undefined)[] = rows.map(
+        (row) => {
+          if (row.category !== OutboxCategory.DOMAIN_EVENT) return;
+
+          return {
+            id: row.id,
+            payload: row.payload,
+            status: row.status,
+            attempts: row.attempts,
+            scheduledAt: row.scheduledAt,
+            processedAt: row.processed_at,
+            errorMessage: row.error_message,
+            createdAt: row.created_at,
+            aggregateId: row.aggregate_id,
+            category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventEntry type
+            eventType: row.event_type as DomainEventCode, // this cast is safe because we know the event_type is a valid DomainEventCode when the category is DOMAIN_EVENT
+          };
+        },
+      );
+
+      const jobRows: (OutboxJobEntry | undefined)[] = rows.map((row) => {
+        if (row.category !== OutboxCategory.OUTBOX_JOB) return;
+
+        return {
+          id: row.id,
+          payload: row.payload,
+          status: row.status,
+          attempts: row.attempts,
+          scheduledAt: row.scheduledAt,
+          processedAt: row.processed_at,
+          errorMessage: row.error_message,
+          createdAt: row.created_at,
+          category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobEntry type
+          eventType: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
+        };
+      });
+
+      const rowsToReturn = [...eventRows, ...jobRows].filter(
+        (row): row is OutboxJobEntry | OutboxDomainEventEntry => !!row,
+      );
+
+      this.logger.debug("getStuckRows completed", { rowsCount: rows.length });
+
+      return rowsToReturn;
+    } catch (error) {
+      this.logger.error("getStuckRows failed", error as Error, {
+        batchSize,
+        stuckBefore,
+      });
+
+      handleDrizzleErrors(error, "PostgresOutboxRepository.getStuckRows");
+    }
+  }
 }

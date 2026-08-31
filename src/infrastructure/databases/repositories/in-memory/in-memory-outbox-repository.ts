@@ -181,6 +181,64 @@ export class InMemoryOutboxRepository implements OutboxRepository {
       return true; // should not be deleted
     });
   }
+
+  async getStuckRows(
+    batchSize: number,
+    stuckBefore: Date,
+  ): Promise<(OutboxJobEntry | OutboxDomainEventEntry)[]> {
+    const rows = this.entries
+      .filter((e) => {
+        if (e.status === OutboxStatus.PROCESSING) {
+          if (e.processedAt && e.scheduledAt <= stuckBefore) {
+            return true;
+          }
+        }
+        return false;
+      })
+      .slice(0, batchSize);
+
+    const eventRows: (OutboxDomainEventEntry | undefined)[] = rows.map(
+      (row) => {
+        if (row.category !== OutboxCategory.DOMAIN_EVENT) return;
+
+        return {
+          id: row.id,
+          category: row.category,
+          eventType: row.eventType as DomainEventCode,
+          payload: row.payload,
+          status: row.status,
+          attempts: row.attempts,
+          scheduledAt: row.scheduledAt,
+          createdAt: row.createdAt,
+          aggregateId: row.aggregateId,
+          processedAt: row.processedAt ?? null,
+          errorMessage: row.errorMessage ?? null,
+        };
+      },
+    );
+
+    const jobRows: (OutboxJobEntry | undefined)[] = rows.map((row) => {
+      if (row.category !== OutboxCategory.OUTBOX_JOB) return;
+
+      return {
+        id: row.id,
+        eventType: row.action,
+        category: row.category,
+        action: row.action,
+        payload: row.payload,
+        status: row.status,
+        attempts: row.attempts,
+        scheduledAt: row.scheduledAt,
+        createdAt: row.createdAt,
+        processedAt: row.processedAt ?? null,
+        errorMessage: row.errorMessage ?? null,
+      };
+    });
+
+    return [...eventRows, ...jobRows].filter(
+      (row): row is OutboxJobEntry | OutboxDomainEventEntry => !!row,
+    );
+  }
   // ── Test helpers (not part of interface) ──
 
   getAllEntries(): InMemoryEntry[] {

@@ -104,4 +104,10 @@ export interface OutboxRepository {
   updateRow(params: UpdateOutboxEntryParams): Promise<void>;
 
   deleteCompletedRows(olderThan: Date, tx: TransactionClient): Promise<void>;
+
+  getStuckRows(
+    batchSize: number,
+    stuckBefore: Date,
+    tx?: TransactionClient,
+  ): Promise<(OutboxJobEntry | OutboxDomainEventEntry)[]>;
 }
