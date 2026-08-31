@@ -48,11 +48,11 @@ describe("OutboxProcessorService", () => {
   });
 
   describe("Success Path", () => {
-    // test("when there are no pending jobs, it does nothing", async () => {
-    //   await service.execute(new OutboxProcessorCommand(3, 100));
+    test("when there are no pending jobs, it does nothing", async () => {
+      await service.execute(new OutboxProcessorCommand(3, 100));
 
-    //   expect(queueMock.add).not.toHaveBeenCalled();
-    // });
+      expect(queueMock.add).not.toHaveBeenCalled();
+    });
 
     test("when a single job succeeds, it marks it PROCESSING then COMPLETED and enqueues it", async () => {
       const jobId = await seedOutboxJobRow(container, {
