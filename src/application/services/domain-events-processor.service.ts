@@ -22,13 +22,21 @@ export class DomainEventsProcessorService {
     for (const job of pendingJobs) {
       const attempt = job.attempts + 1;
 
-      const claimed = await this.outboxRepository.updateRowToProcessing({
-        id: job.id,
-        attempts: attempt,
-      });
+      try {
+        const claimed = await this.outboxRepository.updateRowToProcessing({
+          id: job.id,
+          attempts: attempt,
+        });
 
-      if (!claimed) {
-        this.logger.debug("Event job not claimed", { id: job.id, attempt });
+        if (!claimed) {
+          this.logger.debug("Event job not claimed", { id: job.id, attempt });
+          continue;
+        }
+      } catch (error) {
+        this.logger.error("Failed to claim event job", error as Error, {
+          id: job.id,
+          attempt,
+        });
         continue;
       }
 
@@ -44,10 +52,18 @@ export class DomainEventsProcessorService {
           attempt,
         });
 
-        await this.handlePublishFailure(job.id, attempt, error, command);
+        try {
+          await this.handlePublishFailure(job.id, attempt, error, command);
+        } catch (error) {
+          // If this.handlePublishFailure fails, the job is not yet published to the queue and the DB still says PROCESSING.
+          // reset-stuck-outbox-jobs worker will eventually reset it and job will be republished. Since consumers are idempotent: the duplicate delivery is harmless (at-least-once semantics)
 
-        // If this.handlePublishFailure fails, the job is not yet published to the queue and the DB still says PROCESSING.
-        // reset-stuck-outbox-jobs worker will eventually reset it and job will be republished. Since consumers are idempotent: the duplicate delivery is harmless (at-least-once semantics)
+          this.logger.error(
+            "Job published but failed to mark FAILED/PENDING in DB. Will be reset by stuck-row recovery.",
+            error as Error,
+            { id: job.id },
+          );
+        }
 
         continue;
       }

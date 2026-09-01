@@ -455,12 +455,13 @@ describe("DomainEventsProcessorService", () => {
   });
 
   describe("Resilience to DB failures mid-iteration", () => {
-    test("when claiming an event (updateRowToProcessing) throws, execute() propagates the error without calling the publisher", async () => {
-      // Unlike updateRowToPending/Completed/Failed, a throw here happens BEFORE
-      // any try/catch in the loop body, so the current implementation does NOT
-      // swallow it — it propagates out of execute() for this job and the whole
-      // batch aborts partway. This test documents that behavior explicitly.
-      const eventId = await seedOutboxDomainEventRow(
+    test("when claiming an event (updateRowToProcessing) throws, the error is caught locally and does not abort the batch", async () => {
+      const eventId1 = await seedOutboxDomainEventRow(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        { attempts: 0 },
+      );
+      const eventId2 = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
         { attempts: 0 },
@@ -470,15 +471,18 @@ describe("DomainEventsProcessorService", () => {
         .spyOn(outboxRepository, "updateRowToProcessing")
         .mockRejectedValueOnce(new Error("DB write failed while claiming"));
 
-      await expect(
-        service.execute(new DomainEventsProcessorCommand(5, 100)),
-      ).rejects.toThrow("DB write failed while claiming");
+      await service.execute(new DomainEventsProcessorCommand(5, 100));
 
-      expect(eventPublisherMock.publish).not.toHaveBeenCalled();
+      expect(eventPublisherMock.publish).toHaveBeenCalledTimes(1);
 
-      const row = await getOutboxRowById(container, eventId);
-      expect(row!.status).toBe(OutboxStatus.PENDING); // untouched, claim never landed
-      expect(row!.attempts).toBe(0);
+      const row1 = await getOutboxRowById(container, eventId1);
+      const row2 = await getOutboxRowById(container, eventId2);
+
+      expect(row1!.status).toBe(OutboxStatus.PENDING); // untouched, claim never landed
+      expect(row1!.attempts).toBe(0);
+
+      expect(row2!.status).toBe(OutboxStatus.COMPLETED);
+      expect(row2!.attempts).toBe(1);
 
       claimSpy.mockRestore();
     });
@@ -512,14 +516,22 @@ describe("DomainEventsProcessorService", () => {
       completeSpy.mockRestore();
     });
 
-    test("when handling a publish failure (updateRowToPending) itself throws, the error propagates and aborts that job's iteration", async () => {
+    test("when handling a publish failure (updateRowToPending) itself throws, the error is caught locally and does not abort the batch", async () => {
       const now = Date.now();
-      await seedOutboxDomainEventRow(container, DomainEventCode.ORDER_CREATED, {
-        scheduledAt: new Date(now - 2000),
-      });
-      await seedOutboxDomainEventRow(container, DomainEventCode.ORDER_CREATED, {
-        scheduledAt: new Date(now - 1000),
-      });
+      const failedEventId = await seedOutboxDomainEventRow(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        {
+          scheduledAt: new Date(now - 2000),
+        },
+      );
+      const succeededEventId = await seedOutboxDomainEventRow(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        {
+          scheduledAt: new Date(now - 1000),
+        },
+      );
 
       eventPublisherMock.publish
         .mockRejectedValueOnce(new Error("queue down"))
@@ -531,11 +543,14 @@ describe("DomainEventsProcessorService", () => {
           new Error("DB write failed while retry-scheduling"),
         );
 
-      // handlePublishFailure has no try/catch of its own around this call, so
-      // if this assumption is wrong, this test will surface it clearly.
-      await expect(
-        service.execute(new DomainEventsProcessorCommand(5, 100)),
-      ).rejects.toThrow("DB write failed while retry-scheduling");
+      await service.execute(new DomainEventsProcessorCommand(5, 100));
+
+      expect(eventPublisherMock.publish).toHaveBeenCalledTimes(2);
+
+      const failedRow = await getOutboxRowById(container, failedEventId);
+      const succeededRow = await getOutboxRowById(container, succeededEventId);
+      expect(failedRow!.status).toBe(OutboxStatus.PROCESSING);
+      expect(succeededRow!.status).toBe(OutboxStatus.COMPLETED);
 
       pendingSpy.mockRestore();
     });

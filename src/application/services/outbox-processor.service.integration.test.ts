@@ -400,26 +400,27 @@ describe("OutboxProcessorService", () => {
   });
 
   describe("Resilience to DB failures mid-iteration", () => {
-    test("when claiming a job (updateRowToProcessing) throws, execute() propagates the error without calling the queue", async () => {
-      // Unlike updateRowToPending/Completed/Failed, a throw here happens BEFORE
-      // any try/catch in the loop body, so the current implementation does NOT
-      // swallow it — it propagates out of execute() for this job and the whole
-      // batch aborts partway. This test documents that behavior explicitly.
-      const jobId = await seedOutboxJobRow(container, { attempts: 0 });
+    test("when claiming a job (updateRowToProcessing) throws, the error is caught locally and does not abort the batch", async () => {
+      const jobId1 = await seedOutboxJobRow(container, { attempts: 0 });
+      const jobId2 = await seedOutboxJobRow(container, { attempts: 0 });
 
       const claimSpy = vitest
         .spyOn(outboxRepository, "updateRowToProcessing")
         .mockRejectedValueOnce(new Error("DB write failed while claiming"));
 
-      await expect(
-        service.execute(new OutboxProcessorCommand(5, 100)),
-      ).rejects.toThrow("DB write failed while claiming");
+      await service.execute(new OutboxProcessorCommand(5, 100));
 
-      expect(queueMock.add).not.toHaveBeenCalled();
+      // fails to claim job1, succeeds to claim job2
+      expect(queueMock.add).toHaveBeenCalledTimes(1);
 
-      const row = await getOutboxRowById(container, jobId);
-      expect(row!.status).toBe(OutboxStatus.PENDING); // untouched, claim never landed
-      expect(row!.attempts).toBe(0);
+      const row1 = await getOutboxRowById(container, jobId1);
+      const row2 = await getOutboxRowById(container, jobId2);
+
+      expect(row1!.status).toBe(OutboxStatus.PENDING); // untouched, claim never landed
+      expect(row1!.attempts).toBe(0);
+
+      expect(row2!.status).toBe(OutboxStatus.COMPLETED);
+      expect(row2!.attempts).toBe(1);
 
       claimSpy.mockRestore();
     });
@@ -451,10 +452,10 @@ describe("OutboxProcessorService", () => {
 
     test("when handling a publish failure (updateRowToPending) itself throws, the error is caught locally and does not abort the batch", async () => {
       const now = Date.now();
-      await seedOutboxJobRow(container, {
+      const failedJobId = await seedOutboxJobRow(container, {
         scheduledAt: new Date(now - 2000),
       });
-      await seedOutboxJobRow(container, {
+      const succeededJobId = await seedOutboxJobRow(container, {
         scheduledAt: new Date(now - 1000),
       });
 
@@ -468,11 +469,14 @@ describe("OutboxProcessorService", () => {
           new Error("DB write failed while retry-scheduling"),
         );
 
-      // handlePublishFailure has no try/catch of its own around this call, so
-      // if this assumption is wrong, this test will surface it clearly.
-      await expect(
-        service.execute(new OutboxProcessorCommand(5, 100)),
-      ).rejects.toThrow("DB write failed while retry-scheduling");
+      await service.execute(new OutboxProcessorCommand(5, 100));
+
+      expect(queueMock.add).toHaveBeenCalledTimes(2);
+
+      const failedRow = await getOutboxRowById(container, failedJobId);
+      const succeededRow = await getOutboxRowById(container, succeededJobId);
+      expect(failedRow!.status).toBe(OutboxStatus.PROCESSING);
+      expect(succeededRow!.status).toBe(OutboxStatus.COMPLETED);
 
       pendingSpy.mockRestore();
     });

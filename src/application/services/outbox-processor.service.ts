@@ -22,13 +22,21 @@ export class OutboxProcessorService {
     for (const job of pendingJobs) {
       const attempt = job.attempts + 1;
 
-      const claimed = await this.outboxRepository.updateRowToProcessing({
-        id: job.id,
-        attempts: attempt,
-      });
+      try {
+        const claimed = await this.outboxRepository.updateRowToProcessing({
+          id: job.id,
+          attempts: attempt,
+        });
 
-      if (!claimed) {
-        this.logger.debug("Outbox job not claimed", { id: job.id, attempt });
+        if (!claimed) {
+          this.logger.debug("Outbox job not claimed", { id: job.id, attempt });
+          continue;
+        }
+      } catch (error) {
+        this.logger.error("Failed to claim outbox job", error as Error, {
+          id: job.id,
+          attempt,
+        });
         continue;
       }
 
@@ -51,10 +59,17 @@ export class OutboxProcessorService {
           attempt,
         });
 
-        await this.handlePublishFailure(job.id, attempt, error, command);
-
-        // If this.handlePublishFailure fails, the job is not yet published to the queue and the DB still says PROCESSING.
-        // reset-stuck-outbox-jobs worker will eventually reset it and job will be republished. Since consumers are idempotent: the duplicate delivery is harmless (at-least-once semantics)
+        try {
+          await this.handlePublishFailure(job.id, attempt, error, command);
+        } catch (error) {
+          // If this.handlePublishFailure fails, the job is not yet published to the queue and the DB still says PROCESSING.
+          // reset-stuck-outbox-jobs worker will eventually reset it and job will be republished. Since consumers are idempotent: the duplicate delivery is harmless (at-least-once semantics)
+          this.logger.error(
+            "Job published but failed to mark FAILED/PENDING in DB. Will be reset by stuck-row recovery.",
+            error as Error,
+            { id: job.id },
+          );
+        }
 
         continue;
       }
@@ -85,8 +100,6 @@ export class OutboxProcessorService {
     error: unknown,
     command: OutboxProcessorCommand,
   ) {
-    this.logger.error("Outbox job failed", error as Error, { id: jobId });
-
     if (attempt >= command.maxPublicationAttempts) {
       await this.outboxRepository.updateRowToFailed({
         id: jobId,
