@@ -44,6 +44,7 @@ export type OutboxJobEntry = {
   processedAt: Date | null;
   errorMessage: string | null;
   createdAt: Date;
+  lockedAt: Date | null;
 };
 
 export type OutboxDomainEventEntry = {
@@ -58,6 +59,7 @@ export type OutboxDomainEventEntry = {
   processedAt: Date | null;
   errorMessage: string | null;
   createdAt: Date;
+  lockedAt: Date | null;
 };
 
 // Used only by the processor worker

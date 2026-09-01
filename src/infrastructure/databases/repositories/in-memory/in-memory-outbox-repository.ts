@@ -29,6 +29,7 @@ type InMemoryEntry =
       createdAt: Date;
       processedAt?: Date;
       errorMessage?: string;
+      lockedAt?: Date | null;
     }
   | {
       id: string;
@@ -42,6 +43,7 @@ type InMemoryEntry =
       aggregateId: string;
       processedAt?: Date;
       errorMessage?: string;
+      lockedAt?: Date | null;
     };
 
 export class InMemoryOutboxRepository implements OutboxRepository {
@@ -122,6 +124,7 @@ export class InMemoryOutboxRepository implements OutboxRepository {
         createdAt: entry.createdAt,
         processedAt: entry.processedAt ?? null,
         errorMessage: entry.errorMessage ?? null,
+        lockedAt: entry.lockedAt ?? null,
       }));
   }
 
@@ -161,6 +164,7 @@ export class InMemoryOutboxRepository implements OutboxRepository {
         aggregateId: entry.aggregateId,
         processedAt: entry.processedAt ?? null,
         errorMessage: entry.errorMessage ?? null,
+        lockedAt: entry.lockedAt ?? null,
       }));
   }
 
@@ -252,6 +256,7 @@ export class InMemoryOutboxRepository implements OutboxRepository {
           aggregateId: row.aggregateId,
           processedAt: row.processedAt ?? null,
           errorMessage: row.errorMessage ?? null,
+          lockedAt: row.lockedAt ?? null,
         };
       },
     );
@@ -271,6 +276,7 @@ export class InMemoryOutboxRepository implements OutboxRepository {
         createdAt: row.createdAt,
         processedAt: row.processedAt ?? null,
         errorMessage: row.errorMessage ?? null,
+        lockedAt: row.lockedAt ?? null,
       };
     });
 

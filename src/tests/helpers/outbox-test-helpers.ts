@@ -19,6 +19,7 @@ export type SeedOutboxJobRowOverrides = {
   scheduledAt?: Date;
   processedAt?: Date | null;
   errorMessage?: string | null;
+  lockedAt?: Date | null;
 };
 
 /** Seeds a single OUTBOX_JOB row with full control over every column
@@ -42,6 +43,7 @@ export async function seedOutboxJobRow(
     processed_at: overrides.processedAt ?? null,
     error_message: overrides.errorMessage ?? null,
     aggregate_id: null,
+    locked_at: overrides.lockedAt ?? null,
   });
 
   return id;
@@ -57,6 +59,7 @@ export type SeedOutboxDomainEventRowOverrides = {
   processedAt?: Date | null;
   errorMessage?: string | null;
   aggregateId?: string | null;
+  lockedAt?: Date | null;
 };
 
 /** Seeds a single DOMAIN_EVENT row — used to prove the processor
@@ -80,6 +83,7 @@ export async function seedOutboxDomainEventRow(
     processed_at: overrides.processedAt ?? null,
     error_message: overrides.errorMessage ?? null,
     aggregate_id: overrides.aggregateId ?? null,
+    locked_at: overrides.lockedAt ?? null,
   });
 
   return id;

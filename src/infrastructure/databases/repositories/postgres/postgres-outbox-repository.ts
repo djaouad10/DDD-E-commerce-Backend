@@ -141,6 +141,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
           createdAt: row.created_at,
           category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobEntry type
           eventType: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
+          lockedAt: row.locked_at,
         }),
       );
 
@@ -190,6 +191,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
           aggregateId: row.aggregate_id,
           category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventEntry type
           eventType: row.event_type as DomainEventCode, // this cast is safe because we know the event_type is a valid DomainEventCode when the category is DOMAIN_EVENT
+          lockedAt: row.locked_at,
         }));
 
       this.logger.debug("getPendingEvents completed", {
@@ -216,6 +218,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
           .set({
             status: OutboxStatus.PROCESSING,
             attempts: params.attempts,
+            locked_at: new Date(),
           })
           .where(
             and(
@@ -370,7 +373,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
         db.query.outbox.findMany({
           where: and(
             eq(outbox.status, OutboxStatus.PROCESSING),
-            lte(outbox.scheduledAt, stuckBefore),
+            lte(outbox.locked_at, stuckBefore),
           ),
           orderBy: (outbox, { asc }) => asc(outbox.scheduledAt),
           limit: batchSize,
@@ -393,6 +396,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
             aggregateId: row.aggregate_id,
             category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventEntry type
             eventType: row.event_type as DomainEventCode, // this cast is safe because we know the event_type is a valid DomainEventCode when the category is DOMAIN_EVENT
+            lockedAt: row.locked_at,
           };
         },
       );
@@ -411,6 +415,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
           createdAt: row.created_at,
           category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobEntry type
           eventType: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
+          lockedAt: row.locked_at,
         };
       });
 
