@@ -21,11 +21,17 @@ export class ResetStuckOutboxRowsService {
     }
 
     for (const row of stuckRows) {
-      await this.outboxRepository.updateRowToPending({
-        id: row.id,
-        scheduledAt: row.scheduledAt,
-        errorMessage: row.errorMessage ?? "row stuck",
-      });
+      try {
+        await this.outboxRepository.updateRowToPending({
+          id: row.id,
+          scheduledAt: row.scheduledAt,
+          errorMessage: row.errorMessage ?? "row stuck",
+        });
+      } catch (error) {
+        // next poll cycle will try again this row
+        this.logger.error("Failed to reset stuck row", error as Error, { row });
+        continue;
+      }
     }
 
     this.logger.info("Reset stuck rows complete", { count: stuckRows.length });
