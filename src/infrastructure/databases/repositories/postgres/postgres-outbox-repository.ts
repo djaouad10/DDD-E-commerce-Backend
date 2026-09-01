@@ -5,7 +5,10 @@ import {
   type OutboxDomainEventEntry,
   type OutboxJobEntry,
   type OutboxRepository,
-  type UpdateOutboxEntryParams,
+  type UpdateRowToCompletedParams,
+  type UpdateRowToFailedParams,
+  type UpdateRowToPendingParams,
+  type UpdateRowToProcessingParams,
 } from "#/application/repositories/outbox.repository.js";
 import type {
   DrizzleDBClient,
@@ -201,45 +204,119 @@ export class PostgresOutboxRepository implements OutboxRepository {
     }
   }
 
-  async updateRow(params: UpdateOutboxEntryParams): Promise<void> {
-    this.logger.debug("updateRow called", { id: params.id });
+  async updateRowToProcessing(
+    params: UpdateRowToProcessingParams,
+  ): Promise<boolean> {
+    this.logger.debug("updateRowToProcessing called", { id: params.id });
 
-    const { id: rowId, ...updateParams } = params;
+    try {
+      const [updatedRow] = await this.logger.measure("db.update(outbox)", () =>
+        this.db
+          .update(outbox)
+          .set({
+            status: OutboxStatus.PROCESSING,
+            attempts: params.attempts,
+          })
+          .where(
+            and(
+              eq(outbox.id, params.id),
+              eq(outbox.status, OutboxStatus.PENDING),
+            ),
+          )
+          .returning(),
+      );
+
+      this.logger.debug("updateRowToProcessing completed", { id: params.id });
+
+      return !!updatedRow;
+    } catch (error) {
+      this.logger.error("updateRowToProcessing failed", error as Error, {
+        id: params.id,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresOutboxRepository.updateRowToProcessing",
+      );
+    }
+  }
+
+  async updateRowToPending(params: UpdateRowToPendingParams): Promise<void> {
+    this.logger.debug("updateRowToPending called", { id: params.id });
 
     try {
       await this.logger.measure("db.update(outbox)", () =>
         this.db
           .update(outbox)
           .set({
-            ...(updateParams.status === "COMPLETED" && {
-              status: updateParams.status,
-              processed_at: updateParams.processedAt,
-              attempts: updateParams.attempts,
-            }),
-            ...(updateParams.status === "FAILED" && {
-              processed_at: updateParams.processedAt,
-              error_message: updateParams.errorMessage,
-              status: updateParams.status,
-              attempts: updateParams.attempts,
-            }),
-            ...(updateParams.status === "PROCESSING" && {
-              status: updateParams.status,
-            }),
-            ...(updateParams.status === "PENDING" && {
-              status: updateParams.status,
-              error_message: updateParams.errorMessage,
-              attempts: updateParams.attempts,
-              scheduledAt: updateParams.scheduledAt,
-            }),
+            status: OutboxStatus.PENDING,
+            error_message: params.errorMessage,
+            scheduledAt: params.scheduledAt,
           })
-          .where(eq(outbox.id, rowId)),
+          .where(eq(outbox.id, params.id)),
       );
 
-      this.logger.debug("updateRow completed", { id: params.id });
+      this.logger.debug("updateRowToPending completed", { id: params.id });
     } catch (error) {
-      this.logger.error("updateRow failed", error as Error, { id: params.id });
+      this.logger.error("updateRowToPending failed", error as Error, {
+        id: params.id,
+      });
 
-      handleDrizzleErrors(error, "PostgresOutboxRepository.updateRow");
+      handleDrizzleErrors(error, "PostgresOutboxRepository.updateRowToPending");
+    }
+  }
+
+  async updateRowToFailed(params: UpdateRowToFailedParams): Promise<void> {
+    this.logger.debug("updateRowToFailed called", { id: params.id });
+
+    try {
+      await this.logger.measure("db.update(outbox)", () =>
+        this.db
+          .update(outbox)
+          .set({
+            processed_at: params.processedAt,
+            error_message: params.errorMessage,
+            status: OutboxStatus.FAILED,
+          })
+          .where(eq(outbox.id, params.id)),
+      );
+
+      this.logger.debug("updateRowToFailed completed", { id: params.id });
+    } catch (error) {
+      this.logger.error("updateRowToFailed failed", error as Error, {
+        id: params.id,
+      });
+
+      handleDrizzleErrors(error, "PostgresOutboxRepository.updateRowToFailed");
+    }
+  }
+
+  async updateRowToCompleted(
+    params: UpdateRowToCompletedParams,
+  ): Promise<void> {
+    this.logger.debug("updateRowToCompleted called", { id: params.id });
+
+    try {
+      await this.logger.measure("db.update(outbox)", () =>
+        this.db
+          .update(outbox)
+          .set({
+            status: OutboxStatus.COMPLETED,
+            processed_at: params.processedAt,
+          })
+          .where(eq(outbox.id, params.id)),
+      );
+
+      this.logger.debug("updateRowToCompleted completed", { id: params.id });
+    } catch (error) {
+      this.logger.error("updateRowToCompleted failed", error as Error, {
+        id: params.id,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresOutboxRepository.updateRowToCompleted",
+      );
     }
   }
 

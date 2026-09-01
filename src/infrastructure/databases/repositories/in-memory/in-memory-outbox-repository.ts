@@ -3,7 +3,10 @@ import type {
   OutboxRepository,
   OutboxJobEntry,
   OutboxDomainEventEntry,
-  UpdateOutboxEntryParams,
+  UpdateRowToCompletedParams,
+  UpdateRowToFailedParams,
+  UpdateRowToPendingParams,
+  UpdateRowToProcessingParams,
 } from "#/application/repositories/outbox.repository.js";
 import { OutboxCategory } from "#/application/repositories/outbox.repository.js";
 import type {
@@ -161,14 +164,50 @@ export class InMemoryOutboxRepository implements OutboxRepository {
       }));
   }
 
-  async updateRow(params: UpdateOutboxEntryParams): Promise<void> {
+  async updateRowToProcessing(
+    params: UpdateRowToProcessingParams,
+  ): Promise<boolean> {
+    const entry = this.entries.find((e) => e.id === params.id);
+    if (!entry) return false;
+
+    const { id: _id, ...updates } = params;
+
+    // Type-safe update — Object.assign handles all union variants
+    Object.assign(entry, { ...updates, status: OutboxStatus.PROCESSING });
+
+    return true;
+  }
+
+  async updateRowToCompleted(
+    params: UpdateRowToCompletedParams,
+  ): Promise<void> {
     const entry = this.entries.find((e) => e.id === params.id);
     if (!entry) return;
 
     const { id: _id, ...updates } = params;
 
     // Type-safe update — Object.assign handles all union variants
-    Object.assign(entry, updates);
+    Object.assign(entry, { ...updates, status: OutboxStatus.COMPLETED });
+  }
+
+  async updateRowToFailed(params: UpdateRowToFailedParams): Promise<void> {
+    const entry = this.entries.find((e) => e.id === params.id);
+    if (!entry) return;
+
+    const { id: _id, ...updates } = params;
+
+    // Type-safe update — Object.assign handles all union variants
+    Object.assign(entry, { ...updates, status: OutboxStatus.FAILED });
+  }
+
+  async updateRowToPending(params: UpdateRowToPendingParams): Promise<void> {
+    const entry = this.entries.find((e) => e.id === params.id);
+    if (!entry) return;
+
+    const { id: _id, ...updates } = params;
+
+    // Type-safe update — Object.assign handles all union variants
+    Object.assign(entry, { ...updates, status: OutboxStatus.PENDING });
   }
 
   async deleteCompletedRows(olderThan: Date): Promise<void> {
