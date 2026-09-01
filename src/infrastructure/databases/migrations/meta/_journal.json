@@ -29,6 +29,13 @@
       "when": 1787644721369,
       "tag": "0003_wild_manta",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788279429158,
+      "tag": "0004_sudden_daimon_hellstrom",
+      "breakpoints": true
     }
   ]
 }

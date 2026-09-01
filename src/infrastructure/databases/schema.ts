@@ -197,7 +197,7 @@ export const product = pgTable(
   "product",
   {
     id: varchar("id", { length: 40 }).notNull().primaryKey(),
-    version: bigint("version", {mode: "number"}).notNull().default(0),
+    version: bigint("version", { mode: "number" }).notNull().default(0),
     name: varchar("name", { length: 200 }).notNull(),
     slug: varchar("slug", { length: 300 }).notNull().unique(),
     description: varchar("description", { length: 5000 }),
@@ -382,6 +382,7 @@ export const outbox = pgTable(
     created_at: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    locked_at: timestamp("locked_at", { withTimezone: true }),
   },
   (t) => [
     // Critical: each worker polls its own slice efficiently
