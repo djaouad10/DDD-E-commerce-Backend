@@ -240,6 +240,7 @@ describe("DomainEventsProcessorService", () => {
             processedAt: null,
             errorMessage: null,
             createdAt: new Date(),
+            lockedAt: null,
           },
         ]);
 
@@ -289,6 +290,7 @@ describe("DomainEventsProcessorService", () => {
             processedAt: null,
             errorMessage: null,
             createdAt: new Date(),
+            lockedAt: null,
           },
           {
             id: freeEventId,
@@ -302,6 +304,7 @@ describe("DomainEventsProcessorService", () => {
             processedAt: null,
             errorMessage: null,
             createdAt: new Date(),
+            lockedAt: null,
           },
         ]);
 

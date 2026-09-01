@@ -224,6 +224,7 @@ describe("OutboxProcessorService", () => {
             processedAt: null,
             errorMessage: null,
             createdAt: new Date(),
+            lockedAt: null,
           },
         ]);
 
@@ -268,6 +269,7 @@ describe("OutboxProcessorService", () => {
             processedAt: null,
             errorMessage: null,
             createdAt: new Date(),
+            lockedAt: null,
           },
           {
             id: freeJobId,
@@ -280,6 +282,7 @@ describe("OutboxProcessorService", () => {
             processedAt: null,
             errorMessage: null,
             createdAt: new Date(),
+            lockedAt: null,
           },
         ]);
 
