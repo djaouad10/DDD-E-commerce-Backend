@@ -112,6 +112,7 @@ import {
   EMAIL_QUEUE,
   DOMAIN_EVENTS_PROCESSOR_SERVICE,
   EVENT_PUBLISHER,
+  RESET_STUCK_OUTBOX_ROWS_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -192,6 +193,7 @@ import { createBullMqFlowProducer } from "#/infrastructure/messaging/bullmq/util
 import { createBullMqEmailQueue } from "#/infrastructure/messaging/bullmq/queue/email.queue.js";
 import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
 import { BullMqEventPublisher } from "#/infrastructure/messaging/bullmq/bullmq-event-publisher.js";
+import { ResetStuckOutboxRowsService } from "#/application/services/reset-stuck-outbox-rows.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -1059,6 +1061,13 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(OUTBOX_REPOSITORY),
         scope.resolve(EVENT_PUBLISHER),
       ),
+    "scoped",
+  );
+
+  container.register(
+    RESET_STUCK_OUTBOX_ROWS_SERVICE,
+    (scope) =>
+      new ResetStuckOutboxRowsService(scope.resolve(OUTBOX_REPOSITORY)),
     "scoped",
   );
 
