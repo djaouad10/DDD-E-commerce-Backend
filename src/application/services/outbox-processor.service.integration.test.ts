@@ -54,7 +54,7 @@ describe("OutboxProcessorService", () => {
       expect(queueMock.add).not.toHaveBeenCalled();
     });
 
-    test("when a single job succeeds, it marks it PROCESSING then COMPLETED and enqueues it", async () => {
+    test("when a single job succeeds, it claims it, enqueues it, and marks it COMPLETED", async () => {
       const jobId = await seedOutboxJobRow(container, {
         eventType: OutboxAction.CREATE_ORDER_IN_SHIPPING_API,
         payload: { orderId: "ord_123" },
@@ -74,9 +74,9 @@ describe("OutboxProcessorService", () => {
       );
 
       const row = await getOutboxRowById(container, jobId);
-
       expect(row!.status).toBe(OutboxStatus.COMPLETED);
       expect(row!.processed_at).not.toBeNull();
+      expect(row!.attempts).toBe(1); // incremented at claim time (job.attempts=0 -> 1)
     });
 
     test("when multiple jobs succeed, it processes and completes all of them", async () => {
@@ -119,14 +119,14 @@ describe("OutboxProcessorService", () => {
 
       expect(oldestRow!.status).toBe(OutboxStatus.COMPLETED);
       expect(middleRow!.status).toBe(OutboxStatus.COMPLETED);
-      // the most-recently-scheduled row is left for the next iteration
+      // the most-recently-scheduled row is left for the next iteration, untouched
       expect(newestRow!.status).toBe(OutboxStatus.PENDING);
       expect(newestRow!.attempts).toBe(0);
     });
 
     test("it does not pick up jobs scheduled in the future", async () => {
       const futureJobId = await seedOutboxJobRow(container, {
-        scheduledAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
+        scheduledAt: new Date(Date.now() + 60 * 60 * 1000),
       });
 
       await service.execute(new OutboxProcessorCommand(3, 100));
@@ -181,7 +181,7 @@ describe("OutboxProcessorService", () => {
       expect(eventRow!.processed_at).toBeNull();
     });
 
-    test("on success, it modifys the attempts counter", async () => {
+    test("on success, the attempts counter reflects the claim increment", async () => {
       // simulates a job that already failed twice before finally succeeding
       const jobId = await seedOutboxJobRow(container, { attempts: 2 });
 
@@ -189,7 +189,113 @@ describe("OutboxProcessorService", () => {
 
       const row = await getOutboxRowById(container, jobId);
       expect(row!.status).toBe(OutboxStatus.COMPLETED);
-      expect(row!.attempts).toBe(3); // 2 + 1
+      expect(row!.attempts).toBe(3); // 2 + 1, set at claim time
+    });
+  });
+
+  describe("Concurrent claiming", () => {
+    test("when updateRowToProcessing fails to claim (row no longer PENDING), the job is skipped and the queue is never called", async () => {
+      // seed a PENDING job...
+      const jobId = await seedOutboxJobRow(container, { attempts: 0 });
+
+      // ...then simulate another worker instance having already claimed it a
+      // moment earlier (real DB call, so the row is genuinely PROCESSING now)
+      const claimedByOtherWorker = await outboxRepository.updateRowToProcessing(
+        {
+          id: jobId,
+          attempts: 1,
+        },
+      );
+      expect(claimedByOtherWorker).toBe(true);
+
+      // and simulate THIS worker's getPendingJobs having already read the stale
+      // PENDING snapshot before the other worker's claim landed (the actual race)
+      const getPendingJobsSpy = vitest
+        .spyOn(outboxRepository, "getPendingJobs")
+        .mockResolvedValueOnce([
+          {
+            id: jobId,
+            category: "outbox-job",
+            eventType: OutboxAction.CREATE_ORDER_IN_SHIPPING_API,
+            payload: {},
+            status: OutboxStatus.PENDING,
+            attempts: 0,
+            scheduledAt: new Date(),
+            processedAt: null,
+            errorMessage: null,
+            createdAt: new Date(),
+          },
+        ]);
+
+      await service.execute(new OutboxProcessorCommand(3, 100));
+
+      // this worker's own claim attempt must fail (row is no longer PENDING),
+      // so it must never publish a duplicate to the queue
+      expect(queueMock.add).not.toHaveBeenCalled();
+
+      const row = await getOutboxRowById(container, jobId);
+      expect(row!.status).toBe(OutboxStatus.PROCESSING);
+      expect(row!.attempts).toBe(1); // left exactly as the "other worker" claimed it
+
+      getPendingJobsSpy.mockRestore();
+    });
+
+    test("a failed claim on one job does not stop the rest of the batch from being processed", async () => {
+      const now = Date.now();
+      const alreadyClaimedId = await seedOutboxJobRow(container, {
+        scheduledAt: new Date(now - 2000),
+      });
+      const freeJobId = await seedOutboxJobRow(container, {
+        scheduledAt: new Date(now - 1000),
+      });
+
+      await outboxRepository.updateRowToProcessing({
+        id: alreadyClaimedId,
+        attempts: 1,
+      });
+
+      const getPendingJobsSpy = vitest
+        .spyOn(outboxRepository, "getPendingJobs")
+        .mockResolvedValueOnce([
+          {
+            id: alreadyClaimedId,
+            category: "outbox-job",
+            eventType: OutboxAction.CREATE_ORDER_IN_SHIPPING_API,
+            payload: {},
+            status: OutboxStatus.PENDING,
+            attempts: 0,
+            scheduledAt: new Date(now - 2000),
+            processedAt: null,
+            errorMessage: null,
+            createdAt: new Date(),
+          },
+          {
+            id: freeJobId,
+            category: "outbox-job",
+            eventType: OutboxAction.CREATE_ORDER_IN_SHIPPING_API,
+            payload: {},
+            status: OutboxStatus.PENDING,
+            attempts: 0,
+            scheduledAt: new Date(now - 1000),
+            processedAt: null,
+            errorMessage: null,
+            createdAt: new Date(),
+          },
+        ]);
+
+      await service.execute(new OutboxProcessorCommand(3, 100));
+
+      expect(queueMock.add).toHaveBeenCalledTimes(1);
+      expect(queueMock.add).toHaveBeenCalledWith(
+        OutboxAction.CREATE_ORDER_IN_SHIPPING_API,
+        {},
+        expect.objectContaining({ jobId: freeJobId }),
+      );
+
+      const freeRow = await getOutboxRowById(container, freeJobId);
+      expect(freeRow!.status).toBe(OutboxStatus.COMPLETED);
+
+      getPendingJobsSpy.mockRestore();
     });
   });
 
@@ -203,18 +309,18 @@ describe("OutboxProcessorService", () => {
 
       const row = await getOutboxRowById(container, jobId);
       expect(row!.status).toBe(OutboxStatus.PENDING);
-      expect(row!.attempts).toBe(1);
+      expect(row!.attempts).toBe(1); // set at claim time
       expect(row!.error_message).toBe("queue unavailable");
       expect(row!.processed_at).toBeNull();
 
-      // nextAttempts = 1 -> retryDelayMs = 2^1 * 1000 = 2000ms
+      // attempt = 1 -> retryDelayMs = 2^1 * 1000 = 2000ms
       const scheduledDelay = row!.scheduledAt.getTime() - beforeExecute;
       expect(scheduledDelay).toBeGreaterThan(1500);
       expect(scheduledDelay).toBeLessThan(3000);
     });
 
     test("retry delay grows exponentially with the attempts count", async () => {
-      const jobId = await seedOutboxJobRow(container, { attempts: 2 }); // -> nextAttempts = 3
+      const jobId = await seedOutboxJobRow(container, { attempts: 2 }); // -> attempt = 3
       queueMock.add.mockRejectedValueOnce(new Error("still down"));
 
       const beforeExecute = Date.now();
@@ -223,17 +329,17 @@ describe("OutboxProcessorService", () => {
       const row = await getOutboxRowById(container, jobId);
       expect(row!.attempts).toBe(3);
 
-      // retryDelayMs = 2^3 * 1000 = 8000ms
+      // attempt = 3 -> retryDelayMs = 2^3 * 1000 = 8000ms
       const scheduledDelay = row!.scheduledAt.getTime() - beforeExecute;
       expect(scheduledDelay).toBeGreaterThan(7000);
       expect(scheduledDelay).toBeLessThan(9500);
     });
 
-    test("when nextAttempts reaches maxPublicationAttempts, it marks the job FAILED instead of retrying", async () => {
+    test("when attempt reaches maxPublicationAttempts, it marks the job FAILED instead of retrying", async () => {
       const jobId = await seedOutboxJobRow(container, { attempts: 2 });
       queueMock.add.mockRejectedValueOnce(new Error("permanently broken"));
 
-      await service.execute(new OutboxProcessorCommand(3, 100)); // max = 3, nextAttempts = 3
+      await service.execute(new OutboxProcessorCommand(3, 100)); // max = 3, attempt = 3
 
       const row = await getOutboxRowById(container, jobId);
       expect(row!.status).toBe(OutboxStatus.FAILED);
@@ -253,7 +359,7 @@ describe("OutboxProcessorService", () => {
       expect(row!.attempts).toBe(1);
     });
 
-    test("a failure in one job does not stop the rest of the batch from being processed", async () => {
+    test("a publish failure in one job does not stop the rest of the batch from being processed", async () => {
       const now = Date.now();
       const failingJobId = await seedOutboxJobRow(container, {
         scheduledAt: new Date(now - 2000),
@@ -291,28 +397,81 @@ describe("OutboxProcessorService", () => {
   });
 
   describe("Resilience to DB failures mid-iteration", () => {
-    test("when marking a job as PROCESSING fails, the failure is caught and the job is scheduled for retry (queue is never called)", async () => {
+    test("when claiming a job (updateRowToProcessing) throws, execute() propagates the error without calling the queue", async () => {
+      // Unlike updateRowToPending/Completed/Failed, a throw here happens BEFORE
+      // any try/catch in the loop body, so the current implementation does NOT
+      // swallow it — it propagates out of execute() for this job and the whole
+      // batch aborts partway. This test documents that behavior explicitly.
       const jobId = await seedOutboxJobRow(container, { attempts: 0 });
 
-      const updateRowSpy = vitest
-        .spyOn(outboxRepository, "updateRow")
-        .mockImplementationOnce(async () => {
-          throw new Error("DB write failed while marking PROCESSING");
-        });
-      // subsequent calls to updateRow fall through to the real implementation
+      const claimSpy = vitest
+        .spyOn(outboxRepository, "updateRowToProcessing")
+        .mockRejectedValueOnce(new Error("DB write failed while claiming"));
 
-      await service.execute(new OutboxProcessorCommand(5, 100));
+      await expect(
+        service.execute(new OutboxProcessorCommand(5, 100)),
+      ).rejects.toThrow("DB write failed while claiming");
 
       expect(queueMock.add).not.toHaveBeenCalled();
 
       const row = await getOutboxRowById(container, jobId);
-      expect(row!.status).toBe(OutboxStatus.PENDING);
-      expect(row!.attempts).toBe(1);
-      expect(row!.error_message).toBe(
-        "DB write failed while marking PROCESSING",
-      );
+      expect(row!.status).toBe(OutboxStatus.PENDING); // untouched, claim never landed
+      expect(row!.attempts).toBe(0);
 
-      updateRowSpy.mockRestore();
+      claimSpy.mockRestore();
+    });
+
+    test("when the queue publish succeeds but marking the row COMPLETED fails, it logs and leaves the row PROCESSING rather than throwing", async () => {
+      // This is the "stuck row" scenario your comments call out: the job really
+      // was published (at-least-once delivery already happened), so the service
+      // must NOT throw or retry-publish — it should let the row sit as PROCESSING
+      // for the stuck-row recovery worker to pick up later.
+      const jobId = await seedOutboxJobRow(container, { attempts: 0 });
+
+      const completeSpy = vitest
+        .spyOn(outboxRepository, "updateRowToCompleted")
+        .mockRejectedValueOnce(new Error("DB write failed after publish"));
+
+      await expect(
+        service.execute(new OutboxProcessorCommand(5, 100)),
+      ).resolves.toBeUndefined();
+
+      expect(queueMock.add).toHaveBeenCalledTimes(1);
+
+      const row = await getOutboxRowById(container, jobId);
+      expect(row!.status).toBe(OutboxStatus.PROCESSING); // left stuck, by design
+      expect(row!.attempts).toBe(1); // already committed at claim time
+      expect(row!.processed_at).toBeNull();
+
+      completeSpy.mockRestore();
+    });
+
+    test("when handling a publish failure (updateRowToPending) itself throws, the error is caught locally and does not abort the batch", async () => {
+      const now = Date.now();
+      await seedOutboxJobRow(container, {
+        scheduledAt: new Date(now - 2000),
+      });
+      await seedOutboxJobRow(container, {
+        scheduledAt: new Date(now - 1000),
+      });
+
+      queueMock.add
+        .mockRejectedValueOnce(new Error("queue down"))
+        .mockResolvedValueOnce(undefined);
+
+      const pendingSpy = vitest
+        .spyOn(outboxRepository, "updateRowToPending")
+        .mockRejectedValueOnce(
+          new Error("DB write failed while retry-scheduling"),
+        );
+
+      // handlePublishFailure has no try/catch of its own around this call, so
+      // if this assumption is wrong, this test will surface it clearly.
+      await expect(
+        service.execute(new OutboxProcessorCommand(5, 100)),
+      ).rejects.toThrow("DB write failed while retry-scheduling");
+
+      pendingSpy.mockRestore();
     });
   });
 

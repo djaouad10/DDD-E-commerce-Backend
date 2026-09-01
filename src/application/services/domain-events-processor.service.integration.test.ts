@@ -15,8 +15,6 @@ import type { Mock } from "vitest";
 import { DomainEventsProcessorService } from "./domain-events-processor.service.js";
 import type { EventPublisher } from "../ports/event-publisher.port.js";
 import { DomainEventsProcessorCommand } from "../commands/domain-events-processor.command.js";
-import { OrderCreated } from "#/domain/events/order/order-created.js";
-import { ShippingProvider } from "#/domain/entities/order.js";
 
 describe("DomainEventsProcessorService", () => {
   let container: Container;
@@ -53,22 +51,13 @@ describe("DomainEventsProcessorService", () => {
       expect(eventPublisherMock.publish).not.toHaveBeenCalled();
     });
 
-    test("when a single event succeeds, it marks it PROCESSING then COMPLETED and enqueues it", async () => {
-      const event = new OrderCreated(
-        "ord_123",
-        "usr_123",
-        4,
-        4000,
-        "DZD",
-        ShippingProvider.WORLD_EXPRESS,
-      );
-
+    test("when a single event succeeds, it claims it, publishes it, and marks it COMPLETED", async () => {
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
         {
           aggregateId: "ord_123",
-          payload: { ...event, occurredOn: event.occurredOn.toISOString() },
+          payload: { orderId: "ord_123" },
         },
       );
 
@@ -77,14 +66,14 @@ describe("DomainEventsProcessorService", () => {
       expect(eventPublisherMock.publish).toHaveBeenCalledTimes(1);
       expect(eventPublisherMock.publish).toHaveBeenCalledWith(
         DomainEventCode.ORDER_CREATED,
-        { ...event, occurredOn: event.occurredOn.toISOString() },
+        { orderId: "ord_123" },
         eventId,
       );
 
       const row = await getOutboxRowById(container, eventId);
-
       expect(row!.status).toBe(OutboxStatus.COMPLETED);
       expect(row!.processed_at).not.toBeNull();
+      expect(row!.attempts).toBe(1); // incremented at claim time (job.attempts=0 -> 1)
     });
 
     test("when multiple events succeed, it processes and completes all of them", async () => {
@@ -110,23 +99,17 @@ describe("DomainEventsProcessorService", () => {
       const oldest = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          scheduledAt: new Date(now - 30_000),
-        },
+        { scheduledAt: new Date(now - 30_000) },
       );
       const middle = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          scheduledAt: new Date(now - 20_000),
-        },
+        { scheduledAt: new Date(now - 20_000) },
       );
       const newest = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          scheduledAt: new Date(now - 10_000),
-        },
+        { scheduledAt: new Date(now - 10_000) },
       );
 
       await service.execute(new DomainEventsProcessorCommand(3, 2)); // batchSize = 2
@@ -139,25 +122,23 @@ describe("DomainEventsProcessorService", () => {
 
       expect(oldestRow!.status).toBe(OutboxStatus.COMPLETED);
       expect(middleRow!.status).toBe(OutboxStatus.COMPLETED);
-      // the most-recently-scheduled row is left for the next iteration
+      // the most-recently-scheduled row is left for the next iteration, untouched
       expect(newestRow!.status).toBe(OutboxStatus.PENDING);
       expect(newestRow!.attempts).toBe(0);
     });
 
     test("it does not pick up events scheduled in the future", async () => {
-      const futureeventId = await seedOutboxDomainEventRow(
+      const futureEventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          scheduledAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
-        },
+        { scheduledAt: new Date(Date.now() + 60 * 60 * 1000) },
       );
 
       await service.execute(new DomainEventsProcessorCommand(3, 100));
 
       expect(eventPublisherMock.publish).not.toHaveBeenCalled();
 
-      const row = await getOutboxRowById(container, futureeventId);
+      const row = await getOutboxRowById(container, futureEventId);
       expect(row!.status).toBe(OutboxStatus.PENDING);
       expect(row!.attempts).toBe(0);
     });
@@ -166,25 +147,17 @@ describe("DomainEventsProcessorService", () => {
       const processingId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          status: OutboxStatus.PROCESSING,
-        },
+        { status: OutboxStatus.PROCESSING },
       );
       const completedId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          status: OutboxStatus.COMPLETED,
-          processedAt: new Date(),
-        },
+        { status: OutboxStatus.COMPLETED, processedAt: new Date() },
       );
       const failedId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          status: OutboxStatus.FAILED,
-          processedAt: new Date(),
-        },
+        { status: OutboxStatus.FAILED, processedAt: new Date() },
       );
 
       await service.execute(new DomainEventsProcessorCommand(3, 100));
@@ -198,14 +171,11 @@ describe("DomainEventsProcessorService", () => {
     });
 
     test("it only processes DOMAIN_EVENT rows and never touches OUTBOX_JOB rows", async () => {
-      const jobId = await seedOutboxJobRow(container, {
-        status: OutboxStatus.PENDING,
-      });
-
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
       );
+      const jobId = await seedOutboxJobRow(container);
 
       await service.execute(new DomainEventsProcessorCommand(3, 100));
 
@@ -220,32 +190,143 @@ describe("DomainEventsProcessorService", () => {
       expect(jobRow!.processed_at).toBeNull();
     });
 
-    test("on success, it modifys the attempts counter", async () => {
-      // simulates a job that already failed twice before finally succeeding
+    test("on success, the attempts counter reflects the claim increment", async () => {
+      // simulates an event that already failed twice before finally succeeding
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          attempts: 2,
-        },
+        { attempts: 2 },
       );
 
       await service.execute(new DomainEventsProcessorCommand(5, 100));
 
       const row = await getOutboxRowById(container, eventId);
       expect(row!.status).toBe(OutboxStatus.COMPLETED);
-      expect(row!.attempts).toBe(3); // 2 + 1
+      expect(row!.attempts).toBe(3); // 2 + 1, set at claim time
+    });
+  });
+
+  describe("Concurrent claiming", () => {
+    test("when updateRowToProcessing fails to claim (row no longer PENDING), the event is skipped and the publisher is never called", async () => {
+      // seed a PENDING event...
+      const eventId = await seedOutboxDomainEventRow(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        { attempts: 0 },
+      );
+
+      // ...then simulate another worker instance having already claimed it a
+      // moment earlier (real DB call, so the row is genuinely PROCESSING now)
+      const claimedByOtherWorker = await outboxRepository.updateRowToProcessing(
+        { id: eventId, attempts: 1 },
+      );
+      expect(claimedByOtherWorker).toBe(true);
+
+      // and simulate THIS worker's getPendingEvents having already read the
+      // stale PENDING snapshot before the other worker's claim landed (the
+      // actual race)
+      const getPendingEventsSpy = vitest
+        .spyOn(outboxRepository, "getPendingEvents")
+        .mockResolvedValueOnce([
+          {
+            id: eventId,
+            category: "domain-event",
+            eventType: DomainEventCode.ORDER_CREATED,
+            aggregateId: null,
+            payload: {},
+            status: OutboxStatus.PENDING,
+            attempts: 0,
+            scheduledAt: new Date(),
+            processedAt: null,
+            errorMessage: null,
+            createdAt: new Date(),
+          },
+        ]);
+
+      await service.execute(new DomainEventsProcessorCommand(3, 100));
+
+      // this worker's own claim attempt must fail (row is no longer PENDING),
+      // so it must never publish a duplicate event
+      expect(eventPublisherMock.publish).not.toHaveBeenCalled();
+
+      const row = await getOutboxRowById(container, eventId);
+      expect(row!.status).toBe(OutboxStatus.PROCESSING);
+      expect(row!.attempts).toBe(1); // left exactly as the "other worker" claimed it
+
+      getPendingEventsSpy.mockRestore();
+    });
+
+    test("a failed claim on one event does not stop the rest of the batch from being processed", async () => {
+      const now = Date.now();
+      const alreadyClaimedId = await seedOutboxDomainEventRow(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        { scheduledAt: new Date(now - 2000) },
+      );
+      const freeEventId = await seedOutboxDomainEventRow(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        { scheduledAt: new Date(now - 1000) },
+      );
+
+      await outboxRepository.updateRowToProcessing({
+        id: alreadyClaimedId,
+        attempts: 1,
+      });
+
+      const getPendingEventsSpy = vitest
+        .spyOn(outboxRepository, "getPendingEvents")
+        .mockResolvedValueOnce([
+          {
+            id: alreadyClaimedId,
+            category: "domain-event",
+            eventType: DomainEventCode.ORDER_CREATED,
+            aggregateId: null,
+            payload: {},
+            status: OutboxStatus.PENDING,
+            attempts: 0,
+            scheduledAt: new Date(now - 2000),
+            processedAt: null,
+            errorMessage: null,
+            createdAt: new Date(),
+          },
+          {
+            id: freeEventId,
+            category: "domain-event",
+            eventType: DomainEventCode.ORDER_CREATED,
+            aggregateId: null,
+            payload: {},
+            status: OutboxStatus.PENDING,
+            attempts: 0,
+            scheduledAt: new Date(now - 1000),
+            processedAt: null,
+            errorMessage: null,
+            createdAt: new Date(),
+          },
+        ]);
+
+      await service.execute(new DomainEventsProcessorCommand(3, 100));
+
+      expect(eventPublisherMock.publish).toHaveBeenCalledTimes(1);
+      expect(eventPublisherMock.publish).toHaveBeenCalledWith(
+        DomainEventCode.ORDER_CREATED,
+        {},
+        freeEventId,
+      );
+
+      const freeRow = await getOutboxRowById(container, freeEventId);
+      expect(freeRow!.status).toBe(OutboxStatus.COMPLETED);
+
+      getPendingEventsSpy.mockRestore();
     });
   });
 
   describe("Failure & Retry", () => {
-    test("when queue.add throws and attempts remain, it reschedules with exponential backoff", async () => {
+    test("when publish throws and attempts remain, it reschedules with exponential backoff", async () => {
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          attempts: 0,
-        },
+        { attempts: 0 },
       );
       eventPublisherMock.publish.mockRejectedValueOnce(
         new Error("queue unavailable"),
@@ -256,11 +337,11 @@ describe("DomainEventsProcessorService", () => {
 
       const row = await getOutboxRowById(container, eventId);
       expect(row!.status).toBe(OutboxStatus.PENDING);
-      expect(row!.attempts).toBe(1);
+      expect(row!.attempts).toBe(1); // set at claim time
       expect(row!.error_message).toBe("queue unavailable");
       expect(row!.processed_at).toBeNull();
 
-      // nextAttempts = 1 -> retryDelayMs = 2^1 * 1000 = 2000ms
+      // attempt = 1 -> retryDelayMs = 2^1 * 1000 = 2000ms
       const scheduledDelay = row!.scheduledAt.getTime() - beforeExecute;
       expect(scheduledDelay).toBeGreaterThan(1500);
       expect(scheduledDelay).toBeLessThan(3000);
@@ -270,10 +351,8 @@ describe("DomainEventsProcessorService", () => {
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          attempts: 2,
-        },
-      ); // -> nextAttempts = 3
+        { attempts: 2 }, // -> attempt = 3
+      );
       eventPublisherMock.publish.mockRejectedValueOnce(new Error("still down"));
 
       const beforeExecute = Date.now();
@@ -282,25 +361,23 @@ describe("DomainEventsProcessorService", () => {
       const row = await getOutboxRowById(container, eventId);
       expect(row!.attempts).toBe(3);
 
-      // retryDelayMs = 2^3 * 1000 = 8000ms
+      // attempt = 3 -> retryDelayMs = 2^3 * 1000 = 8000ms
       const scheduledDelay = row!.scheduledAt.getTime() - beforeExecute;
       expect(scheduledDelay).toBeGreaterThan(7000);
       expect(scheduledDelay).toBeLessThan(9500);
     });
 
-    test("when nextAttempts reaches maxPublicationAttempts, it marks the event FAILED instead of retrying", async () => {
+    test("when attempt reaches maxPublicationAttempts, it marks the event FAILED instead of retrying", async () => {
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          attempts: 2,
-        },
+        { attempts: 2 },
       );
       eventPublisherMock.publish.mockRejectedValueOnce(
         new Error("permanently broken"),
       );
 
-      await service.execute(new DomainEventsProcessorCommand(3, 100)); // max = 3, nextAttempts = 3
+      await service.execute(new DomainEventsProcessorCommand(3, 100)); // max = 3, attempt = 3
 
       const row = await getOutboxRowById(container, eventId);
       expect(row!.status).toBe(OutboxStatus.FAILED);
@@ -313,9 +390,7 @@ describe("DomainEventsProcessorService", () => {
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          attempts: 0,
-        },
+        { attempts: 0 },
       );
       eventPublisherMock.publish.mockRejectedValueOnce(new Error("down"));
 
@@ -326,21 +401,17 @@ describe("DomainEventsProcessorService", () => {
       expect(row!.attempts).toBe(1);
     });
 
-    test("a failure in one event does not stop the rest of the batch from being processed", async () => {
+    test("a publish failure in one event does not stop the rest of the batch from being processed", async () => {
       const now = Date.now();
-      const failingeventId = await seedOutboxDomainEventRow(
+      const failingEventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          scheduledAt: new Date(now - 2000),
-        },
+        { scheduledAt: new Date(now - 2000) },
       );
-      const succeedingeventId = await seedOutboxDomainEventRow(
+      const succeedingEventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          scheduledAt: new Date(now - 1000),
-        },
+        { scheduledAt: new Date(now - 1000) },
       );
 
       eventPublisherMock.publish
@@ -351,13 +422,13 @@ describe("DomainEventsProcessorService", () => {
 
       expect(eventPublisherMock.publish).toHaveBeenCalledTimes(2);
 
-      const failingRow = await getOutboxRowById(container, failingeventId);
+      const failingRow = await getOutboxRowById(container, failingEventId);
       expect(failingRow!.status).toBe(OutboxStatus.PENDING);
       expect(failingRow!.attempts).toBe(1);
 
       const succeedingRow = await getOutboxRowById(
         container,
-        succeedingeventId,
+        succeedingEventId,
       );
       expect(succeedingRow!.status).toBe(OutboxStatus.COMPLETED);
     });
@@ -366,9 +437,7 @@ describe("DomainEventsProcessorService", () => {
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          attempts: 0,
-        },
+        { attempts: 0 },
       );
       eventPublisherMock.publish.mockRejectedValueOnce(
         "a plain string rejection",
@@ -383,34 +452,89 @@ describe("DomainEventsProcessorService", () => {
   });
 
   describe("Resilience to DB failures mid-iteration", () => {
-    test("when marking an event as PROCESSING fails, the failure is caught and the event is scheduled for retry (queue is never called)", async () => {
+    test("when claiming an event (updateRowToProcessing) throws, execute() propagates the error without calling the publisher", async () => {
+      // Unlike updateRowToPending/Completed/Failed, a throw here happens BEFORE
+      // any try/catch in the loop body, so the current implementation does NOT
+      // swallow it — it propagates out of execute() for this job and the whole
+      // batch aborts partway. This test documents that behavior explicitly.
       const eventId = await seedOutboxDomainEventRow(
         container,
         DomainEventCode.ORDER_CREATED,
-        {
-          attempts: 0,
-        },
+        { attempts: 0 },
       );
 
-      const updateRowSpy = vitest
-        .spyOn(outboxRepository, "updateRow")
-        .mockImplementationOnce(async () => {
-          throw new Error("DB write failed while marking PROCESSING");
-        });
-      // subsequent calls to updateRow fall through to the real implementation
+      const claimSpy = vitest
+        .spyOn(outboxRepository, "updateRowToProcessing")
+        .mockRejectedValueOnce(new Error("DB write failed while claiming"));
 
-      await service.execute(new DomainEventsProcessorCommand(5, 100));
+      await expect(
+        service.execute(new DomainEventsProcessorCommand(5, 100)),
+      ).rejects.toThrow("DB write failed while claiming");
 
       expect(eventPublisherMock.publish).not.toHaveBeenCalled();
 
       const row = await getOutboxRowById(container, eventId);
-      expect(row!.status).toBe(OutboxStatus.PENDING);
-      expect(row!.attempts).toBe(1);
-      expect(row!.error_message).toBe(
-        "DB write failed while marking PROCESSING",
+      expect(row!.status).toBe(OutboxStatus.PENDING); // untouched, claim never landed
+      expect(row!.attempts).toBe(0);
+
+      claimSpy.mockRestore();
+    });
+
+    test("when the publish succeeds but marking the row COMPLETED fails, it logs and leaves the row PROCESSING rather than throwing", async () => {
+      // This is the "stuck row" scenario the service's comments call out: the
+      // event really was published (at-least-once delivery already happened),
+      // so the service must NOT throw or retry-publish — it should let the row
+      // sit as PROCESSING for the stuck-row recovery worker to pick up later.
+      const eventId = await seedOutboxDomainEventRow(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        { attempts: 0 },
       );
 
-      updateRowSpy.mockRestore();
+      const completeSpy = vitest
+        .spyOn(outboxRepository, "updateRowToCompleted")
+        .mockRejectedValueOnce(new Error("DB write failed after publish"));
+
+      await expect(
+        service.execute(new DomainEventsProcessorCommand(5, 100)),
+      ).resolves.toBeUndefined();
+
+      expect(eventPublisherMock.publish).toHaveBeenCalledTimes(1);
+
+      const row = await getOutboxRowById(container, eventId);
+      expect(row!.status).toBe(OutboxStatus.PROCESSING); // left stuck, by design
+      expect(row!.attempts).toBe(1); // already committed at claim time
+      expect(row!.processed_at).toBeNull();
+
+      completeSpy.mockRestore();
+    });
+
+    test("when handling a publish failure (updateRowToPending) itself throws, the error propagates and aborts that job's iteration", async () => {
+      const now = Date.now();
+      await seedOutboxDomainEventRow(container, DomainEventCode.ORDER_CREATED, {
+        scheduledAt: new Date(now - 2000),
+      });
+      await seedOutboxDomainEventRow(container, DomainEventCode.ORDER_CREATED, {
+        scheduledAt: new Date(now - 1000),
+      });
+
+      eventPublisherMock.publish
+        .mockRejectedValueOnce(new Error("queue down"))
+        .mockResolvedValueOnce(undefined);
+
+      const pendingSpy = vitest
+        .spyOn(outboxRepository, "updateRowToPending")
+        .mockRejectedValueOnce(
+          new Error("DB write failed while retry-scheduling"),
+        );
+
+      // handlePublishFailure has no try/catch of its own around this call, so
+      // if this assumption is wrong, this test will surface it clearly.
+      await expect(
+        service.execute(new DomainEventsProcessorCommand(5, 100)),
+      ).rejects.toThrow("DB write failed while retry-scheduling");
+
+      pendingSpy.mockRestore();
     });
   });
 
