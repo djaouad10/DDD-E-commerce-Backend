@@ -49,7 +49,7 @@ describe("ResetStuckOutboxRowsService", () => {
     test("resets a single stuck outbox-job row back to PENDING", async () => {
       const jobId = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(Date.now() - 60_000),
+        lockedAt: new Date(Date.now() - 60_000),
       });
 
       await service.execute(new ResetStuckOutboxRowsCommand(100, new Date()));
@@ -65,7 +65,7 @@ describe("ResetStuckOutboxRowsService", () => {
         DomainEventCode.ORDER_CREATED,
         {
           status: OutboxStatus.PROCESSING,
-          scheduledAt: new Date(Date.now() - 60_000),
+          lockedAt: new Date(Date.now() - 60_000),
         },
       );
 
@@ -80,21 +80,21 @@ describe("ResetStuckOutboxRowsService", () => {
       const jobIds = await Promise.all([
         seedOutboxJobRow(container, {
           status: OutboxStatus.PROCESSING,
-          scheduledAt: new Date(Date.now() - 60_000),
+          lockedAt: new Date(Date.now() - 60_000),
         }),
         seedOutboxJobRow(container, {
           status: OutboxStatus.PROCESSING,
-          scheduledAt: new Date(Date.now() - 50_000),
+          lockedAt: new Date(Date.now() - 50_000),
         }),
       ]);
       const eventIds = await Promise.all([
         seedOutboxDomainEventRow(container, DomainEventCode.ORDER_CREATED, {
           status: OutboxStatus.PROCESSING,
-          scheduledAt: new Date(Date.now() - 40_000),
+          lockedAt: new Date(Date.now() - 40_000),
         }),
         seedOutboxDomainEventRow(container, DomainEventCode.ORDER_CREATED, {
           status: OutboxStatus.PROCESSING,
-          scheduledAt: new Date(Date.now() - 30_000),
+          lockedAt: new Date(Date.now() - 30_000),
         }),
       ]);
 
@@ -109,7 +109,7 @@ describe("ResetStuckOutboxRowsService", () => {
     test("preserves an existing error message instead of overwriting it with the default", async () => {
       const jobId = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(Date.now() - 60_000),
+        lockedAt: new Date(Date.now() - 60_000),
         errorMessage: "boom",
       });
 
@@ -120,7 +120,7 @@ describe("ResetStuckOutboxRowsService", () => {
       expect(row!.error_message).toBe("boom");
     });
 
-    test("preserves the row's existing scheduledAt rather than rescheduling to now", async () => {
+    test("preserves the row's existing lockedAt rather than rescheduling to now", async () => {
       const originalScheduledAt = new Date(Date.now() - 60_000);
       const jobId = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
@@ -137,15 +137,15 @@ describe("ResetStuckOutboxRowsService", () => {
       const now = Date.now();
       const oldest = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(now - 30_000),
+        lockedAt: new Date(now - 30_000),
       });
       const middle = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(now - 20_000),
+        lockedAt: new Date(now - 20_000),
       });
       const newest = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(now - 10_000),
+        lockedAt: new Date(now - 10_000),
       });
 
       await service.execute(new ResetStuckOutboxRowsCommand(2, new Date())); // batchSize = 2
@@ -165,11 +165,11 @@ describe("ResetStuckOutboxRowsService", () => {
 
       const genuinelyStuckId = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(cutoff.getTime() - 10_000), // older than cutoff
+        lockedAt: new Date(cutoff.getTime() - 10_000), // older than cutoff
       });
       const notYetStuckId = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(cutoff.getTime() + 10_000), // newer than cutoff
+        lockedAt: new Date(cutoff.getTime() + 10_000), // newer than cutoff
       });
 
       await service.execute(new ResetStuckOutboxRowsCommand(100, cutoff));
@@ -182,20 +182,20 @@ describe("ResetStuckOutboxRowsService", () => {
     });
 
     test("it does not touch rows that are not PROCESSING", async () => {
-      const oldScheduledAt = new Date(Date.now() - 60_000);
+      const oldLockedAt = new Date(Date.now() - 60_000);
 
       const pendingId = await seedOutboxJobRow(container, {
         status: OutboxStatus.PENDING,
-        scheduledAt: oldScheduledAt,
+        lockedAt: oldLockedAt,
       });
       const completedId = await seedOutboxJobRow(container, {
         status: OutboxStatus.COMPLETED,
-        scheduledAt: oldScheduledAt,
+        lockedAt: oldLockedAt,
         processedAt: new Date(),
       });
       const failedId = await seedOutboxJobRow(container, {
         status: OutboxStatus.FAILED,
-        scheduledAt: oldScheduledAt,
+        lockedAt: oldLockedAt,
         processedAt: new Date(),
       });
 
@@ -216,11 +216,11 @@ describe("ResetStuckOutboxRowsService", () => {
       const now = Date.now();
       const firstId = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(now - 20_000),
+        lockedAt: new Date(now - 20_000),
       });
       const secondId = await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(now - 10_000),
+        lockedAt: new Date(now - 10_000),
       });
 
       const updateSpy = vitest.spyOn(outboxRepository, "updateRowToPending");
@@ -244,7 +244,7 @@ describe("ResetStuckOutboxRowsService", () => {
     test("when getStuckRows throws, execute() propagates the error and never calls updateRowToPending", async () => {
       await seedOutboxJobRow(container, {
         status: OutboxStatus.PROCESSING,
-        scheduledAt: new Date(Date.now() - 60_000),
+        lockedAt: new Date(Date.now() - 60_000),
       });
 
       const getStuckRowsSpy = vitest

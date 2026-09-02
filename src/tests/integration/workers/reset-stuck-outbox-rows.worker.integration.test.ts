@@ -81,11 +81,11 @@ describe("ResetStuckOutboxRowsWorker", () => {
 
     const stuckId = await seedOutboxJobRow(container, {
       status: OutboxStatus.PROCESSING,
-      scheduledAt: new Date(Date.now() - stuckFor - oneHourMs), // older -> reset
+      lockedAt: new Date(Date.now() - stuckFor - oneHourMs), // older -> reset
     });
     const notStuckId = await seedOutboxJobRow(container, {
       status: OutboxStatus.PROCESSING,
-      scheduledAt: new Date(Date.now() - stuckFor + oneHourMs), // newer -> kept
+      lockedAt: new Date(Date.now() - stuckFor + oneHourMs), // newer -> kept
     });
 
     const worker = new ResetStuckOutboxRowsWorker(container, {
