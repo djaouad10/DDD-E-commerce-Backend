@@ -29,7 +29,7 @@ describe("ResetStuckOutboxRowsWorker", () => {
     // Arrange
     const jobId = await seedOutboxJobRow(container, {
       status: OutboxStatus.PROCESSING,
-      scheduledAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+      lockedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
     });
 
     const worker = new ResetStuckOutboxRowsWorker(container, {
@@ -52,11 +52,11 @@ describe("ResetStuckOutboxRowsWorker", () => {
     const now = Date.now();
     const older = await seedOutboxJobRow(container, {
       status: OutboxStatus.PROCESSING,
-      scheduledAt: new Date(now - 2000),
+      lockedAt: new Date(now - 2000),
     });
     const newer = await seedOutboxJobRow(container, {
       status: OutboxStatus.PROCESSING,
-      scheduledAt: new Date(now - 1000),
+      lockedAt: new Date(now - 1000),
     });
 
     const worker = new ResetStuckOutboxRowsWorker(container, {
