@@ -3,7 +3,10 @@ import type {
   OutboxRepository,
   OutboxJobEntry,
   OutboxDomainEventEntry,
-  UpdateOutboxEntryParams,
+  UpdateRowToCompletedParams,
+  UpdateRowToFailedParams,
+  UpdateRowToPendingParams,
+  UpdateRowToProcessingParams,
 } from "#/application/repositories/outbox.repository.js";
 import { OutboxCategory } from "#/application/repositories/outbox.repository.js";
 import type {
@@ -26,6 +29,7 @@ type InMemoryEntry =
       createdAt: Date;
       processedAt?: Date;
       errorMessage?: string;
+      lockedAt?: Date | null;
     }
   | {
       id: string;
@@ -39,6 +43,7 @@ type InMemoryEntry =
       aggregateId: string;
       processedAt?: Date;
       errorMessage?: string;
+      lockedAt?: Date | null;
     };
 
 export class InMemoryOutboxRepository implements OutboxRepository {
@@ -119,6 +124,7 @@ export class InMemoryOutboxRepository implements OutboxRepository {
         createdAt: entry.createdAt,
         processedAt: entry.processedAt ?? null,
         errorMessage: entry.errorMessage ?? null,
+        lockedAt: entry.lockedAt ?? null,
       }));
   }
 
@@ -158,19 +164,126 @@ export class InMemoryOutboxRepository implements OutboxRepository {
         aggregateId: entry.aggregateId,
         processedAt: entry.processedAt ?? null,
         errorMessage: entry.errorMessage ?? null,
+        lockedAt: entry.lockedAt ?? null,
       }));
   }
 
-  async updateRow(params: UpdateOutboxEntryParams): Promise<void> {
+  async updateRowToProcessing(
+    params: UpdateRowToProcessingParams,
+  ): Promise<boolean> {
+    const entry = this.entries.find((e) => e.id === params.id);
+    if (!entry) return false;
+
+    const { id: _id, ...updates } = params;
+
+    // Type-safe update — Object.assign handles all union variants
+    Object.assign(entry, { ...updates, status: OutboxStatus.PROCESSING });
+
+    return true;
+  }
+
+  async updateRowToCompleted(
+    params: UpdateRowToCompletedParams,
+  ): Promise<void> {
     const entry = this.entries.find((e) => e.id === params.id);
     if (!entry) return;
 
     const { id: _id, ...updates } = params;
 
     // Type-safe update — Object.assign handles all union variants
-    Object.assign(entry, updates);
+    Object.assign(entry, { ...updates, status: OutboxStatus.COMPLETED });
   }
 
+  async updateRowToFailed(params: UpdateRowToFailedParams): Promise<void> {
+    const entry = this.entries.find((e) => e.id === params.id);
+    if (!entry) return;
+
+    const { id: _id, ...updates } = params;
+
+    // Type-safe update — Object.assign handles all union variants
+    Object.assign(entry, { ...updates, status: OutboxStatus.FAILED });
+  }
+
+  async updateRowToPending(params: UpdateRowToPendingParams): Promise<void> {
+    const entry = this.entries.find((e) => e.id === params.id);
+    if (!entry) return;
+
+    const { id: _id, ...updates } = params;
+
+    // Type-safe update — Object.assign handles all union variants
+    Object.assign(entry, { ...updates, status: OutboxStatus.PENDING });
+  }
+
+  async deleteCompletedRows(olderThan: Date): Promise<void> {
+    this.entries = this.entries.filter((e) => {
+      if (e.status === OutboxStatus.COMPLETED) {
+        if (e.processedAt && e.processedAt <= olderThan) {
+          return false; // should be deleted
+        }
+      }
+      return true; // should not be deleted
+    });
+  }
+
+  async getStuckRows(
+    batchSize: number,
+    stuckBefore: Date,
+  ): Promise<(OutboxJobEntry | OutboxDomainEventEntry)[]> {
+    const rows = this.entries
+      .filter((e) => {
+        if (e.status === OutboxStatus.PROCESSING) {
+          if (e.processedAt && e.scheduledAt <= stuckBefore) {
+            return true;
+          }
+        }
+        return false;
+      })
+      .slice(0, batchSize);
+
+    const eventRows: (OutboxDomainEventEntry | undefined)[] = rows.map(
+      (row) => {
+        if (row.category !== OutboxCategory.DOMAIN_EVENT) return;
+
+        return {
+          id: row.id,
+          category: row.category,
+          eventType: row.eventType as DomainEventCode,
+          payload: row.payload,
+          status: row.status,
+          attempts: row.attempts,
+          scheduledAt: row.scheduledAt,
+          createdAt: row.createdAt,
+          aggregateId: row.aggregateId,
+          processedAt: row.processedAt ?? null,
+          errorMessage: row.errorMessage ?? null,
+          lockedAt: row.lockedAt ?? null,
+        };
+      },
+    );
+
+    const jobRows: (OutboxJobEntry | undefined)[] = rows.map((row) => {
+      if (row.category !== OutboxCategory.OUTBOX_JOB) return;
+
+      return {
+        id: row.id,
+        eventType: row.action,
+        category: row.category,
+        action: row.action,
+        payload: row.payload,
+        status: row.status,
+        attempts: row.attempts,
+        scheduledAt: row.scheduledAt,
+        createdAt: row.createdAt,
+        processedAt: row.processedAt ?? null,
+        errorMessage: row.errorMessage ?? null,
+        lockedAt: row.lockedAt ?? null,
+      };
+    });
+
+    return [...eventRows, ...jobRows].filter(
+      (row): row is OutboxJobEntry | OutboxDomainEventEntry => !!row,
+    );
+  }
   // ── Test helpers (not part of interface) ──
 
   getAllEntries(): InMemoryEntry[] {

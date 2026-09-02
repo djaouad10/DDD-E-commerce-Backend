@@ -1,10 +1,10 @@
 import { CreateOrderInShippingProviderCommand } from "#/application/commands/create-order-in-shipping-provider.command.js";
-import { CreateShipmentInShippingProviderCommand } from "#/application/commands/create-shipment-in-shipping-provider.command.js";
+import { ActivateShipmentInShippingProviderCommand } from "#/application/commands/activate-shipment-in-shipping-provider.command.js";
 import { DeleteOrderFromShippingProviderCommand } from "#/application/commands/delete-order-from-shipping-provider.command.js";
 import { UpdateOrderInShippingProviderCommand } from "#/application/commands/update-order-in-shipping-provider.command.js";
 import { OutboxAction } from "#/application/repositories/outbox.repository.js";
 import type { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
-import type { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
+import type { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import type { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
 import type { InjectionToken, Scope } from "#/composition/container.js";
@@ -18,14 +18,14 @@ import type { OutboxJobPayloadType } from "./validation.js";
 
 type OutboxActionToCommand = {
   [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: CreateOrderInShippingProviderCommand;
-  [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: CreateShipmentInShippingProviderCommand;
+  [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: ActivateShipmentInShippingProviderCommand;
   [OutboxAction.UPDATE_ORDER_IN_SHIPPING_API]: UpdateOrderInShippingProviderCommand;
   [OutboxAction.DELETE_ORDER_IN_SHIPPING_API]: DeleteOrderFromShippingProviderCommand;
 };
 
 type OutboxActionToHandlerService = {
   [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: CreateOrderInShippingProviderService;
-  [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: CreateShipmentInShippingProviderService;
+  [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: ActivateShipmentInShippingProviderService;
   [OutboxAction.UPDATE_ORDER_IN_SHIPPING_API]: UpdateOrderInShippingProviderService;
   [OutboxAction.DELETE_ORDER_IN_SHIPPING_API]: DeleteOrderFromShippingProviderService;
 };
@@ -57,7 +57,7 @@ export function buildOutboxCommand<T extends OutboxAction>(
         typeof OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API
       >;
 
-      return new CreateShipmentInShippingProviderCommand(
+      return new ActivateShipmentInShippingProviderCommand(
         p.trackingNumber,
       ) as OutboxActionToCommand[T];
     }

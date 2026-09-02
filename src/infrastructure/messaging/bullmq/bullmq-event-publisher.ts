@@ -87,6 +87,7 @@ export class BullMqEventPublisher implements EventPublisher {
       "rating.approved": [],
       "rating.rejected": [],
       "file.uploaded": [],
+      "order.shipping-details-updated": [],
     };
 
     return eventToQueuesMapper[eventType] ?? [];

@@ -3,6 +3,7 @@ import {
   CART_REPOSITORY,
   CATEGORY_REPOSITORY,
   DB,
+  IDEMPOTENCY_KEYS_REPOSITORY,
   ORDER_REPOSITORY,
   PRODUCT_REPOSITORY,
   RATING_REPOSITORY,
@@ -14,7 +15,7 @@ import { Color, Size, type Product } from "#/domain/entities/product.js";
 import type { Rating } from "#/domain/entities/rating.js";
 import type { User } from "#/domain/entities/user.js";
 import { Variation } from "#/domain/entities/variation.js";
-import { user } from "#/infrastructure/databases/schema.js";
+import { outbox, user } from "#/infrastructure/databases/schema.js";
 
 import { sql } from "drizzle-orm";
 import { orderFactory, productFactory } from "./domain-helpers.js";
@@ -22,6 +23,12 @@ import { Weight } from "#/domain/value-objects/weight.js";
 import { OrderItem } from "#/domain/entities/order-item.js";
 import { Money } from "#/domain/value-objects/money.js";
 import { randomUUID } from "crypto";
+import {
+  OutboxAction,
+  OutboxCategory,
+  OutboxStatus,
+} from "#/application/repositories/outbox.repository.js";
+import { DomainEventCode } from "#/domain/events/domain-event.js";
 
 export async function createCategoryInDB(
   container: Container,
@@ -158,6 +165,88 @@ export async function createRatingInDB(container: Container, rating: Rating) {
   await db.transaction(async (tx) => {
     await ratingRepository.save(rating, tx);
   });
+}
+
+export async function findIdempotencyKeyInDB(
+  container: Container,
+  key: string,
+) {
+  const db = container.resolveSingleton(DB);
+  const idempotencyKeysRepository = container.resolveSingleton(
+    IDEMPOTENCY_KEYS_REPOSITORY,
+  );
+
+  return await db.transaction(async (tx) => {
+    return await idempotencyKeysRepository.find(key, tx);
+  });
+}
+
+export async function createOutboxEnrtyInDB(
+  container: Container,
+  category: OutboxCategory,
+  data: { id: string; status: OutboxStatus; processedAt: Date | null },
+) {
+  const db = container.resolveSingleton(DB);
+
+  await db.transaction(async (tx) => {
+    if (category === OutboxCategory.OUTBOX_JOB) {
+      await tx.insert(outbox).values({
+        id: data.id,
+        category: "outbox-job",
+        event_type: OutboxAction.CREATE_ORDER_IN_SHIPPING_API,
+        payload: {},
+        status: data.status,
+        processed_at: data.processedAt,
+        aggregate_id: null,
+        attempts: 0,
+        scheduledAt: new Date(),
+      });
+    } else {
+      await tx.insert(outbox).values({
+        id: data.id,
+        category: "domain-event",
+        event_type: DomainEventCode.CART_CLEARED,
+        payload: {},
+        status: data.status,
+        processed_at: data.processedAt,
+        aggregate_id: null,
+        attempts: 0,
+        scheduledAt: new Date(),
+      });
+    }
+  });
+}
+
+export async function getAllOutboxRowsFromDB(container: Container) {
+  const db = container.resolveSingleton(DB);
+
+  return await db.transaction(async (tx) => {
+    return await tx.select().from(outbox);
+  });
+}
+
+export async function seedOutboxTableWithCompletedRows(
+  container: Container,
+  payload: {
+    outboxActions: { id: string; processedAt: Date }[];
+    outboxEvents: { id: string; processedAt: Date }[];
+  },
+) {
+  for (const action of payload.outboxActions) {
+    await createOutboxEnrtyInDB(container, "outbox-job", {
+      id: action.id,
+      status: "COMPLETED",
+      processedAt: action.processedAt,
+    });
+  }
+
+  for (const event of payload.outboxEvents) {
+    await createOutboxEnrtyInDB(container, "domain-event", {
+      id: event.id,
+      status: "COMPLETED",
+      processedAt: event.processedAt,
+    });
+  }
 }
 
 export async function clearDatabase(container: Container): Promise<void> {

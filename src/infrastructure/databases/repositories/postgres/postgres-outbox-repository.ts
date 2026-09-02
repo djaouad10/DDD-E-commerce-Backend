@@ -5,7 +5,10 @@ import {
   type OutboxDomainEventEntry,
   type OutboxJobEntry,
   type OutboxRepository,
-  type UpdateOutboxEntryParams,
+  type UpdateRowToCompletedParams,
+  type UpdateRowToFailedParams,
+  type UpdateRowToPendingParams,
+  type UpdateRowToProcessingParams,
 } from "#/application/repositories/outbox.repository.js";
 import type {
   DrizzleDBClient,
@@ -138,6 +141,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
           createdAt: row.created_at,
           category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobEntry type
           eventType: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
+          lockedAt: row.locked_at,
         }),
       );
 
@@ -187,6 +191,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
           aggregateId: row.aggregate_id,
           category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventEntry type
           eventType: row.event_type as DomainEventCode, // this cast is safe because we know the event_type is a valid DomainEventCode when the category is DOMAIN_EVENT
+          lockedAt: row.locked_at,
         }));
 
       this.logger.debug("getPendingEvents completed", {
@@ -201,21 +206,233 @@ export class PostgresOutboxRepository implements OutboxRepository {
     }
   }
 
-  async updateRow(params: UpdateOutboxEntryParams): Promise<void> {
-    this.logger.debug("updateRow called", { id: params.id });
+  async updateRowToProcessing(
+    params: UpdateRowToProcessingParams,
+  ): Promise<boolean> {
+    this.logger.debug("updateRowToProcessing called", { id: params.id });
 
-    const { id: rowId, ...updateParams } = params;
+    try {
+      const [updatedRow] = await this.logger.measure("db.update(outbox)", () =>
+        this.db
+          .update(outbox)
+          .set({
+            status: OutboxStatus.PROCESSING,
+            attempts: params.attempts,
+            locked_at: new Date(),
+          })
+          .where(
+            and(
+              eq(outbox.id, params.id),
+              eq(outbox.status, OutboxStatus.PENDING),
+            ),
+          )
+          .returning(),
+      );
+
+      this.logger.debug("updateRowToProcessing completed", { id: params.id });
+
+      return !!updatedRow;
+    } catch (error) {
+      this.logger.error("updateRowToProcessing failed", error as Error, {
+        id: params.id,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresOutboxRepository.updateRowToProcessing",
+      );
+    }
+  }
+
+  async updateRowToPending(params: UpdateRowToPendingParams): Promise<void> {
+    this.logger.debug("updateRowToPending called", { id: params.id });
 
     try {
       await this.logger.measure("db.update(outbox)", () =>
-        this.db.update(outbox).set(updateParams).where(eq(outbox.id, rowId)),
+        this.db
+          .update(outbox)
+          .set({
+            status: OutboxStatus.PENDING,
+            error_message: params.errorMessage,
+            scheduledAt: params.scheduledAt,
+          })
+          .where(eq(outbox.id, params.id)),
       );
 
-      this.logger.debug("updateRow completed", { id: params.id });
+      this.logger.debug("updateRowToPending completed", { id: params.id });
     } catch (error) {
-      this.logger.error("updateRow failed", error as Error, { id: params.id });
+      this.logger.error("updateRowToPending failed", error as Error, {
+        id: params.id,
+      });
 
-      handleDrizzleErrors(error, "PostgresOutboxRepository.updateRow");
+      handleDrizzleErrors(error, "PostgresOutboxRepository.updateRowToPending");
+    }
+  }
+
+  async updateRowToFailed(params: UpdateRowToFailedParams): Promise<void> {
+    this.logger.debug("updateRowToFailed called", { id: params.id });
+
+    try {
+      await this.logger.measure("db.update(outbox)", () =>
+        this.db
+          .update(outbox)
+          .set({
+            processed_at: params.processedAt,
+            error_message: params.errorMessage,
+            status: OutboxStatus.FAILED,
+          })
+          .where(eq(outbox.id, params.id)),
+      );
+
+      this.logger.debug("updateRowToFailed completed", { id: params.id });
+    } catch (error) {
+      this.logger.error("updateRowToFailed failed", error as Error, {
+        id: params.id,
+      });
+
+      handleDrizzleErrors(error, "PostgresOutboxRepository.updateRowToFailed");
+    }
+  }
+
+  async updateRowToCompleted(
+    params: UpdateRowToCompletedParams,
+  ): Promise<void> {
+    this.logger.debug("updateRowToCompleted called", { id: params.id });
+
+    try {
+      await this.logger.measure("db.update(outbox)", () =>
+        this.db
+          .update(outbox)
+          .set({
+            status: OutboxStatus.COMPLETED,
+            processed_at: params.processedAt,
+          })
+          .where(eq(outbox.id, params.id)),
+      );
+
+      this.logger.debug("updateRowToCompleted completed", { id: params.id });
+    } catch (error) {
+      this.logger.error("updateRowToCompleted failed", error as Error, {
+        id: params.id,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresOutboxRepository.updateRowToCompleted",
+      );
+    }
+  }
+
+  async deleteCompletedRows(
+    olderThan: Date,
+    tx: TransactionClient,
+  ): Promise<void> {
+    this.logger.debug("deleteCompletedRows called", { olderThan });
+
+    const db = tx as DrizzleTransactionClient;
+
+    try {
+      const deletedRows = await this.logger.measure("db.delete(outbox)", () =>
+        db
+          .delete(outbox)
+          .where(
+            and(
+              eq(outbox.status, OutboxStatus.COMPLETED),
+              lte(outbox.processed_at, olderThan),
+            ),
+          )
+          .returning(),
+      );
+
+      this.logger.debug("deleteCompletedRows completed", {
+        deletedRowsCount: deletedRows.length,
+      });
+    } catch (error) {
+      this.logger.error("deleteCompletedRows failed", error as Error, {
+        olderThan,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresOutboxRepository.deleteCompletedRows",
+      );
+    }
+  }
+
+  async getStuckRows(
+    batchSize: number,
+    stuckBefore: Date,
+    tx?: TransactionClient,
+  ): Promise<(OutboxJobEntry | OutboxDomainEventEntry)[]> {
+    this.logger.debug("getStuckRows called", { batchSize, stuckBefore });
+
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
+
+    try {
+      const rows = await this.logger.measure("db.query.outbox.findMany", () =>
+        db.query.outbox.findMany({
+          where: and(
+            eq(outbox.status, OutboxStatus.PROCESSING),
+            lte(outbox.locked_at, stuckBefore),
+          ),
+          orderBy: (outbox, { asc }) => asc(outbox.scheduledAt),
+          limit: batchSize,
+        }),
+      );
+
+      const eventRows: (OutboxDomainEventEntry | undefined)[] = rows.map(
+        (row) => {
+          if (row.category !== OutboxCategory.DOMAIN_EVENT) return;
+
+          return {
+            id: row.id,
+            payload: row.payload,
+            status: row.status,
+            attempts: row.attempts,
+            scheduledAt: row.scheduledAt,
+            processedAt: row.processed_at,
+            errorMessage: row.error_message,
+            createdAt: row.created_at,
+            aggregateId: row.aggregate_id,
+            category: OutboxCategory.DOMAIN_EVENT, // to statisfy the OutboxDomainEventEntry type
+            eventType: row.event_type as DomainEventCode, // this cast is safe because we know the event_type is a valid DomainEventCode when the category is DOMAIN_EVENT
+            lockedAt: row.locked_at,
+          };
+        },
+      );
+
+      const jobRows: (OutboxJobEntry | undefined)[] = rows.map((row) => {
+        if (row.category !== OutboxCategory.OUTBOX_JOB) return;
+
+        return {
+          id: row.id,
+          payload: row.payload,
+          status: row.status,
+          attempts: row.attempts,
+          scheduledAt: row.scheduledAt,
+          processedAt: row.processed_at,
+          errorMessage: row.error_message,
+          createdAt: row.created_at,
+          category: OutboxCategory.OUTBOX_JOB, // to statisfy the OutboxJobEntry type
+          eventType: row.event_type as OutboxAction, // this cast is safe because we know the event_type is a valid OutboxAction when the category is OUTBOX_JOB
+          lockedAt: row.locked_at,
+        };
+      });
+
+      const rowsToReturn = [...eventRows, ...jobRows].filter(
+        (row): row is OutboxJobEntry | OutboxDomainEventEntry => !!row,
+      );
+
+      this.logger.debug("getStuckRows completed", { rowsCount: rows.length });
+
+      return rowsToReturn;
+    } catch (error) {
+      this.logger.error("getStuckRows failed", error as Error, {
+        batchSize,
+        stuckBefore,
+      });
+
+      handleDrizzleErrors(error, "PostgresOutboxRepository.getStuckRows");
     }
   }
 }

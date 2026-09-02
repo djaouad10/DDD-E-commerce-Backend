@@ -26,6 +26,8 @@ export const env = createEnv({
     EMAIL_SENDER_NAME: z.string(),
     EMAIL_SENDER_ADDRESS: z.email(),
     SERVICE_NAME: z.string(),
+    BREVO_API_KEY: z.string(),
+    BREVO_BASE_URL: z.string(),
   },
 
   /*

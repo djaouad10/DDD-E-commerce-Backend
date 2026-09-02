@@ -89,6 +89,30 @@ import {
   SHIP_ORDER_SERVICE,
   UPDATE_SHIPPING_DETAILS_SERVICE,
   UPDATE_CLIENT_PROFILE_SERVICE,
+  EMAIL_GATEWAY,
+  EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
+  EMAIL_QUEUE_ORDER_CONFIRMED_HANDLER_SERVICE,
+  EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
+  EMAIL_QUEUE_ORDER_DELIVERED_HANDLER_SERVICE,
+  EMAIL_QUEUE_ORDER_RETURNED_HANDLER_SERVICE,
+  EMAIL_QUEUE_RATING_APPROVED_HANDLER_SERVICE,
+  EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE,
+  EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
+  EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
+  CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+  CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+  DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
+  UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+  CLEAN_OUTBOX_SERVICE,
+  OUTBOX_QUEUE,
+  OUTBOX_PROCESSOR_SERVICE,
+  ANALYTICS_QUEUE,
+  INVENTORY_QUEUE,
+  BULLMQ_FLOW_PRODUCER,
+  EMAIL_QUEUE,
+  DOMAIN_EVENTS_PROCESSOR_SERVICE,
+  EVENT_PUBLISHER,
+  RESET_STUCK_OUTBOX_ROWS_SERVICE,
 } from "../tokens.js";
 import GetCategoriesService from "#/application/services/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -146,6 +170,30 @@ import { ConfirmOrderService } from "#/application/services/confirm-order.servic
 import { ShipOrderService } from "#/application/services/ship-order.service.js";
 import { UpdateShippingDetailsService } from "#/application/services/update-shipping-details.service.js";
 import { UpdateClientProfileService } from "#/application/services/update-client-profile.service.js";
+import { EmailQueueOrderCancelledHandlerService } from "#/application/services/event-handlers/email-queue-order-cancelled-handler.service.js";
+import { EmailQueueOrderConfirmedHandlerService } from "#/application/services/event-handlers/email-queue-order-confirmed-handler.service.js";
+import { EmailQueueOrderCreatedHandlerService } from "#/application/services/event-handlers/email-queue-order-created-handler.service.js";
+import { EmailQueueOrderDeliveredHandlerService } from "#/application/services/event-handlers/email-queue-order-delivered-handler.service.js";
+import { EmailQueueOrderReturnedHandlerService } from "#/application/services/event-handlers/email-queue-order-returned-handler.service.js";
+import { EmailQueueRatingApprovedHandlerService } from "#/application/services/event-handlers/email-queue-rating-approved-handler.service.js";
+import { EmailQueueRatingRejectedHandlerService } from "#/application/services/event-handlers/email-queue-rating-rejected-handler.service.js";
+import { EmailQueueRatingSubmittedHandlerService } from "#/application/services/event-handlers/email-queue-rating-submitted-handler.service.js";
+import { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
+import { BrevoEmailGateway } from "#/infrastructure/gateways/brevo-email-gateway.js";
+import { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
+import { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";
+import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
+import { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
+import { CleanOutboxService } from "#/application/services/clean-outbox.service.js";
+import { createBullMqOutboxQueue } from "#/infrastructure/messaging/bullmq/queue/outbox.queue.js";
+import { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
+import { createBullMqAnalyticsQueue } from "#/infrastructure/messaging/bullmq/queue/analytics.queue.js";
+import { createBullMqInventoryQueue } from "#/infrastructure/messaging/bullmq/queue/inventory.queue.js";
+import { createBullMqFlowProducer } from "#/infrastructure/messaging/bullmq/utils/bullmq-flow-producer.js";
+import { createBullMqEmailQueue } from "#/infrastructure/messaging/bullmq/queue/email.queue.js";
+import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
+import { BullMqEventPublisher } from "#/infrastructure/messaging/bullmq/bullmq-event-publisher.js";
+import { ResetStuckOutboxRowsService } from "#/application/services/reset-stuck-outbox-rows.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -163,6 +211,48 @@ export function buildIntegrationTestsContainer(): Container {
   });
 
   container.registerInstance(REDIS, testRedis);
+
+  container.register(
+    OUTBOX_QUEUE,
+    (scope) => createBullMqOutboxQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    EMAIL_QUEUE,
+    (scope) => createBullMqEmailQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    ANALYTICS_QUEUE,
+    (scope) => createBullMqAnalyticsQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    INVENTORY_QUEUE,
+    (scope) => createBullMqInventoryQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    BULLMQ_FLOW_PRODUCER,
+    (scope) => createBullMqFlowProducer(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
+    EVENT_PUBLISHER,
+    (scope) =>
+      new BullMqEventPublisher(
+        scope.resolve(BULLMQ_FLOW_PRODUCER),
+        scope.resolve(EMAIL_QUEUE),
+        scope.resolve(INVENTORY_QUEUE),
+        scope.resolve(ANALYTICS_QUEUE),
+      ),
+    "singleton",
+  );
 
   // register repositories (singletons)
   container.register(
@@ -271,6 +361,17 @@ export function buildIntegrationTestsContainer(): Container {
         env.WORLD_EXPRESS_API_KEY,
       ),
     "scoped",
+  );
+
+  container.register(
+    EMAIL_GATEWAY,
+    (scope) =>
+      new BrevoEmailGateway(
+        scope.resolve(HTTP_CLIENT),
+        env.BREVO_BASE_URL,
+        env.BREVO_API_KEY,
+      ),
+    "singleton",
   );
 
   // other
@@ -764,6 +865,209 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(USER_REPOSITORY),
         scope.resolve(OUTBOX_REPOSITORY),
       ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderCreatedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderCancelledHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_CONFIRMED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderConfirmedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_DELIVERED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderDeliveredHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_ORDER_RETURNED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueOrderReturnedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_RATING_APPROVED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueRatingApprovedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(RATING_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueRatingRejectedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(RATING_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueRatingSubmittedHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_QUERIES),
+        scope.resolve(PRODUCT_REPOSITORY),
+        scope.resolve(RATING_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
+    (scope) =>
+      new EmailQueueUserRegisteredHandlerService(
+        scope.resolve(DB),
+        scope.resolve(EMAIL_GATEWAY),
+        scope.resolve(USER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new CreateOrderInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new DeleteOrderFromShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new UpdateOrderInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+    (scope) =>
+      new ActivateShipmentInShippingProviderService(
+        scope.resolve(DB),
+        scope.resolve(SHIPPING_PROVIDER_GATEWAY),
+        scope.resolve(ORDER_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    CLEAN_OUTBOX_SERVICE,
+    (scope) =>
+      new CleanOutboxService(
+        scope.resolve(DB),
+        scope.resolve(OUTBOX_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    OUTBOX_PROCESSOR_SERVICE,
+    (scope) =>
+      new OutboxProcessorService(
+        scope.resolve(OUTBOX_REPOSITORY),
+        scope.resolve(OUTBOX_QUEUE),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    DOMAIN_EVENTS_PROCESSOR_SERVICE,
+    (scope) =>
+      new DomainEventsProcessorService(
+        scope.resolve(OUTBOX_REPOSITORY),
+        scope.resolve(EVENT_PUBLISHER),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    RESET_STUCK_OUTBOX_ROWS_SERVICE,
+    (scope) =>
+      new ResetStuckOutboxRowsService(scope.resolve(OUTBOX_REPOSITORY)),
     "scoped",
   );
 

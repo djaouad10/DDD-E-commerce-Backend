@@ -1,3 +1,3 @@
-export class CreateShipmentInShippingProviderCommand {
+export class ActivateShipmentInShippingProviderCommand {
   constructor(public readonly trackingNumber: string) {}
 }

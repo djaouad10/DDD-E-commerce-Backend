@@ -26,7 +26,7 @@ import type { IdempotencyKeysRepository } from "#/application/repositories/idemp
 import type { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
 import type { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
-import type { CreateShipmentInShippingProviderService } from "#/application/services/create-shipment-in-shipping-provider.service.js";
+import type { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";
 import type { Auth } from "#/infrastructure/config/auth.js";
 import type GetCategoriesService from "#/application/services/get-categories.service.js";
 import type { CreateCategoryService } from "#/application/services/create-category.service.js";
@@ -78,6 +78,18 @@ import type { ConfirmOrderService } from "#/application/services/confirm-order.s
 import type { ShipOrderService } from "#/application/services/ship-order.service.js";
 import type { UpdateShippingDetailsService } from "#/application/services/update-shipping-details.service.js";
 import type { UpdateClientProfileService } from "#/application/services/update-client-profile.service.js";
+import type { EmailQueueOrderCreatedHandlerService } from "#/application/services/event-handlers/email-queue-order-created-handler.service.js";
+import type { EmailQueueOrderConfirmedHandlerService } from "#/application/services/event-handlers/email-queue-order-confirmed-handler.service.js";
+import type { EmailQueueOrderCancelledHandlerService } from "#/application/services/event-handlers/email-queue-order-cancelled-handler.service.js";
+import type { EmailQueueOrderDeliveredHandlerService } from "#/application/services/event-handlers/email-queue-order-delivered-handler.service.js";
+import type { EmailQueueOrderReturnedHandlerService } from "#/application/services/event-handlers/email-queue-order-returned-handler.service.js";
+import type { EmailQueueRatingApprovedHandlerService } from "#/application/services/event-handlers/email-queue-rating-approved-handler.service.js";
+import type { EmailQueueRatingRejectedHandlerService } from "#/application/services/event-handlers/email-queue-rating-rejected-handler.service.js";
+import type { EmailQueueRatingSubmittedHandlerService } from "#/application/services/event-handlers/email-queue-rating-submitted-handler.service.js";
+import type { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
+import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
+import type { CleanOutboxService } from "#/application/services/clean-outbox.service.js";
+import type { ResetStuckOutboxRowsService } from "#/application/services/reset-stuck-outbox-rows.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
@@ -155,6 +167,10 @@ export const SHIPPING_PROVIDER_GATEWAY = Symbol(
   "shippingProviderGateway",
 ) as InjectionToken<ShippingProviderGateway>;
 
+export const EMAIL_GATEWAY = Symbol(
+  "emailGateway",
+) as InjectionToken<EmailGateway>;
+
 // Queues
 export const OUTBOX_QUEUE = Symbol("outboxQueue") as InjectionToken<Queue>;
 
@@ -202,8 +218,8 @@ export const UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
 ) as InjectionToken<UpdateOrderInShippingProviderService>;
 
 export const CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
-  "createShipmentInShippingProviderService",
-) as InjectionToken<CreateShipmentInShippingProviderService>;
+  "ActivateShipmentInShippingProviderService",
+) as InjectionToken<ActivateShipmentInShippingProviderService>;
 
 export const GET_CATEGORIES_SERVICE = Symbol(
   "getCategoriesService",
@@ -393,7 +409,6 @@ export const CONFIRM_ORDER_SERVICE = Symbol(
   "confirmOrderService",
 ) as InjectionToken<ConfirmOrderService>;
 
-
 export const SHIP_ORDER_SERVICE = Symbol(
   "shipOrderService",
 ) as InjectionToken<ShipOrderService>;
@@ -405,3 +420,47 @@ export const UPDATE_SHIPPING_DETAILS_SERVICE = Symbol(
 export const UPDATE_CLIENT_PROFILE_SERVICE = Symbol(
   "updateClientProfileService",
 ) as InjectionToken<UpdateClientProfileService>;
+
+export const EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE = Symbol(
+  "emailQueueOrderCreatedHandlerService",
+) as InjectionToken<EmailQueueOrderCreatedHandlerService>;
+
+export const EMAIL_QUEUE_ORDER_CONFIRMED_HANDLER_SERVICE = Symbol(
+  "emailQueueOrderConfirmedHandlerService",
+) as InjectionToken<EmailQueueOrderConfirmedHandlerService>;
+
+export const EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE = Symbol(
+  "emailQueueOrderCancelledHandlerService",
+) as InjectionToken<EmailQueueOrderCancelledHandlerService>;
+
+export const EMAIL_QUEUE_ORDER_DELIVERED_HANDLER_SERVICE = Symbol(
+  "emailQueueOrderDeliveredHandlerService",
+) as InjectionToken<EmailQueueOrderDeliveredHandlerService>;
+
+export const EMAIL_QUEUE_ORDER_RETURNED_HANDLER_SERVICE = Symbol(
+  "emailQueueOrderReturnedHandlerService",
+) as InjectionToken<EmailQueueOrderReturnedHandlerService>;
+
+export const EMAIL_QUEUE_RATING_APPROVED_HANDLER_SERVICE = Symbol(
+  "emailQueueRatingApprovedHandlerService",
+) as InjectionToken<EmailQueueRatingApprovedHandlerService>;
+
+export const EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE = Symbol(
+  "emailQueueRatingRejectedHandlerService",
+) as InjectionToken<EmailQueueRatingRejectedHandlerService>;
+
+export const EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE = Symbol(
+  "emailQueueRatingSubmittedHandlerService",
+) as InjectionToken<EmailQueueRatingSubmittedHandlerService>;
+
+export const EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE = Symbol(
+  "emailQueueUserRegisteredHandlerService",
+) as InjectionToken<EmailQueueUserRegisteredHandlerService>;
+
+export const CLEAN_OUTBOX_SERVICE = Symbol(
+  "cleanOutboxService",
+) as InjectionToken<CleanOutboxService>;
+
+export const RESET_STUCK_OUTBOX_ROWS_SERVICE = Symbol(
+  "resetStuckOutboxRowsService",
+) as InjectionToken<ResetStuckOutboxRowsService>;

@@ -1,8 +1,5 @@
 import type { Queue } from "bullmq";
-import {
-  OutboxStatus,
-  type OutboxRepository,
-} from "../repositories/outbox.repository.js";
+import { type OutboxRepository } from "../repositories/outbox.repository.js";
 import type { OutboxProcessorCommand } from "../commands/outbox-processor.command.js";
 import { createLogger } from "#/shared/logging/logger.js";
 
@@ -14,23 +11,38 @@ export class OutboxProcessorService {
   ) {}
 
   async execute(command: OutboxProcessorCommand) {
-    // should I wrap the try block in a tx?
-
     this.logger.debug("Processing outbox jobs");
-    const pendingJobs = await this.outboxRepository.getPendingJobs(10);
+    const pendingJobs = await this.outboxRepository.getPendingJobs(
+      command.batchSize,
+    );
 
     this.logger.debug("Found pending jobs", { count: pendingJobs.length });
     if (pendingJobs.length === 0) return;
 
     for (const job of pendingJobs) {
+      const attempt = job.attempts + 1;
+
       try {
-        await this.outboxRepository.updateRow({
+        const claimed = await this.outboxRepository.updateRowToProcessing({
           id: job.id,
-          status: OutboxStatus.PROCESSING,
+          attempts: attempt,
         });
 
-        this.logger.debug("Processing outbox job", { id: job.id });
+        if (!claimed) {
+          this.logger.debug("Outbox job not claimed", { id: job.id, attempt });
+          continue;
+        }
+      } catch (error) {
+        this.logger.error("Failed to claim outbox job", error as Error, {
+          id: job.id,
+          attempt,
+        });
+        continue;
+      }
 
+      this.logger.debug("Processing outbox job", { id: job.id, attempt });
+
+      try {
         await this.outboxQueue.add(job.eventType, job.payload, {
           jobId: job.id,
           attempts: 5, // BullMQ execution retry configuration (Independent of DB)
@@ -40,49 +52,79 @@ export class OutboxProcessorService {
           },
         });
 
-        this.logger.debug("Outbox job added to queue", { id: job.id });
-
-        await this.outboxRepository.updateRow({
+        this.logger.debug("Outbox job added to queue", { id: job.id, attempt });
+      } catch (error) {
+        this.logger.error("Failed to publish outbox job", error as Error, {
           id: job.id,
-          status: OutboxStatus.COMPLETED,
+          attempt,
+        });
+
+        try {
+          await this.handlePublishFailure(job.id, attempt, error, command);
+        } catch (error) {
+          // If this.handlePublishFailure fails, the job is not yet published to the queue and the DB still says PROCESSING.
+          // reset-stuck-outbox-jobs worker will eventually reset it and job will be republished. Since consumers are idempotent: the duplicate delivery is harmless (at-least-once semantics)
+          this.logger.error(
+            "Job published but failed to mark FAILED/PENDING in DB. Will be reset by stuck-row recovery.",
+            error as Error,
+            { id: job.id },
+          );
+        }
+
+        continue;
+      }
+
+      try {
+        await this.outboxRepository.updateRowToCompleted({
+          id: job.id,
           processedAt: new Date(),
         });
 
         this.logger.debug("Outbox job completed", { id: job.id });
       } catch (error) {
-        this.logger.error("Outbox job failed", error as Error, { id: job.id });
-        const nextAttempts = job.attempts + 1;
+        // If this.handlePublishFailure fails, the job is not yet published to the queue and the DB still says PROCESSING.
+        // reset-stuck-outbox-jobs worker will eventually reset it and job will be republished. Since consumers are idempotent: the duplicate delivery is harmless (at-least-once semantics)
 
-        if (nextAttempts >= command.maxPublicationAttempts) {
-          await this.outboxRepository.updateRow({
-            id: job.id,
-            attempts: nextAttempts,
-            status: OutboxStatus.FAILED,
-            processedAt: new Date(),
-            errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
-          });
-
-          this.logger.debug("outbox job max attempts reached", { id: job.id });
-        } else {
-          const retryDelayMs = Math.pow(2, nextAttempts) * 1000;
-          const nextRetryAt = new Date(Date.now() + retryDelayMs);
-
-          await this.outboxRepository.updateRow({
-            id: job.id,
-            attempts: nextAttempts,
-            status: OutboxStatus.PENDING,
-            scheduledAt: nextRetryAt,
-            errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
-          });
-
-          this.logger.debug("outbox job scheduled for retry", {
-            id: job.id,
-            scheduledAt: nextRetryAt,
-          });
-        }
+        this.logger.error(
+          "Job published but failed to mark COMPLETED in DB. Will be reset by stuck-row recovery.",
+          error as Error,
+          { id: job.id },
+        );
       }
+    }
+  }
+
+  private async handlePublishFailure(
+    jobId: string,
+    attempt: number,
+    error: unknown,
+    command: OutboxProcessorCommand,
+  ) {
+    if (attempt >= command.maxPublicationAttempts) {
+      await this.outboxRepository.updateRowToFailed({
+        id: jobId,
+        processedAt: new Date(),
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      this.logger.debug("outbox job max attempts reached", {
+        id: jobId,
+        attempt,
+      });
+    } else {
+      const retryDelayMs = Math.pow(2, attempt) * 1000;
+      const nextRetryAt = new Date(Date.now() + retryDelayMs);
+
+      await this.outboxRepository.updateRowToPending({
+        id: jobId,
+        scheduledAt: nextRetryAt,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      this.logger.debug("outbox job scheduled for retry", {
+        id: jobId,
+        scheduledAt: nextRetryAt,
+      });
     }
   }
 }

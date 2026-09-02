@@ -44,6 +44,7 @@ export type OutboxJobEntry = {
   processedAt: Date | null;
   errorMessage: string | null;
   createdAt: Date;
+  lockedAt: Date | null;
 };
 
 export type OutboxDomainEventEntry = {
@@ -58,26 +59,29 @@ export type OutboxDomainEventEntry = {
   processedAt: Date | null;
   errorMessage: string | null;
   createdAt: Date;
+  lockedAt: Date | null;
 };
 
 // Used only by the processor worker
-export type UpdateOutboxEntryParams =
-  | { id: string; status: typeof OutboxStatus.COMPLETED; processedAt: Date }
-  | {
-      id: string;
-      status: typeof OutboxStatus.FAILED;
-      attempts: number;
-      errorMessage: string;
-      processedAt: Date;
-    }
-  | { id: string; status: typeof OutboxStatus.PROCESSING }
-  | {
-      id: string;
-      status: typeof OutboxStatus.PENDING;
-      attempts: number;
-      scheduledAt: Date;
-      errorMessage?: string;
-    };
+
+export type UpdateRowToProcessingParams = { id: string; attempts: number };
+
+export type UpdateRowToPendingParams = {
+  id: string;
+  scheduledAt: Date;
+  errorMessage?: string;
+};
+
+export type UpdateRowToCompletedParams = {
+  id: string;
+  processedAt: Date;
+};
+
+export type UpdateRowToFailedParams = {
+  id: string;
+  errorMessage: string;
+  processedAt: Date;
+};
 
 export interface OutboxRepository {
   // called by application services inside the same transaction as aggregate saves
@@ -96,5 +100,19 @@ export interface OutboxRepository {
 
   getPendingEvents(limit: number): Promise<OutboxDomainEventEntry[]>;
 
-  updateRow(params: UpdateOutboxEntryParams): Promise<void>;
+  updateRowToProcessing(params: UpdateRowToProcessingParams): Promise<boolean>;
+
+  updateRowToPending(params: UpdateRowToPendingParams): Promise<void>;
+
+  updateRowToCompleted(params: UpdateRowToCompletedParams): Promise<void>;
+
+  updateRowToFailed(params: UpdateRowToFailedParams): Promise<void>;
+
+  deleteCompletedRows(olderThan: Date, tx: TransactionClient): Promise<void>;
+
+  getStuckRows(
+    batchSize: number,
+    stuckBefore: Date,
+    tx?: TransactionClient,
+  ): Promise<(OutboxJobEntry | OutboxDomainEventEntry)[]>;
 }

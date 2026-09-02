@@ -22,13 +22,15 @@ export class PostgresOrderRepository implements OrderRepository {
 
   constructor(private db: DrizzleDBClient) {}
 
-  async find(orderId: OrderId): Promise<Order | null> {
+  async find(orderId: OrderId, tx?: TransactionClient): Promise<Order | null> {
     this.logger.debug("find called", { id: orderId.value });
+
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
 
     try {
       const orderWithItemsRow: OrderWithItemsRow | undefined =
         await this.logger.measure("db.query.order.findFirst", () =>
-          this.db.query.order.findFirst({
+          db.query.order.findFirst({
             where: eq(order.id, orderId.value),
             with: { order_items: true },
           }),
@@ -55,13 +57,18 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
-  async findByTracking(trackingNumber: string): Promise<Order | null> {
+  async findByTracking(
+    trackingNumber: string,
+    tx?: TransactionClient,
+  ): Promise<Order | null> {
     this.logger.debug("findByTracking called", { trackingNumber });
+
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
 
     try {
       const orderWithItemsRow: OrderWithItemsRow | undefined =
         await this.logger.measure("db.query.order.findFirst", () =>
-          this.db.query.order.findFirst({
+          db.query.order.findFirst({
             where: eq(order.tracking_number, trackingNumber),
             with: { order_items: true },
           }),
@@ -128,10 +135,10 @@ export class PostgresOrderRepository implements OrderRepository {
     }
   }
 
-  async save(orderAgg: Order, tx: TransactionClient): Promise<void> {
+  async save(orderAgg: Order, tx?: TransactionClient): Promise<void> {
     this.logger.debug("save called", { id: orderAgg.id.value });
 
-    const db = tx as DrizzleTransactionClient;
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
 
     // had to name it orderAgg because order is a reserved keyword for the schema table
     const orderRow: OrderRow = PostgresOrderMapper.toRow(orderAgg);
