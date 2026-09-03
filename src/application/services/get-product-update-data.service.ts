@@ -5,7 +5,6 @@ import type { CategoryId } from "#/domain/value-objects/category-id.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { ImageDTO } from "../dto/file.dto.js";
 import type { ProductStaticDataDTO } from "../dto/product.dto.js";
 import type { VariationDTO } from "../dto/variation.dto.js";
 import type { GetProductUpdateDataQuery } from "../queries/get-product-update-data.query.js";
@@ -20,7 +19,6 @@ export class GetProductUpdateDataService {
 
   async execute(query: GetProductUpdateDataQuery): Promise<{
     product: ProductStaticDataDTO;
-    images: ImageDTO[];
     variations: VariationDTO[];
   }> {
     this.logger.info(`GetProductUpdateDataService.execute called`);
@@ -38,6 +36,12 @@ export class GetProductUpdateDataService {
     }
 
     const productSnapshot = product.toSnapshot();
+    const images = product.getImages().map((i) => {
+      return {
+        name: i.getName(),
+        url: i.publicUrl,
+      };
+    });
 
     return {
       product: {
@@ -55,13 +59,11 @@ export class GetProductUpdateDataService {
           name: product.getMainImage().getName(),
           url: product.getMainImage().publicUrl,
         },
+        images,
         createdAt: productSnapshot.id,
         updatedAt: productSnapshot.id,
       },
-      images: product.getImages().map((i) => ({
-        name: i.getName(),
-        url: i.publicUrl,
-      })),
+
       variations: product.getVariations().map((v) => v.toSnapshot()),
     };
   }
