@@ -64,6 +64,7 @@ export class ResetStuckOutboxRowsWorker {
     if (this.running) return;
     this.running = true;
     this.abortController = new AbortController(); // fresh controller per run
+    logger.info("Reset stuck outbox rows worker started");
     this.loopPromise = this.loop();
   }
 
@@ -79,7 +80,10 @@ export class ResetStuckOutboxRowsWorker {
       try {
         await this.runIteration();
       } catch (error) {
-        logger.error("Reset stuck outbox rows iteration failed", error as Error);
+        logger.error(
+          "Reset stuck outbox rows iteration failed",
+          error as Error,
+        );
         await sleep(this.options.sleepAfterFailMs, this.abortController.signal);
         continue;
       }

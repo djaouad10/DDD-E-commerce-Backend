@@ -19,7 +19,7 @@
     "start:api": "node --env-file=.env.prod ./dist/entrypoints/api/index.js",
     "start:outbox-processor": "node --env-file=.env.prod ./dist/entrypoints/workers/outbox-processor.js",
     "start:domain-events-processor": "node --env-file=.env.prod ./dist/entrypoints/workers/domain-events-processor.js",
-    "start:outbox-cleaner": "node --env-file=.env.prod ./dist/entrypoints/workers/clean-outbox-processor.js",
+    "start:outbox-cleaner": "node --env-file=.env.prod ./dist/entrypoints/workers/clean-outbox.js",
     "start:email-queue-handler": "node --env-file=.env.prod ./dist/entrypoints/workers/email-queue-handler.js",
     "start:outbox-handler": "node --env-file=.env.prod ./dist/entrypoints/workers/outbox-handler.js",
     "start:reset-stuck-outbox": "node --env-file=.env.prod ./dist/entrypoints/workers/reset-stuck-outbox-rows.js",

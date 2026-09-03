@@ -62,6 +62,7 @@ export class OutboxProcessorWorker {
     if (this.running) return;
     this.running = true;
     this.abortController = new AbortController(); // fresh controller per run
+    logger.info("Outbox processor worker started");
     this.loopPromise = this.loop();
   }
 

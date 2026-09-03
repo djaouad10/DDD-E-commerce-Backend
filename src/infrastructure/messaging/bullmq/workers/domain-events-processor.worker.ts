@@ -105,6 +105,7 @@ export class DomainEventsProcessorWorker {
     if (this.running) return;
     this.running = true;
     this.abortController = new AbortController(); // fresh controller per run
+    logger.info("Domain events processor worker started");
     this.loopPromise = this.loop();
   }
 
