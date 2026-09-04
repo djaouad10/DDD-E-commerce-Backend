@@ -36,11 +36,11 @@ export class PostgresOutboxRepository implements OutboxRepository {
       payload: Record<string, unknown>;
       scheduledAt?: Date;
     },
-    tx?: TransactionClient,
+    tx: TransactionClient,
   ): Promise<void> {
     this.logger.debug("saveJob called", { action: params.action });
 
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+    const db = tx as DrizzleTransactionClient 
 
     try {
       await this.logger.measure("db.insert(outbox)", () =>
@@ -67,7 +67,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
 
   async saveEvents(
     events: DomainEvent[],
-    tx?: TransactionClient,
+    tx: TransactionClient,
   ): Promise<void> {
     this.logger.debug("saveEvents called", { eventsCount: events.length });
 
@@ -77,7 +77,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
       return;
     }
 
-    const db = (tx as DrizzleTransactionClient | undefined) ?? this.db;
+    const db = tx as DrizzleTransactionClient 
 
     const outboxRows = events.map((event) => ({
       id: generateOutboxId(),
