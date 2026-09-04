@@ -6,7 +6,7 @@ export const getShippingWilayasSearchParamsSchema = z.object({
 });
 
 export const getCommunesOfWilayaParamsSchema = z.object({
-  wilayaCode: z.coerce.number(),
+  wilayaCode: z.coerce.number().min(1).max(69),
 });
 
 export const getCommunesOfWilayaSearchParamsSchema = z.object({
@@ -14,7 +14,7 @@ export const getCommunesOfWilayaSearchParamsSchema = z.object({
 });
 
 export const getDeliveryFeesOfWilayaParamsSchema = z.object({
-  wilayaCode: z.coerce.number(),
+  wilayaCode: z.coerce.number().min(1).max(69),
 });
 
 export const getDeliveryFeesOfWilayaSearchParamsSchema = z.object({
@@ -22,7 +22,7 @@ export const getDeliveryFeesOfWilayaSearchParamsSchema = z.object({
 });
 
 export const getShippingLabelParamsSchema = z.object({
-  tracking: z.string(),
+  tracking: z.string().trim().min(1).max(100),
 });
 
 export const getShippingLabelSearchParamsSchema = z.object({
