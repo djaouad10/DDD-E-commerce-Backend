@@ -1,4 +1,4 @@
-import { CleanOutboxService } from "#/application/services/clean-outbox.service.js";
+import { CleanOutboxService } from "#/application/services/outbox-cleaner/clean-outbox.service.js";
 import { PostgresOutboxRepository } from "#/infrastructure/databases/repositories/postgres/postgres-outbox-repository.js";
 import { Container } from "./container.js";
 import { registerSharedInfrastructure } from "./shared-registry.js";

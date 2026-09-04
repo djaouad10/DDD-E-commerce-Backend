@@ -1,4 +1,4 @@
-import { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
+import { OutboxProcessorService } from "#/application/services/outbox-processor/outbox-processor.service.js";
 import { PostgresOutboxRepository } from "#/infrastructure/databases/repositories/postgres/postgres-outbox-repository.js";
 import { createBullMqOutboxQueue } from "#/infrastructure/messaging/bullmq/queue/outbox.queue.js";
 import { Container } from "./container.js";

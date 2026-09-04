@@ -1,4 +1,4 @@
-import { ResetStuckOutboxRowsService } from "#/application/services/reset-stuck-outbox-rows.service.js";
+import { ResetStuckOutboxRowsService } from "#/application/services/stuck-outbox-resetter/reset-stuck-outbox-rows.service.js";
 import { PostgresOutboxRepository } from "#/infrastructure/databases/repositories/postgres/postgres-outbox-repository.js";
 import { Container } from "./container.js";
 import { registerSharedInfrastructure } from "./shared-registry.js";

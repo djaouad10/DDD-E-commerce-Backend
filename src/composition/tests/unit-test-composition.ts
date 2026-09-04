@@ -1,4 +1,4 @@
-import { OutboxProcessorService } from "#/application/services/outbox-processor.service.js";
+import { OutboxProcessorService } from "#/application/services/outbox-processor/outbox-processor.service.js";
 import {
   type DrizzleDBClient,
   type DrizzleTransactionClient,
@@ -36,11 +36,11 @@ import {
 } from "../tokens.js";
 import RedisMock from "ioredis-mock";
 import { FakeEventPublisher } from "#/tests/helpers/fake-event-publisher.js";
-import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
+import { DomainEventsProcessorService } from "#/application/services/domain-events-processor/domain-events-processor.service.js";
 import { InMemoryShippingProviderGateway } from "#/infrastructure/gateways/in-memory-shipping-provider-gateway.js";
 import { InMemoryIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-idempotency-keys-repository.js";
-import { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
-import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
+import { CreateOrderInShippingProviderService } from "#/application/services/outbox-handlers/create-order-in-shipping-provider.service.js";
+import { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();

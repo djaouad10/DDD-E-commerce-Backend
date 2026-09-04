@@ -3,10 +3,10 @@ import { ActivateShipmentInShippingProviderCommand } from "#/application/command
 import { DeleteOrderFromShippingProviderCommand } from "#/application/commands/outbox-handlers/delete-order-from-shipping-provider.command.js";
 import { UpdateOrderInShippingProviderCommand } from "#/application/commands/outbox-handlers/update-order-in-shipping-provider.command.js";
 import { OutboxAction } from "#/application/repositories/outbox.repository.js";
-import type { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
-import type { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";
-import type { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
-import type { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
+import type { CreateOrderInShippingProviderService } from "#/application/services/outbox-handlers/create-order-in-shipping-provider.service.js";
+import type { ActivateShipmentInShippingProviderService } from "#/application/services/outbox-handlers/activate-shipment-in-shipping-provider.service.js";
+import type { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
+import type { UpdateOrderInShippingProviderService } from "#/application/services/outbox-handlers/update-order-in-shipping-provider.service.js";
 import type { InjectionToken, Scope } from "#/composition/container.js";
 import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,

@@ -17,7 +17,7 @@ import {
 } from "./tokens.js";
 import { createBullMqFlowProducer } from "#/infrastructure/messaging/bullmq/utils/bullmq-flow-producer.js";
 import { BullMqEventPublisher } from "#/infrastructure/messaging/bullmq/bullmq-event-publisher.js";
-import { DomainEventsProcessorService } from "#/application/services/domain-events-processor.service.js";
+import { DomainEventsProcessorService } from "#/application/services/domain-events-processor/domain-events-processor.service.js";
 
 export function buildDomainEventsProcessorContainer(): Container {
   const container = new Container();

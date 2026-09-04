@@ -1,7 +1,7 @@
-import { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
-import { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";
-import { DeleteOrderFromShippingProviderService } from "#/application/services/delete-order-from-shipping-provider.service.js";
-import { UpdateOrderInShippingProviderService } from "#/application/services/update-order-in-shipping-provider.service.js";
+import { CreateOrderInShippingProviderService } from "#/application/services/outbox-handlers/create-order-in-shipping-provider.service.js";
+import { ActivateShipmentInShippingProviderService } from "#/application/services/outbox-handlers/activate-shipment-in-shipping-provider.service.js";
+import { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
+import { UpdateOrderInShippingProviderService } from "#/application/services/outbox-handlers/update-order-in-shipping-provider.service.js";
 import { env } from "#/infrastructure/config/env.js";
 import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/postgres/postgres-idempotency-keys-repository.js";
 import { PostgresOrderRepository } from "#/infrastructure/databases/repositories/postgres/postgres-order-repository.js";
