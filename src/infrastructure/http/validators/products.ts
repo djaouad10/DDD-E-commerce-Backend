@@ -1,134 +1,146 @@
 import { Color, Size } from "#/domain/entities/product.js";
 import z from "zod";
+import {
+  brandSchema,
+  descriptionSchema,
+  idSchema,
+  imageKeySchema,
+  isoDateStringSchema,
+  limitStringSchema,
+  materialSchema,
+  nameSchema,
+  nonNegativeNumberStringSchema,
+  strictlyPositiveNumberStringSchema,
+} from "./shared.js";
 
 export const updateProductMainImageParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const updateProductMainImageBodySchema = z.object({
-  key: z.string(),
-  name: z.string(),
+  key: imageKeySchema,
+  name: idSchema,
   publicUrl: z.url(),
 });
 
 export const deleteProductImageParamsSchema = z.object({
-  id: z.string(),
-  key: z.string(),
+  id: idSchema,
+  key: imageKeySchema,
 });
 
 export const getProductVariationsParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const getProductVariationsWithCartFlagParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const getProductsSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1).optional(),
-  categoryId: z.string().optional(),
-  max_price: z.coerce.number().optional(),
-  min_price: z.coerce.number().optional(),
+  limit: limitStringSchema.optional(),
+  categoryId: idSchema.optional(),
+  max_price: strictlyPositiveNumberStringSchema.optional(),
+  min_price: nonNegativeNumberStringSchema.optional(),
   cursor: z
     .object({
-      createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      productId: z.string(),
+      createdAt: isoDateStringSchema,
+      productId: idSchema,
     })
     .optional(),
 });
 
 export const getLowStockProductsSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1).optional(),
-  minStock: z.coerce.number().optional(),
+  limit: limitStringSchema.optional(),
+  minStock: nonNegativeNumberStringSchema.optional(),
   cursor: z
     .object({
-      createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      productId: z.string(),
+      createdAt: isoDateStringSchema,
+      productId: idSchema,
     })
     .optional(),
 });
 
 export const getProductStaticDataParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const getProductUpdateDataParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const createProductImageParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const createProductImageBodySchema = z.object({
-  key: z.string(),
-  name: z.string(),
+  key: imageKeySchema,
+  name: nameSchema,
   public_url: z.url(),
 });
 
 export const updateVariationOfProductParamsSchema = z.object({
-  productId: z.string(),
-  variationId: z.string(),
+  productId: idSchema,
+  variationId: idSchema,
 });
 
 export const updateVariationOfProductBodySchema = z.object({
-  newTotalQty: z.coerce.number().nonnegative().optional(),
-  newWeightInGrams: z.coerce.number().positive().optional(),
+  newTotalQty: nonNegativeNumberStringSchema.optional(),
+  newWeightInGrams: strictlyPositiveNumberStringSchema.optional(),
 });
 
 export const createVariationOfProductParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const createVariationOfProductBodySchema = z.object({
   size: z.enum(Size),
   color: z.enum(Color),
-  totalQty: z.coerce.number().nonnegative(),
-  weightInGrams: z.coerce.number().positive(),
+  totalQty: nonNegativeNumberStringSchema,
+  weightInGrams: strictlyPositiveNumberStringSchema,
 });
 
 export const createProductBodySchema = z.object({
-  name: z.string(),
-  description: z.string().nullable(),
-  price: z.coerce.number().positive(),
-  discountPrice: z.coerce.number().positive().nullable(),
-  categoryId: z.string().nullable(),
-  brand: z.string(),
-  material: z.string(),
+  name: nameSchema,
+  description: descriptionSchema.nullable(),
+  price: strictlyPositiveNumberStringSchema,
+  discountPrice: strictlyPositiveNumberStringSchema.nullable(),
+  categoryId: idSchema.nullable(),
+  brand: brandSchema,
+  material: materialSchema,
   mainImage: z.object({
-    name: z.string(),
-    publicUrl: z.string(),
-    key: z.string(),
+    name: imageKeySchema,
+    publicUrl: z.url(),
+    key: imageKeySchema,
   }),
   variations: z.array(
     z.object({
       size: z.enum(Size),
       color: z.enum(Color),
-      totalQty: z.coerce.number().nonnegative(),
-      weightInGrams: z.coerce.number().positive(),
+      totalQty: nonNegativeNumberStringSchema,
+      weightInGrams: strictlyPositiveNumberStringSchema,
     }),
   ),
 });
 
 export const updateProductParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const updateProductBodySchema = z.object({
-  price: z.coerce.number().positive().optional(),
-  name: z.string().optional(),
-  description: z.string().nullable().optional(),
-  brand: z.string().optional(),
-  material: z.string().optional(),
-  discountPrice: z.coerce.number().positive().nullable().optional(),
-  categoryId: z.string().nullable().optional(),
+  price: strictlyPositiveNumberStringSchema.optional(),
+  name: nameSchema.optional(),
+  description: descriptionSchema.nullable().optional(),
+  brand: brandSchema.optional(),
+  material: materialSchema.optional(),
+  discountPrice: strictlyPositiveNumberStringSchema.nullable().optional(),
+  categoryId: idSchema.nullable().optional(),
 });
 
 export const deleteVariationOfProductParamsSchema = z.object({
-  productId: z.string(),
-  variationId: z.string(),
+  productId: idSchema,
+  variationId: idSchema,
 });
 
 export const deleteProductParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
