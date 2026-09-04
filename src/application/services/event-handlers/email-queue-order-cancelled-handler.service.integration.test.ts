@@ -75,9 +75,13 @@ describe("EmailQueueOrderCancelledHandlerService", () => {
 
       const order = await setupOrderInDB(container, { owner: user });
 
-      order.cancel();
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.cancel();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderCancelledHandlerCommand(
         DomainEventCode.ORDER_CANCELLED,
@@ -120,9 +124,13 @@ describe("EmailQueueOrderCancelledHandlerService", () => {
 
       const order = await setupOrderInDB(container, { owner: user });
 
-      order.cancel();
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.cancel();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderCancelledHandlerCommand(
         DomainEventCode.ORDER_CANCELLED,
@@ -157,9 +165,13 @@ describe("EmailQueueOrderCancelledHandlerService", () => {
 
       const order = await setupOrderInDB(container, { owner: user });
 
-      order.cancel();
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.cancel();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderCancelledHandlerCommand(
         DomainEventCode.ORDER_CANCELLED,
@@ -216,8 +228,13 @@ describe("EmailQueueOrderCancelledHandlerService", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.cancel();
-      await setupOrderInDB(container, { owner: user, order });
+
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.cancel();
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderCancelledHandlerCommand(
         DomainEventCode.ORDER_CANCELLED,

@@ -5,7 +5,7 @@ import {
   type DrizzleDBClient,
   type DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { order, orderItem } from "../../schema.js";
 import {
   PostgresOrderMapper,
@@ -16,6 +16,7 @@ import {
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import { ConflictError } from "#/shared/errors/domain-error.js";
 
 export class PostgresOrderRepository implements OrderRepository {
   private logger = createLogger("PostgresOrderRepository");
@@ -145,32 +146,58 @@ export class PostgresOrderRepository implements OrderRepository {
     const orderItemsRows: OrderItemRow[] =
       PostgresOrderMapper.toOrderItemsRows(orderAgg);
 
-    // onConflictDoUpdate will update the createdAt timestamp, so we don't include it in the "set" clause
-    const { created_at, ...orderRowToUpsert } = orderRow;
-
     try {
-      // already in a transaction orchestrated by application service
-      await this.logger.measure("db.insert(order)", () =>
-        db
-          .insert(order)
-          .values(orderRow)
-          .onConflictDoUpdate({
-            target: [order.id],
-            set: orderRowToUpsert,
-          }),
-      );
-
-      await this.logger.measure("db.delete(orderItem)", () =>
-        db.delete(orderItem).where(eq(orderItem.orderId, orderRow.id)),
-      );
-
-      if (orderItemsRows.length > 0) {
-        await this.logger.measure("db.insert(orderItem)", () =>
-          db.insert(orderItem).values(orderItemsRows),
+      if (orderAgg.isNew()) {
+        await this.logger.measure("db.insert(order)", () =>
+          db.insert(order).values(orderRow),
         );
-      }
 
-      this.logger.debug("save completed", { id: orderAgg.id.value });
+        if (orderItemsRows.length > 0) {
+          await this.logger.measure("db.insert(orderItem)", () =>
+            db.insert(orderItem).values(orderItemsRows),
+          );
+        }
+
+        this.logger.debug("save completed", { id: orderAgg.id.value });
+      } else {
+        const [orderUpdateResult] = await this.logger.measure(
+          "db.update(order)",
+          () =>
+            db
+              .update(order)
+              .set({
+                ...orderRow,
+                version: sql`${orderRow.version} + 1`,
+              })
+              .where(
+                and(
+                  eq(order.id, orderRow.id),
+                  eq(order.version, orderAgg.getVersion()), // check for version conflict
+                ),
+              )
+              .returning({ id: order.id }),
+        );
+
+        if (!orderUpdateResult) {
+          throw new ConflictError(
+            "order",
+            orderAgg.id.value,
+            "concurrent modification detected",
+          );
+        }
+
+        await this.logger.measure("db.delete(orderItem)", () =>
+          db.delete(orderItem).where(eq(orderItem.orderId, orderRow.id)),
+        );
+
+        if (orderItemsRows.length > 0) {
+          await this.logger.measure("db.insert(orderItem)", () =>
+            db.insert(orderItem).values(orderItemsRows),
+          );
+        }
+
+        this.logger.debug("save completed", { id: orderAgg.id.value });
+      }
     } catch (error) {
       this.logger.error("save failed", error as Error, {
         id: orderAgg.id.value,

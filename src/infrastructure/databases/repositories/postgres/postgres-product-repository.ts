@@ -325,7 +325,7 @@ export class PostgresProductRepository implements ProductRepository {
       } else {
         // else product is not new, update it with optimistic locking
         const [productUpdateResult, existingVariationIds] = await Promise.all([
-          this.logger.measure("db.insert(product)", () =>
+          this.logger.measure("db.update(product)", () =>
             db
               .update(product)
               .set({

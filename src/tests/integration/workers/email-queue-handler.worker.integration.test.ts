@@ -4,7 +4,11 @@ import { User } from "#/domain/entities/user.js";
 import { Category } from "#/domain/entities/category.js";
 import { Rating } from "#/domain/entities/rating.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import { REDIS, EMAIL_GATEWAY } from "#/composition/tokens.js";
+import {
+  REDIS,
+  EMAIL_GATEWAY,
+  ORDER_REPOSITORY,
+} from "#/composition/tokens.js";
 import {
   clearDatabase,
   createUserInDB,
@@ -116,16 +120,20 @@ describe("EmailQueueHandlerWorker Integration", () => {
     );
     await createUserInDB(container, user);
     const order = await setupOrderInDB(container, { owner: user });
-    order.confirm();
-    await setupOrderInDB(container, { owner: user, order });
+
+    const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+    const orderFromDB = await orderRepo.find(order.id);
+
+    orderFromDB!.confirm();
+    await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
     const event = new OrderConfirmed(
-      order.id.value,
+      orderFromDB!.id.value,
       user.id.value,
-      order.getOrderItems().length,
-      order.getTotalOrderPrice().amount,
-      order.getTotalOrderPrice().currency,
-      order.getSelectedShippingProvider(),
+      orderFromDB!.getOrderItems().length,
+      orderFromDB!.getTotalOrderPrice().amount,
+      orderFromDB!.getTotalOrderPrice().currency,
+      orderFromDB!.getSelectedShippingProvider(),
     );
 
     const job = await queue.add(DomainEventCode.ORDER_CONFIRMED, event, {
@@ -181,17 +189,21 @@ describe("EmailQueueHandlerWorker Integration", () => {
     );
     await createUserInDB(container, user);
     const order = await setupOrderInDB(container, { owner: user });
-    order.confirm();
-    order.markAsPreTransit();
-    order.markAsShipping();
-    order.markAsDelivered();
-    await setupOrderInDB(container, { owner: user, order });
+
+    const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+    const orderFromDB = await orderRepo.find(order.id);
+
+    orderFromDB!.confirm();
+    orderFromDB!.markAsPreTransit();
+    orderFromDB!.markAsShipping();
+    orderFromDB!.markAsDelivered();
+    await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
     const event = new OrderDelivered(
-      order.id.value,
+      orderFromDB!.id.value,
       user.id.value,
       new Date(),
-      order.getSelectedShippingProvider(),
+      orderFromDB!.getSelectedShippingProvider(),
     );
 
     const job = await queue.add(DomainEventCode.ORDER_DELIVERED, event, {

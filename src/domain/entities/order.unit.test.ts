@@ -111,6 +111,7 @@ describe("Order Aggregate", () => {
       options?.orderItems ?? makeValidOrderItems(),
       date,
       date,
+      1,
     ];
   };
 

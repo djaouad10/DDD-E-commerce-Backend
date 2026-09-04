@@ -87,10 +87,17 @@ describe("OutboxHandlerWorker Integration", () => {
     await createUserInDB(container, user);
 
     const order = await setupOrderInDB(container, { owner: user });
-    order.confirm();
-    await setupOrderInDB(container, { owner: user, order });
 
-    return { user, order };
+    const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+    const orderFromDB = await orderRepo.find(order.id);
+
+    orderFromDB!.confirm();
+    await setupOrderInDB(container, { owner: user, order: orderFromDB! });
+
+    // since the previous line updates the order version when saving, we have to re-read a fresh version so next update will not give a version conflict
+    const latestOrderFromDB = await orderRepo.find(order.id);
+
+    return { user, order: latestOrderFromDB! };
   }
 
   describe("CREATE_ORDER_IN_SHIPPING_API", () => {
@@ -110,7 +117,9 @@ describe("OutboxHandlerWorker Integration", () => {
 
       await job.waitUntilFinished(queueEvents);
 
-      expect(shippingProviderGatewayMock.createShipment).toHaveBeenCalledTimes(1);
+      expect(shippingProviderGatewayMock.createShipment).toHaveBeenCalledTimes(
+        1,
+      );
 
       const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
       const persistedOrder = await orderRepo.find(order.id);
@@ -160,7 +169,9 @@ describe("OutboxHandlerWorker Integration", () => {
 
       const key = await findIdempotencyKeyInDB(container, jobId);
       expect(key).not.toBeNull();
-      expect(key!.handlerName).toBe("ActivateShipmentInShippingProviderService");
+      expect(key!.handlerName).toBe(
+        "ActivateShipmentInShippingProviderService",
+      );
     });
 
     test("should fail the job when no order matches the tracking number", async () => {
@@ -173,7 +184,9 @@ describe("OutboxHandlerWorker Integration", () => {
 
       await expect(job.waitUntilFinished(queueEvents)).rejects.toThrow();
 
-      expect(shippingProviderGatewayMock.activateShipment).not.toHaveBeenCalled();
+      expect(
+        shippingProviderGatewayMock.activateShipment,
+      ).not.toHaveBeenCalled();
     });
 
     test("should fail the job when the gateway returns success: false", async () => {

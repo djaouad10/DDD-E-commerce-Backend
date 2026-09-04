@@ -280,6 +280,7 @@ export const order = pgTable(
   "order",
   {
     id: varchar("id", { length: 40 }).notNull().primaryKey(),
+    version: bigint("version", { mode: "number" }).notNull().default(0),
 
     // Lifecycle
     tracking_number: varchar("tracking_number", { length: 32 }).unique(),

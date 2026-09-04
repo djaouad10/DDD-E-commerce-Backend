@@ -47,8 +47,12 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.setTrackingNumber("TRACK123456");
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK123456");
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -149,8 +153,12 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       await createUserInDB(container, client);
 
       const order = await setupOrderInDB(container, { owner: client });
-      order.setTrackingNumber("TRACK789012");
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK789012");
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -185,8 +193,12 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       await createUserInDB(container, intruder);
 
       const order = await setupOrderInDB(container, { owner });
-      order.setTrackingNumber("TRACK999999");
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK999999");
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -244,8 +256,12 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.setTrackingNumber("TRACK111111");
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK111111");
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       await request

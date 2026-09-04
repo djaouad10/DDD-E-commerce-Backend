@@ -249,8 +249,12 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.cancel();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.cancel();
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -277,8 +281,12 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -305,9 +313,13 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.markAsPreTransit();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -334,10 +346,14 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -364,11 +380,15 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsDelivered();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsDelivered();
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -395,11 +415,15 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsReturned();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsReturned();
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -426,11 +450,15 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsSuspended();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsSuspended();
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       const response = await request
@@ -618,8 +646,11 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.setTrackingNumber("TRACK123456");
-      await saveOrderInDB(container, order);
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK123456");
+      await saveOrderInDB(container, orderFromDB!);
 
       // Act
       await request

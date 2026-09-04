@@ -3,7 +3,7 @@ import type { CategoryDTO } from "./category.dto.js";
 import type { ImageDTO } from "./file.dto.js";
 import type { VariationSearchDTO } from "./variation.dto.js";
 
-export type ProductSearchDTO = ProductStaticDataDTO & {};
+export type ProductSearchDTO = Omit<ProductStaticDataDTO, "images"> ;
 
 export type ProductStaticDataDTO = {
   id: string;
@@ -17,6 +17,7 @@ export type ProductStaticDataDTO = {
   category: CategoryDTO | null;
   averageRating: number | null;
   mainImage: ImageDTO | null;
+  images: ImageDTO[];
   createdAt: string;
   updatedAt: string;
 };

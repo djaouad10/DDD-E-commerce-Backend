@@ -79,23 +79,22 @@ describe("GET /api/v1/products/:id/update-data", () => {
             name: mainImage.getName(),
             url: mainImage.publicUrl,
           }),
+          images: expect.arrayContaining([
+            expect.objectContaining({
+              name: expect.any(String),
+              url: expect.any(String),
+            })
+          ]),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
         }),
       );
 
       // Images shape
-      expect(response.body.images).toHaveLength(product.getImages().length);
-      expect(response.body.images).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            name: expect.any(String),
-            url: expect.any(String),
-          }),
-        ]),
-      );
+      expect(response.body.product.images).toHaveLength(product.getImages().length);
+  
       expect(
-        response.body.images.some(
+        response.body.product.images.some(
           (img: any) => img.name === mainImage.getName(),
         ),
       ).toBe(true);

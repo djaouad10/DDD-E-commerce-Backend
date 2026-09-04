@@ -5,13 +5,12 @@ export default defineConfig({
     globals: true,
     environment: "node",
     setupFiles: ["./src/tests/fixtures/global-setup.ts"],
-    include: ["src/**/*.{test,spec}.{js,ts}"],
+    include: ["src/**/*.unit.{test,spec}.{js,ts}"],
     exclude: ["node_modules", "dist"],
-    fileParallelism: false,
+    fileParallelism: true,
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
-      exclude: ["node_modules/", "src/tests/", "**/*.d.ts", "**/*.config.*"],
+      reportsDirectory: "./coverage/unit",
     },
   },
 });

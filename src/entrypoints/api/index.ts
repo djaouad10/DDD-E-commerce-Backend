@@ -1,6 +1,6 @@
-import { Container } from "./composition/container.js";
-import { env } from "./infrastructure/config/env.js";
-import { createServer } from "./infrastructure/http/server/index.js";
+import { Container } from "#/composition/container.js";
+import { env } from "#/infrastructure/config/env.js";
+import { createServer } from "#/infrastructure/http/server/index.js";
 
 async function bootstrap() {
   const container = new Container();

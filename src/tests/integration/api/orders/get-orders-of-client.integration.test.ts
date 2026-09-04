@@ -183,12 +183,16 @@ describe("GET /api/v1/orders/client", () => {
 
       await createUserInDB(container, user);
 
-      const pendingOrder = await setupOrderInDB(container, { owner: user });
+      await setupOrderInDB(container, { owner: user });
       const confirmedOrder = await setupOrderInDB(container, { owner: user });
-      confirmedOrder.confirm();
 
-      await saveOrderInDB(container, pendingOrder);
-      await saveOrderInDB(container, confirmedOrder);
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+
+      const confirmedOrderInDB = await orderRepo.find(confirmedOrder.id);
+
+      confirmedOrderInDB!.confirm();
+
+      await saveOrderInDB(container, confirmedOrderInDB!);
 
       // Act
       const response = await request

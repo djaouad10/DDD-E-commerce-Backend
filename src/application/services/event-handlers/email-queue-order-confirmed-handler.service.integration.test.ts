@@ -75,9 +75,12 @@ describe("EmailQueueOrderConfirmedHandlerService", () => {
 
       const order = await setupOrderInDB(container, { owner: user });
 
-      order.confirm();
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.confirm();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderConfirmedHandlerCommand(
         DomainEventCode.ORDER_CONFIRMED,
@@ -124,9 +127,12 @@ describe("EmailQueueOrderConfirmedHandlerService", () => {
 
       const order = await setupOrderInDB(container, { owner: user });
 
-      order.confirm();
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.confirm();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderConfirmedHandlerCommand(
         DomainEventCode.ORDER_CONFIRMED,
@@ -165,9 +171,12 @@ describe("EmailQueueOrderConfirmedHandlerService", () => {
 
       const order = await setupOrderInDB(container, { owner: user });
 
-      order.confirm();
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.confirm();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderConfirmedHandlerCommand(
         DomainEventCode.ORDER_CONFIRMED,
@@ -202,9 +211,12 @@ describe("EmailQueueOrderConfirmedHandlerService", () => {
 
       const order = await setupOrderInDB(container, { owner: user });
 
-      order.confirm();
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.confirm();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderConfirmedHandlerCommand(
         DomainEventCode.ORDER_CONFIRMED,
@@ -238,8 +250,12 @@ describe("EmailQueueOrderConfirmedHandlerService", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.confirm();
-      await setupOrderInDB(container, { owner: user, order });
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderConfirmedHandlerCommand(
         DomainEventCode.ORDER_CONFIRMED,

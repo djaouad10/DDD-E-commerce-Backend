@@ -73,6 +73,12 @@ describe("GET /api/v1/products/:id/static-data", () => {
           name: expect.any(String),
           url: expect.any(String),
         }),
+        images: expect.arrayContaining([
+          expect.objectContaining({
+            name: expect.any(String),
+            url: expect.any(String),
+          }),
+        ]),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });

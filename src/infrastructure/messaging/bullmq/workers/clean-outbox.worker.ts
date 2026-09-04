@@ -56,6 +56,7 @@ export class CleanOutboxWorker {
     if (this.running) return;
     this.running = true;
     this.abortController = new AbortController(); // fresh controller per run
+    logger.info("Clean outbox worker started");
     this.loopPromise = this.loop();
   }
 

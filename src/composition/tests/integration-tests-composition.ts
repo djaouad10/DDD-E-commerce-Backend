@@ -205,6 +205,7 @@ export function buildIntegrationTestsContainer(): Container {
   const testRedis = createRedisConnection({
     host: env.REDIS_HOST,
     port: env.REDIS_PORT,
+    db: Number(process.env.REDIS_DB ?? 0), // so each vitest worker thread's container now gets a Redis client selecting a distinct DB index
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
     lazyConnect: true,

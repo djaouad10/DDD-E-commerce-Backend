@@ -366,6 +366,10 @@ export class PostgresProductQueries implements ProductQueries {
               url: mainImage.public_url,
             }
           : null,
+        images: productRow.images.map((i) => ({
+          name: i.name,
+          url: i.public_url,
+        })),
         createdAt: productRow.created_at.toISOString(),
         updatedAt: productRow.updated_at.toISOString(),
       };
