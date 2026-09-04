@@ -1,27 +1,33 @@
 import { UserRole } from "#/domain/entities/user.js";
 import z from "zod";
+import {
+  idSchema,
+  isoDateStringSchema,
+  limitStringSchema,
+  nameSchema,
+} from "./shared.js";
 
 export const getClientProfileSearchParamsSchema = z.object({
-  id: z.string().trim().min(1).max(100),
+  id: idSchema,
 });
 
 export const getClientBanStatusParamsSchema = z.object({
-  id: z.string().trim().min(1).max(100),
+  id: idSchema,
 });
 
 export const getClientsListSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1).max(500),
+  limit: limitStringSchema,
   role: z.enum(UserRole),
   cursor: z
     .object({
-      createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      userId: z.string().trim().min(1).max(100),
+      createdAt: isoDateStringSchema,
+      userId: idSchema,
     })
     .optional(),
 });
 
 export const banClientParamsSchema = z.object({
-  id: z.string().trim().min(1).max(100),
+  id: idSchema,
 });
 
 export const banClientBodySchema = z.object({
@@ -34,10 +40,10 @@ export const banClientBodySchema = z.object({
 });
 
 export const unbanClientParamsSchema = z.object({
-  id: z.string().trim().min(1).max(100),
+  id: idSchema,
 });
 
 export const updateClientProfileBodySchema = z.object({
-  name: z.string().trim().min(1).max(200).optional(),
+  name: nameSchema.optional(),
   image: z.url().optional().nullable(),
 });
