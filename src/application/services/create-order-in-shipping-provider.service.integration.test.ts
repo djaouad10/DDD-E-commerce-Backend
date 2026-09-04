@@ -73,8 +73,13 @@ describe("CreateOrderInShippingProviderService", () => {
     await createUserInDB(container, user);
 
     const order = await setupOrderInDB(container, { owner: user });
-    order.confirm();
-    await setupOrderInDB(container, { owner: user, order });
+
+    // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+    const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+    const orderFromDB = await orderRepo.find(order.id);
+
+    orderFromDB!.confirm();
+    await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
     return { orderId: order.id.value };
   }

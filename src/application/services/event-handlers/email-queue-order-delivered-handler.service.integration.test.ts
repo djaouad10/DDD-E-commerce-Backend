@@ -74,20 +74,24 @@ describe("EmailQueueOrderDeliveredHandlerService", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsDelivered();
 
-      await setupOrderInDB(container, { owner: user, order });
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsDelivered();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderDeliveredHandlerCommand(
         DomainEventCode.ORDER_DELIVERED,
         new Date(),
-        order.id.value,
+        orderFromDB!.id.value,
         user.id.value,
         new Date(),
-        order.getSelectedShippingProvider(),
+        orderFromDB!.getSelectedShippingProvider(),
       );
 
       const jobId = generateOutboxId();
@@ -123,20 +127,24 @@ describe("EmailQueueOrderDeliveredHandlerService", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsDelivered();
 
-      await setupOrderInDB(container, { owner: user, order });
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsDelivered();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderDeliveredHandlerCommand(
         DomainEventCode.ORDER_DELIVERED,
         new Date(),
-        order.id.value,
+        orderFromDB!.id.value,
         user.id.value,
         new Date(),
-        order.getSelectedShippingProvider(),
+        orderFromDB!.getSelectedShippingProvider(),
       );
 
       const jobId = generateOutboxId();
@@ -164,20 +172,24 @@ describe("EmailQueueOrderDeliveredHandlerService", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsDelivered();
 
-      await setupOrderInDB(container, { owner: user, order });
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsDelivered();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderDeliveredHandlerCommand(
         DomainEventCode.ORDER_DELIVERED,
         new Date(),
-        order.id.value,
+        orderFromDB!.id.value,
         UserId.generate().value, // non existent user
         new Date(),
-        order.getSelectedShippingProvider(),
+        orderFromDB!.getSelectedShippingProvider(),
       );
 
       const jobId = generateOutboxId();
@@ -201,12 +213,16 @@ describe("EmailQueueOrderDeliveredHandlerService", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsDelivered();
 
-      await setupOrderInDB(container, { owner: user, order });
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsDelivered();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderDeliveredHandlerCommand(
         DomainEventCode.ORDER_DELIVERED,
@@ -214,7 +230,7 @@ describe("EmailQueueOrderDeliveredHandlerService", () => {
         OrderId.generate().value, // non existent order
         user.id.value,
         new Date(),
-        order.getSelectedShippingProvider(),
+        orderFromDB!.getSelectedShippingProvider(),
       );
 
       const jobId = generateOutboxId();
@@ -239,20 +255,24 @@ describe("EmailQueueOrderDeliveredHandlerService", () => {
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
-      order.confirm();
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsDelivered();
 
-      await setupOrderInDB(container, { owner: user, order });
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsDelivered();
+
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new EmailQueueOrderDeliveredHandlerCommand(
         DomainEventCode.ORDER_DELIVERED,
         new Date(),
-        order.id.value,
+        orderFromDB!.id.value,
         user.id.value,
         new Date(),
-        order.getSelectedShippingProvider(),
+        orderFromDB!.getSelectedShippingProvider(),
       );
       const jobId = generateOutboxId();
 

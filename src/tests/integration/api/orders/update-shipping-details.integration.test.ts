@@ -107,8 +107,12 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -318,10 +322,14 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.setTrackingNumber("TRACK123456");
-      order.markAsPreTransit();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.setTrackingNumber("TRACK123456");
+      orderFromDB!.markAsPreTransit();
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -351,11 +359,15 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.setTrackingNumber("TRACK123456");
-      order.markAsPreTransit();
-      order.markAsShipping();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.setTrackingNumber("TRACK123456");
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -385,12 +397,16 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.setTrackingNumber("TRACK123456");
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsDelivered();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.setTrackingNumber("TRACK123456");
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsDelivered();
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -420,12 +436,16 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.setTrackingNumber("TRACK123456");
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsReturned();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.setTrackingNumber("TRACK123456");
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsReturned();
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -455,8 +475,11 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.cancel();
-      await saveOrderInDB(container, order);
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.cancel();
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -486,12 +509,16 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      order.setTrackingNumber("TRACK123456");
-      order.markAsPreTransit();
-      order.markAsShipping();
-      order.markAsSuspended();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      orderFromDB!.setTrackingNumber("TRACK123456");
+      orderFromDB!.markAsPreTransit();
+      orderFromDB!.markAsShipping();
+      orderFromDB!.markAsSuspended();
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -619,8 +646,12 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.confirm();
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody({
         clientName: "Updated Name",
@@ -657,8 +688,12 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.setTrackingNumber("TRACK123456");
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK123456");
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -767,8 +802,12 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.setTrackingNumber("TRACK789012");
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK789012");
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -815,8 +854,12 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.setTrackingNumber("TRACK999999");
-      await saveOrderInDB(container, order);
+
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK999999");
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 
@@ -902,8 +945,13 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      order.setTrackingNumber("TRACK555555");
-      await saveOrderInDB(container, order);
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.setTrackingNumber("TRACK555555");
+
+      await saveOrderInDB(container, orderFromDB!);
 
       const body = createValidShippingDetailsBody();
 

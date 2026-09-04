@@ -89,12 +89,15 @@ describe("UpdateOrderInShippingProviderService", () => {
       // Assert
       order.pullEvents(); // since the service reconstructs the order clean from DB with no in memory events stored
 
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const latestOrder = await orderRepo.find(order.id);
+
       expect(
         shippingProviderGatewayMock.updateUnShippedShipment,
       ).toHaveBeenCalledTimes(1);
       expect(
         shippingProviderGatewayMock.updateUnShippedShipment,
-      ).toHaveBeenCalledWith(order);
+      ).toHaveBeenCalledWith(latestOrder);
 
       const key = await findIdempotencyKeyInDB(container, jobId);
       expect(key).not.toBeNull();
@@ -391,8 +394,12 @@ describe("UpdateOrderInShippingProviderService", () => {
 
       // Create order in CONFIRMED state
       const order = await setupOrderInDB(container, { owner: user });
-      order.confirm();
-      await setupOrderInDB(container, { owner: user, order });
+
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+      orderFromDB!.confirm();
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new UpdateOrderInShippingProviderCommand(order.id.value);
       const jobId = generateOutboxId();
@@ -404,9 +411,11 @@ describe("UpdateOrderInShippingProviderService", () => {
 
       order.pullEvents(); // since the service reconstructs the order clean from DB with no in memory events stored
 
+      const latestOrder = await orderRepo.find(order.id);
+
       expect(
         shippingProviderGatewayMock.updateUnShippedShipment,
-      ).toHaveBeenCalledWith(order);
+      ).toHaveBeenCalledWith(latestOrder!); // to make sure we read the same versions as the service
       expect(
         shippingProviderGatewayMock.updateUnShippedShipment,
       ).toHaveBeenCalledTimes(1);

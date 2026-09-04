@@ -79,10 +79,14 @@ describe("ActivateShipmentInShippingProviderService", () => {
         owner: user,
       });
 
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
       // Add tracking number to the order
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -127,9 +131,13 @@ describe("ActivateShipmentInShippingProviderService", () => {
         owner: user,
       });
 
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
       const trackingNumber = "TRACK789";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -166,9 +174,13 @@ describe("ActivateShipmentInShippingProviderService", () => {
         owner: user,
       });
 
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -205,9 +217,13 @@ describe("ActivateShipmentInShippingProviderService", () => {
         owner: user,
       });
 
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -272,9 +288,13 @@ describe("ActivateShipmentInShippingProviderService", () => {
         owner: user,
       });
 
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -309,10 +329,13 @@ describe("ActivateShipmentInShippingProviderService", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -351,9 +374,13 @@ describe("ActivateShipmentInShippingProviderService", () => {
         owner: user,
       });
 
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -391,10 +418,13 @@ describe("ActivateShipmentInShippingProviderService", () => {
       const order = await setupOrderInDB(container, {
         owner: user,
       });
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
 
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -451,12 +481,16 @@ describe("ActivateShipmentInShippingProviderService", () => {
         owner: user,
       });
 
-      order.confirm();
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
+      orderFromDB!.confirm();
 
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
+      orderFromDB!.setTrackingNumber(trackingNumber);
 
-      await setupOrderInDB(container, { owner: user, order });
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
@@ -492,9 +526,13 @@ describe("ActivateShipmentInShippingProviderService", () => {
         owner: user,
       });
 
+      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
+      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      const orderFromDB = await orderRepo.find(order.id);
+
       const trackingNumber = "TRACK123456";
-      order.setTrackingNumber(trackingNumber);
-      await setupOrderInDB(container, { owner: user, order });
+      orderFromDB!.setTrackingNumber(trackingNumber);
+      await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
       const command = new ActivateShipmentInShippingProviderCommand(
         trackingNumber,
