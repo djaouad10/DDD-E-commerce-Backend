@@ -4,7 +4,7 @@ import { createServer } from "#/infrastructure/http/server/index.js";
 
 async function bootstrap() {
   const container = new Container();
-  const app = createServer(container);
+  const app = await createServer(container);
 
   const port = env.PORT || 3000;
 
