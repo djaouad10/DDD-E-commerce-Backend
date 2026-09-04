@@ -1,8 +1,5 @@
 import { OutboxProcessorService } from "#/application/services/outbox-processor/outbox-processor.service.js";
-import {
-  type DrizzleDBClient,
-  type DrizzleTransactionClient,
-} from "#/infrastructure/config/database.js";
+
 import { InMemoryCartRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-cart-repository.js";
 import { InMemoryCategoryRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-category-repository.js";
 import { InMemoryOrderRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-order-repository.js";
@@ -41,18 +38,20 @@ import { InMemoryShippingProviderGateway } from "#/infrastructure/gateways/in-me
 import { InMemoryIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/in-memory/in-memory-idempotency-keys-repository.js";
 import { CreateOrderInShippingProviderService } from "#/application/services/outbox-handlers/create-order-in-shipping-provider.service.js";
 import { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
+import type { DBClient } from "#/shared/types/db-client.js";
+import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
 export function buildUnitTestsContainer(): Container {
   const container = new Container();
 
   // singletons
-  const testDb = {
+  const testDb: DBClient = {
     transaction: async <T>(
-      cb: (tx: DrizzleTransactionClient) => Promise<T>,
+      cb: (tx: TransactionClient) => Promise<T>,
     ): Promise<T> => {
-      return cb({} as DrizzleTransactionClient);
+      return cb({} as TransactionClient);
     },
-  } as unknown as DrizzleDBClient;
+  };
 
   container.registerInstance(DB, testDb);
 

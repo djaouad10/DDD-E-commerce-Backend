@@ -4,7 +4,7 @@ import { createBullMqOutboxQueue } from "#/infrastructure/messaging/bullmq/queue
 import { Container } from "../utils/container.js";
 import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
-  DB,
+  DRIZZLE_DB,
   OUTBOX_PROCESSOR_SERVICE,
   OUTBOX_QUEUE,
   OUTBOX_REPOSITORY,
@@ -24,7 +24,7 @@ export function buildOutboxProcessorContainer(): Container {
 
   container.register(
     OUTBOX_REPOSITORY,
-    (scope) => new PostgresOutboxRepository(scope.resolve(DB)),
+    (scope) => new PostgresOutboxRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 

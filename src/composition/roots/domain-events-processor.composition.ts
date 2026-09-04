@@ -7,8 +7,8 @@ import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   ANALYTICS_QUEUE,
   BULLMQ_FLOW_PRODUCER,
-  DB,
   DOMAIN_EVENTS_PROCESSOR_SERVICE,
+  DRIZZLE_DB,
   EMAIL_QUEUE,
   EVENT_PUBLISHER,
   INVENTORY_QUEUE,
@@ -62,7 +62,7 @@ export function buildDomainEventsProcessorContainer(): Container {
 
   container.register(
     OUTBOX_REPOSITORY,
-    (scope) => new PostgresOutboxRepository(scope.resolve(DB)),
+    (scope) => new PostgresOutboxRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
