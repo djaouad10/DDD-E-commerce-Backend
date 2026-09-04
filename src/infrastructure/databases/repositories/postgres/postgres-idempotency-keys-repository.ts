@@ -3,10 +3,7 @@ import type {
   IdempotencyKeysRepository,
 } from "#/application/ports/persistence/idempotency-keys.repository.port.js";
 
-import type {
-  DrizzleDBClient,
-  DrizzleTransactionClient,
-} from "#/infrastructure/config/database.js";
+import type { DrizzleTransactionClient } from "#/infrastructure/config/database.js";
 import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
@@ -15,7 +12,7 @@ import { idempotencyKeys } from "../../schema.js";
 export class PostgresIdempotencyKeysRepository implements IdempotencyKeysRepository {
   private logger = createLogger("PostgresIdempotencyKeysRepository");
 
-  constructor(private db: DrizzleDBClient) {}
+  constructor() {}
 
   async create(
     key: string,
@@ -25,7 +22,7 @@ export class PostgresIdempotencyKeysRepository implements IdempotencyKeysReposit
   ): Promise<void> {
     this.logger.debug("create called", { key, handlerName });
 
-    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
+    const db = tx as DrizzleTransactionClient;
 
     try {
       await this.logger.measure("db.insert(idempotencyKeys)", () =>

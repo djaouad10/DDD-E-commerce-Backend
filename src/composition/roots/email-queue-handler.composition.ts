@@ -47,7 +47,7 @@ export function buildEmailQueueHandlerContainer(): Container {
 
   container.register(
     IDEMPOTENCY_KEYS_REPOSITORY,
-    (scope) => new PostgresIdempotencyKeysRepository(scope.resolve(DRIZZLE_DB)),
+    () => new PostgresIdempotencyKeysRepository(),
     "singleton",
   );
 
