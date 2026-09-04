@@ -8,11 +8,11 @@ export class GetOrdersQuery {
     public readonly status?: OrderStatus,
     public readonly cursor?: OrderCursor,
   ) {
-    this.validate(limit);
+    this.validate();
   }
 
-  private validate(limit: number) {
-    if (limit <= 0) {
+  private validate() {
+    if (this.limit <= 0) {
       throw new ValidationError("limit", "limit must be greater than 0");
     }
   }

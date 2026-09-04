@@ -7,15 +7,15 @@ export class GetLowStockProductsQuery {
     public readonly minStock: number,
     public readonly cursor?: ProductCursor,
   ) {
-    this.validate(limit, minStock);
+    this.validate();
   }
 
-  private validate(limit: number, minStock: number) {
-    if (limit <= 0) {
+  private validate() {
+    if (this.limit <= 0) {
       throw new ValidationError("limit", "limit must be greater than 0");
     }
 
-    if (minStock < 0) {
+    if (this.minStock < 0) {
       throw new ValidationError("minStock", "minStock must be greater than 0");
     }
   }
