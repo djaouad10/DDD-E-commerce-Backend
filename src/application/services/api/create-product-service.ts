@@ -1,6 +1,5 @@
 import type { ProductSnapshot } from "#/domain/entities-snapshots/product.snapshot.js";
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { CreateProductCommand } from "../../commands/api/create-product-command.js";
 import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
@@ -11,12 +10,13 @@ import { CategoryId } from "#/domain/value-objects/category-id.js";
 import { Variation } from "#/domain/entities/variation.js";
 import { Weight } from "#/domain/value-objects/weight.js";
 import { Money } from "#/domain/value-objects/money.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 
 export class CreateProductService {
   private logger = createLogger("CreateProductService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private productRepository: ProductRepository,
     private outboxRepository: OutboxRepository,
   ) {}

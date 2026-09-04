@@ -1,8 +1,8 @@
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 import type { DeleteProductImageCommand } from "../../commands/api/delete-product-image.command.js";
 import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
@@ -10,7 +10,7 @@ export class DeleteProductImageService {
   private logger = createLogger("DeleteProductImageService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private productRepository: ProductRepository,
     private outboxRepository: OutboxRepository,
   ) {}

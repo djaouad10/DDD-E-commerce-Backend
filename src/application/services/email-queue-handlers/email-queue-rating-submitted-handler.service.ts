@@ -6,17 +6,16 @@ import type { ProductRepository } from "#/domain/repositories/product.repository
 import type { RatingRepository } from "#/domain/repositories/rating.repository.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { buildRatingSubmittedEmailTemplate } from "#/infrastructure/notifications/templates/rating-submitted.email.template.js";
-
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 
 export class EmailQueueRatingSubmittedHandlerService {
   private logger = createLogger("EmailQueueRatingSubmittedHandlerService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private emailGateway: EmailGateway,
     private userQueries: UserQueries,
     private productRepository: ProductRepository,

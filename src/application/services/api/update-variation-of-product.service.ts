@@ -2,9 +2,9 @@ import type { ProductRepository } from "#/domain/repositories/product.repository
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { VariationId } from "#/domain/value-objects/variation-id.js";
 import { Weight } from "#/domain/value-objects/weight.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 import type { UpdateVariationOfProductCommand } from "../../commands/api/update-variation-of-product.command.js";
 import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
@@ -12,7 +12,7 @@ export class UpdateVariationOfProductService {
   private logger = createLogger("UpdateVariationOfProductService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private productRepository: ProductRepository,
     private outboxRepository: OutboxRepository,
   ) {}

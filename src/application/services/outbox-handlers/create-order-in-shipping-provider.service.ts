@@ -1,9 +1,9 @@
 import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 import type { CreateOrderInShippingProviderCommand } from "../../commands/outbox-handlers/create-order-in-shipping-provider.command.js";
 import type { IdempotencyKeysRepository } from "../../ports/persistence/idempotency-keys.repository.port.js";
 
@@ -11,7 +11,7 @@ export class CreateOrderInShippingProviderService {
   private logger = createLogger("CreateOrderInShippingProviderService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private orderRepository: OrderRepository,
     private shippingProviderGateway: ShippingProviderGateway,
     private idempotencyKeysRepository: IdempotencyKeysRepository,

@@ -1,18 +1,18 @@
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { VariationId } from "#/domain/value-objects/variation-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DeleteVariationOfProductCommand } from "../../commands/api/delete-variation-of-product.command.js";
 import type { OrderQueries } from "../../read-models/order.queries.js";
 import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 
 export class DeleteVariationOfProductService {
   private logger = createLogger("DeleteVariationOfProductService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private productRepository: ProductRepository,
     private orderQueries: OrderQueries,
     private outboxRepository: OutboxRepository,
