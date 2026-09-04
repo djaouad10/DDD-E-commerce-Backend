@@ -7,10 +7,10 @@ export type RatingRepository = {
   find(userId: UserId, productId: ProductId): Promise<Rating | null>;
   findManyByUserId(userId: UserId): Promise<Rating[]>;
   findManyByProductId(productId: ProductId): Promise<Rating[]>;
-  save(rating: Rating, tx?: TransactionClient): Promise<void>;
+  save(rating: Rating, tx: TransactionClient): Promise<void>;
   delete(
     userId: UserId,
     productId: ProductId,
-    tx?: TransactionClient,
+    tx: TransactionClient,
   ): Promise<void>;
 };
