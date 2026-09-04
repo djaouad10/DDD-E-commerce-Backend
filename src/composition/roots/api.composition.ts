@@ -12,8 +12,8 @@ import { PostgresProductRepository } from "#/infrastructure/databases/repositori
 import { PostgresRatingRepository } from "#/infrastructure/databases/repositories/postgres/postgres-rating-repository.js";
 import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres/postgres-user-repository.js";
 import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
-import { Container } from "./container.js";
-import { registerSharedInfrastructure } from "./shared-registry.js";
+import { Container } from "../utils/container.js";
+import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   CART_QUERIES,
   CART_REPOSITORY,
@@ -85,7 +85,7 @@ import {
   SHIP_ORDER_SERVICE,
   UPDATE_SHIPPING_DETAILS_SERVICE,
   UPDATE_CLIENT_PROFILE_SERVICE,
-} from "./tokens.js";
+} from "../utils/tokens.js";
 
 import { UTApi } from "uploadthing/server";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";

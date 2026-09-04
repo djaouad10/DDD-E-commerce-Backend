@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import { EmailQueueOrderCancelledHandlerService } from "./email-queue-order-cancelled-handler.service.js";
 import {
@@ -13,7 +13,7 @@ import {
   IDEMPOTENCY_KEYS_REPOSITORY,
   ORDER_REPOSITORY,
   USER_REPOSITORY,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { User } from "#/domain/entities/user.js";
 import { EmailQueueOrderCancelledHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-cancelled-handler.command.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";

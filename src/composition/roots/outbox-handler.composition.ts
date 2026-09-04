@@ -7,8 +7,8 @@ import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/re
 import { PostgresOrderRepository } from "#/infrastructure/databases/repositories/postgres/postgres-order-repository.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
-import { Container } from "./container.js";
-import { registerSharedInfrastructure } from "./shared-registry.js";
+import { Container } from "../utils/container.js";
+import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
   CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
@@ -19,7 +19,7 @@ import {
   ORDER_REPOSITORY,
   SHIPPING_PROVIDER_GATEWAY,
   UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
-} from "./tokens.js";
+} from "../utils/tokens.js";
 
 export function buildOutboxHandlerContainer(): Container {
   const container = new Container();

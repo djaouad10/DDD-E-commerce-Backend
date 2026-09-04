@@ -1,7 +1,7 @@
 import { createDb } from "#/infrastructure/config/database.js";
 import { env } from "#/infrastructure/config/env.js";
 import { createRedisConnection } from "#/infrastructure/config/redis-connection.js";
-import { Container } from "../container.js";
+import { Container } from "../../utils/container.js";
 
 import { PostgresCartQueries } from "#/infrastructure/databases/read-models/postgres/postgres-cart-queries.js";
 import { PostgresCategoryQueries } from "#/infrastructure/databases/read-models/postgres/postgres-category-queries.js";
@@ -113,7 +113,7 @@ import {
   DOMAIN_EVENTS_PROCESSOR_SERVICE,
   EVENT_PUBLISHER,
   RESET_STUCK_OUTBOX_ROWS_SERVICE,
-} from "../tokens.js";
+} from "../../utils/tokens.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
 import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";

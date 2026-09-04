@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createUserInDB,
@@ -10,7 +10,7 @@ import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
 import { User } from "#/domain/entities/user.js";
-import { ORDER_REPOSITORY } from "#/composition/tokens.js";
+import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
 
 describe("GET /api/v1/orders/tracking/:tracking", () => {
   let app: Express;

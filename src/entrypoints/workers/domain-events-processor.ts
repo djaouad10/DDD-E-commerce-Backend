@@ -1,4 +1,4 @@
-import { buildDomainEventsProcessorContainer } from "#/composition/domain-events-processor-composition.js";
+import { buildDomainEventsProcessorContainer } from "#/composition/roots/domain-events-processor.composition.js";
 import { DomainEventsProcessorWorker } from "#/infrastructure/messaging/bullmq/workers/domain-events-processor.worker.js";
 import { createLogger } from "#/shared/logging/logger.js";
 

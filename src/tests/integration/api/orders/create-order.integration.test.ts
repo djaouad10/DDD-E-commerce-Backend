@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,
@@ -20,7 +20,7 @@ import {
   ORDER_REPOSITORY,
   OUTBOX_REPOSITORY,
   PRODUCT_REPOSITORY,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { env } from "#/infrastructure/config/env.js";
 import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";

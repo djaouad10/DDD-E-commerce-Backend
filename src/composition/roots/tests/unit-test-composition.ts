@@ -13,7 +13,7 @@ import { InMemoryUserRepository } from "#/infrastructure/databases/repositories/
 import { InMemoryFileStoreGateway } from "#/infrastructure/gateways/in-memory-file-store-gateway.js";
 import { FakeQueue } from "#/tests/helpers/fake-queue.js";
 import type { Queue } from "bullmq";
-import { Container } from "../container.js";
+import { Container } from "../../utils/container.js";
 import {
   DB,
   CART_REPOSITORY,
@@ -33,7 +33,7 @@ import {
   IDEMPOTENCY_KEYS_REPOSITORY,
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
-} from "../tokens.js";
+} from "../../utils/tokens.js";
 import RedisMock from "ioredis-mock";
 import { FakeEventPublisher } from "#/tests/helpers/fake-event-publisher.js";
 import { DomainEventsProcessorService } from "#/application/services/domain-events-processor/domain-events-processor.service.js";

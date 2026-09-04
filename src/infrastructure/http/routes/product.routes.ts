@@ -17,7 +17,7 @@ import {
   UPDATE_PRODUCT_MAIN_IMAGE_SERVICE,
   UPDATE_PRODUCT_SERVICE,
   UPDATE_VARIATION_OF_PRODUCT_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import {
   createProductBodySchema,
   createProductImageBodySchema,

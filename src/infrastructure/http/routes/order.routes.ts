@@ -22,7 +22,7 @@ import {
   GET_ORDERS_SERVICE,
   SHIP_ORDER_SERVICE,
   UPDATE_SHIPPING_DETAILS_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { GetOrdersOfClientQuery } from "#/application/queries/get-orders-of-client.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import { GetOrderByTrackingNumberQuery } from "#/application/queries/get-order-by-tracking-number.query.js";

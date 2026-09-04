@@ -7,7 +7,7 @@ import {
 } from "#/shared/errors/domain-error.js";
 
 import { runWithContext } from "#/shared/context/request-context.js";
-import { buildEmailQueueHandlerContainer } from "#/composition/email-queue-handler.composition.js";
+import { buildEmailQueueHandlerContainer } from "#/composition/roots/email-queue-handler.composition.js";
 import {
   buildEmailQueueEventCommand,
   executeEmailQueueEventHandler,
@@ -17,7 +17,7 @@ import {
   domainEventsPayloadSchemas,
   type DomainEventsPayloadTypes,
 } from "../../jobs/validation.js";
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 
 export class EmailQueueHandlerWorker {
   private logger = createLogger("EmailQueueHandlerWorker");

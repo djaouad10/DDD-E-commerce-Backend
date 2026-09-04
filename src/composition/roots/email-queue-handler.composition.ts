@@ -16,8 +16,8 @@ import { PostgresRatingRepository } from "#/infrastructure/databases/repositorie
 import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres/postgres-user-repository.js";
 import { BrevoEmailGateway } from "#/infrastructure/gateways/brevo-email-gateway.js";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
-import { Container } from "./container.js";
-import { registerSharedInfrastructure } from "./shared-registry.js";
+import { Container } from "../utils/container.js";
+import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   DB,
   EMAIL_GATEWAY,
@@ -37,7 +37,7 @@ import {
   RATING_REPOSITORY,
   USER_QUERIES,
   USER_REPOSITORY,
-} from "./tokens.js";
+} from "../utils/tokens.js";
 
 export function buildEmailQueueHandlerContainer(): Container {
   const container = new Container();

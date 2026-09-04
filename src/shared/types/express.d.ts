@@ -1,4 +1,4 @@
-import type { Scope } from "#/composition/container.js";
+import type { Scope } from "#/composition/utils/container.ts";
 import type { PerformanceTimer } from "../logging/logger.ts";
 
 declare global {

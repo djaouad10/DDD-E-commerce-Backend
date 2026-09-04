@@ -1,5 +1,5 @@
 import { Queue, QueueEvents } from "bullmq";
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { User } from "#/domain/entities/user.js";
 import { Category } from "#/domain/entities/category.js";
 import { Rating } from "#/domain/entities/rating.js";
@@ -8,7 +8,7 @@ import {
   REDIS,
   EMAIL_GATEWAY,
   ORDER_REPOSITORY,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import {
   clearDatabase,
   createUserInDB,

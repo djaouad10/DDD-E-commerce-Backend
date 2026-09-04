@@ -2,8 +2,8 @@ import { PostgresOutboxRepository } from "#/infrastructure/databases/repositorie
 import { createBullMqAnalyticsQueue } from "#/infrastructure/messaging/bullmq/queue/analytics.queue.js";
 import { createBullMqEmailQueue } from "#/infrastructure/messaging/bullmq/queue/email.queue.js";
 import { createBullMqInventoryQueue } from "#/infrastructure/messaging/bullmq/queue/inventory.queue.js";
-import { Container } from "./container.js";
-import { registerSharedInfrastructure } from "./shared-registry.js";
+import { Container } from "../utils/container.js";
+import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   ANALYTICS_QUEUE,
   BULLMQ_FLOW_PRODUCER,
@@ -14,7 +14,7 @@ import {
   INVENTORY_QUEUE,
   OUTBOX_REPOSITORY,
   REDIS,
-} from "./tokens.js";
+} from "../utils/tokens.js";
 import { createBullMqFlowProducer } from "#/infrastructure/messaging/bullmq/utils/bullmq-flow-producer.js";
 import { BullMqEventPublisher } from "#/infrastructure/messaging/bullmq/bullmq-event-publisher.js";
 import { DomainEventsProcessorService } from "#/application/services/domain-events-processor/domain-events-processor.service.js";

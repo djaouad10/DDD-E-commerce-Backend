@@ -1,8 +1,8 @@
 import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { runWithContext } from "#/shared/context/request-context.js";
-import type { Container } from "#/composition/container.js";
-import { RESET_STUCK_OUTBOX_ROWS_SERVICE } from "#/composition/tokens.js";
+import type { Container } from "#/composition/utils/container.js";
+import { RESET_STUCK_OUTBOX_ROWS_SERVICE } from "#/composition/utils/tokens.js";
 import { ResetStuckOutboxRowsCommand } from "#/application/commands/stuck-outbox-resetter/reset-stuck-outbox-rows.command.js";
 
 const logger = createLogger("ResetStuckOutboxRowsWorker");

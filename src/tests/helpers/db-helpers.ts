@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   CART_REPOSITORY,
   CATEGORY_REPOSITORY,
@@ -7,7 +7,7 @@ import {
   ORDER_REPOSITORY,
   PRODUCT_REPOSITORY,
   RATING_REPOSITORY,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import type { Cart } from "#/domain/entities/cart.js";
 import { Category } from "#/domain/entities/category.js";
 import type { Order } from "#/domain/entities/order.js";

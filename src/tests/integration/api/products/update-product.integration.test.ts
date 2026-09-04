@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,
@@ -11,7 +11,10 @@ import nock from "nock";
 import supertest from "supertest";
 import { Category } from "#/domain/entities/category.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
-import { PRODUCT_REPOSITORY, OUTBOX_REPOSITORY } from "#/composition/tokens.js";
+import {
+  PRODUCT_REPOSITORY,
+  OUTBOX_REPOSITORY,
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { ProductUpdated } from "#/domain/events/product/product-updated.js";
 

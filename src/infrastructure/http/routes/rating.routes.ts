@@ -23,7 +23,7 @@ import {
   GET_APPROVED_RATINGS_OF_PRODUCT_SERVICE,
   GET_PENDING_RATINGS_OF_PRODUCT_SERVICE,
   GET_RATINGS_OF_CLIENT_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { GetApprovedRatingsOfProductQuery } from "#/application/queries/get-approved-ratings-of-product.query.js";
 import { GetPendingRatingsOfProductQuery } from "#/application/queries/get-pending-ratings-of-product.query.js";
 import { GetRatingsOfClientQuery } from "#/application/queries/get-ratings-of-client.query.js";

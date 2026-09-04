@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import {
   clearDatabase,
@@ -11,7 +11,7 @@ import {
   DB,
   IDEMPOTENCY_KEYS_REPOSITORY,
   ORDER_REPOSITORY,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { UpdateOrderInShippingProviderService } from "./update-order-in-shipping-provider.service.js";
 import { UpdateOrderInShippingProviderCommand } from "../../commands/outbox-handlers/update-order-in-shipping-provider.command.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";

@@ -1,10 +1,10 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import nock from "nock";
 import supertest from "supertest";
 import type { Express } from "express";
-import { CATEGORY_REPOSITORY } from "#/composition/tokens.js";
+import { CATEGORY_REPOSITORY } from "#/composition/utils/tokens.js";
 
 describe("POST /api/v1/categories", () => {
   let app: Express;

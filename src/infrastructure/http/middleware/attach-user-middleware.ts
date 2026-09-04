@@ -1,4 +1,4 @@
-import { AUTH } from "#/composition/tokens.js";
+import { AUTH } from "#/composition/utils/tokens.js";
 import type { NextFunction, Request, Response } from "express";
 
 export async function attachUserMiddleware(
@@ -14,5 +14,5 @@ export async function attachUserMiddleware(
     req.user = { id: session.user.id, role: session.user.role };
   }
 
- return next();
+  return next();
 }

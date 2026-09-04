@@ -6,7 +6,7 @@ import {
   DELETE_CART_ITEM_SERVICE,
   GET_USER_CART_SERVICE,
   UPDATE_CART_ITEM_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { GetUserCartQuery } from "#/application/queries/get-user-cart.query.js";
 import { UpdateCartItemCommand } from "#/application/commands/api/update-cart-item.command.js";
 import { validate } from "../utils/validation.js";

@@ -1,8 +1,12 @@
 import { CleanOutboxService } from "#/application/services/outbox-cleaner/clean-outbox.service.js";
 import { PostgresOutboxRepository } from "#/infrastructure/databases/repositories/postgres/postgres-outbox-repository.js";
-import { Container } from "./container.js";
-import { registerSharedInfrastructure } from "./shared-registry.js";
-import { CLEAN_OUTBOX_SERVICE, DB, OUTBOX_REPOSITORY } from "./tokens.js";
+import { Container } from "../utils/container.js";
+import { registerSharedInfrastructure } from "../utils/shared-registry.js";
+import {
+  CLEAN_OUTBOX_SERVICE,
+  DB,
+  OUTBOX_REPOSITORY,
+} from "../utils/tokens.js";
 
 export function buildCleanOutboxContainer(): Container {
   const container = new Container();

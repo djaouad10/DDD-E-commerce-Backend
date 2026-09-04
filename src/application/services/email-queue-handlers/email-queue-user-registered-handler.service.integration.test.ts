@@ -1,6 +1,6 @@
 // event-handlers/email-queue-user-registered-handler.service.integration.test.ts
 
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import { EmailQueueUserRegisteredHandlerService } from "./email-queue-user-registered-handler.service.js";
 import {
@@ -13,7 +13,7 @@ import {
   DB,
   IDEMPOTENCY_KEYS_REPOSITORY,
   USER_REPOSITORY,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { User } from "#/domain/entities/user.js";
 import { EmailQueueUserRegisteredHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-user-registered-handler.command.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";

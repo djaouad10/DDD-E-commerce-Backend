@@ -44,8 +44,8 @@
 import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { runWithContext } from "#/shared/context/request-context.js";
-import type { Container } from "#/composition/container.js";
-import { DOMAIN_EVENTS_PROCESSOR_SERVICE } from "#/composition/tokens.js";
+import type { Container } from "#/composition/utils/container.js";
+import { DOMAIN_EVENTS_PROCESSOR_SERVICE } from "#/composition/utils/tokens.js";
 import { DomainEventsProcessorCommand } from "#/application/commands/domain-events-processor/domain-events-processor.command.js";
 
 const logger = createLogger("DomainEventsProcessorWorker");

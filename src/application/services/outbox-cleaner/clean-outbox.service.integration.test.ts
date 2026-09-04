@@ -1,5 +1,5 @@
-import { Container } from "#/composition/container.js";
-import { DB, OUTBOX_REPOSITORY } from "#/composition/tokens.js";
+import { Container } from "#/composition/utils/container.js";
+import { DB, OUTBOX_REPOSITORY } from "#/composition/utils/tokens.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
 import {
   clearDatabase,

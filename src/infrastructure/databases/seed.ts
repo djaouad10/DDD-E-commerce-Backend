@@ -21,7 +21,7 @@ import { ShippingDetails } from "#/domain/value-objects/shipping-details.js";
 import { Size, Color } from "#/domain/entities/product.js";
 
 // Import repositories and container
-import { buildApiContainer } from "#/composition/api-composition.js";
+import { buildApiContainer } from "#/composition/roots/api.composition.js";
 import {
   CATEGORY_REPOSITORY,
   PRODUCT_REPOSITORY,
@@ -30,7 +30,7 @@ import {
   CART_REPOSITORY,
   DB,
   AUTH,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 
 // Import schema for direct deletes
 import {

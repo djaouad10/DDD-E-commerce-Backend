@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { clearDatabase, createUserInDB } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import nock from "nock";
@@ -6,7 +6,10 @@ import supertest from "supertest";
 import type { Express } from "express";
 import { User } from "#/domain/entities/user.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import { OUTBOX_REPOSITORY, USER_REPOSITORY } from "#/composition/tokens.js";
+import {
+  OUTBOX_REPOSITORY,
+  USER_REPOSITORY,
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { UserBanned } from "#/domain/events/user/user-banned.js";
 

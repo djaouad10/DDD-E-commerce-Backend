@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import express from "express";
 import cors from "cors";
 import { requestLogger } from "../middleware/request-logger-middleware.js";

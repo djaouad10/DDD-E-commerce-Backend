@@ -5,7 +5,7 @@ import {
   BadRequestError,
   ValidationError,
 } from "#/shared/errors/domain-error.js";
-import { buildOutboxHandlerContainer } from "#/composition/outbox-handler-composition.js";
+import { buildOutboxHandlerContainer } from "#/composition/roots/outbox-handler.composition.js";
 
 import {
   outboxJobPayloadsSchemas,
@@ -17,7 +17,7 @@ import {
   executeOutboxHandler,
 } from "../../jobs/outbox-handler-utils.js";
 import { runWithContext } from "#/shared/context/request-context.js";
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 
 export class OutboxHandlerWorker {
   private logger = createLogger("OutboxHandlerWorker");

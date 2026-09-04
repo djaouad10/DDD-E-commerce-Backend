@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,
@@ -15,7 +15,7 @@ import { Category } from "#/domain/entities/category.js";
 import { productFactory } from "#/tests/helpers/domain-helpers.js";
 import { Cart } from "#/domain/entities/cart.js";
 import { CartItem } from "#/domain/entities/cart-item.js";
-import { CART_REPOSITORY } from "#/composition/tokens.js";
+import { CART_REPOSITORY } from "#/composition/utils/tokens.js";
 import { CartItemId } from "#/domain/value-objects/cart-item-id.js";
 
 describe("DELETE /api/v1/cart/items/:id", () => {

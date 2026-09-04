@@ -1,5 +1,5 @@
-import type { Container } from "#/composition/container.js";
-import { DB } from "#/composition/tokens.js";
+import type { Container } from "#/composition/utils/container.js";
+import { DB } from "#/composition/utils/tokens.js";
 import { outbox } from "#/infrastructure/databases/schema.js";
 import { eq, inArray } from "drizzle-orm";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";

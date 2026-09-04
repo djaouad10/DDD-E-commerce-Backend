@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import {
@@ -6,7 +6,7 @@ import {
   seedOutboxDomainEventRow,
   getOutboxRowById,
 } from "#/tests/helpers/outbox-test-helpers.js";
-import { OUTBOX_REPOSITORY } from "#/composition/tokens.js";
+import { OUTBOX_REPOSITORY } from "#/composition/utils/tokens.js";
 import type { OutboxRepository } from "#/application/ports/persistence/outbox.repository.port.js";
 import {
   OutboxStatus,

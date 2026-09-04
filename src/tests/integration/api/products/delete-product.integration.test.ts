@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { Category } from "#/domain/entities/category.js";
 import { Weight } from "#/domain/value-objects/weight.js";
 import {
@@ -16,7 +16,10 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import { PRODUCT_REPOSITORY, OUTBOX_REPOSITORY } from "#/composition/tokens.js";
+import {
+  PRODUCT_REPOSITORY,
+  OUTBOX_REPOSITORY,
+} from "#/composition/utils/tokens.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { User } from "#/domain/entities/user.js";
 import { OrderItem } from "#/domain/entities/order-item.js";

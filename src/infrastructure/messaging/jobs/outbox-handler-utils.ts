@@ -7,13 +7,13 @@ import type { CreateOrderInShippingProviderService } from "#/application/service
 import type { ActivateShipmentInShippingProviderService } from "#/application/services/outbox-handlers/activate-shipment-in-shipping-provider.service.js";
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
 import type { UpdateOrderInShippingProviderService } from "#/application/services/outbox-handlers/update-order-in-shipping-provider.service.js";
-import type { InjectionToken, Scope } from "#/composition/container.js";
+import type { InjectionToken, Scope } from "#/composition/utils/container.js";
 import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
   CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
   UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import type { OutboxJobPayloadType } from "./validation.js";
 
 type OutboxActionToCommand = {

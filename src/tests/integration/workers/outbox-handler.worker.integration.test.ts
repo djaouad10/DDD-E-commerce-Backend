@@ -1,7 +1,10 @@
 import { Queue, QueueEvents } from "bullmq";
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { User } from "#/domain/entities/user.js";
-import { SHIPPING_PROVIDER_GATEWAY, REDIS } from "#/composition/tokens.js";
+import {
+  SHIPPING_PROVIDER_GATEWAY,
+  REDIS,
+} from "#/composition/utils/tokens.js";
 import {
   clearDatabase,
   createUserInDB,
@@ -16,7 +19,7 @@ import type { Mock } from "vitest";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
 import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 import { ShippingProvider } from "#/domain/entities/order.js";
-import { ORDER_REPOSITORY } from "#/composition/tokens.js";
+import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { createBullMqOutboxQueue } from "#/infrastructure/messaging/bullmq/queue/outbox.queue.js";
 

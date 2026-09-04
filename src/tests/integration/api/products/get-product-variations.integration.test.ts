@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { Category } from "#/domain/entities/category.js";
 import { Color, Size } from "#/domain/entities/product.js";
 import { Variation } from "#/domain/entities/variation.js";

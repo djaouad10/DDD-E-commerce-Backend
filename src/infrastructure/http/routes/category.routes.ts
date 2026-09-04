@@ -4,7 +4,7 @@ import {
   DELETE_CATEGORY_SERVICE,
   GET_CATEGORIES_SERVICE,
   UPDATE_CATEGORY_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { Router } from "express";
 import {
   createCategoryBodySchema,

@@ -16,7 +16,7 @@ import type { EmailQueueRatingApprovedHandlerService } from "#/application/servi
 import type { EmailQueueRatingRejectedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-rejected-handler.service.js";
 import type { EmailQueueRatingSubmittedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-submitted-handler.service.js";
 import type { EmailQueueUserRegisteredHandlerService } from "#/application/services/email-queue-handlers/email-queue-user-registered-handler.service.js";
-import type { InjectionToken, Scope } from "#/composition/container.js";
+import type { InjectionToken, Scope } from "#/composition/utils/container.js";
 import {
   EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
   EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
@@ -27,7 +27,7 @@ import {
   EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE,
   EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
   EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { DomainEventsPayloadTypes } from "./validation.js";
 

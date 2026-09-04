@@ -1,5 +1,5 @@
-import { buildEmailQueueHandlerContainer } from "#/composition/email-queue-handler.composition.js";
-import { REDIS } from "#/composition/tokens.js";
+import { buildEmailQueueHandlerContainer } from "#/composition/roots/email-queue-handler.composition.js";
+import { REDIS } from "#/composition/utils/tokens.js";
 import { EmailQueueHandlerWorker } from "#/infrastructure/messaging/bullmq/workers/email-queue-handler.worker.js";
 import { createLogger } from "#/shared/logging/logger.js";
 

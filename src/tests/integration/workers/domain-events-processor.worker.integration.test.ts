@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import {
@@ -11,7 +11,7 @@ import {
   ANALYTICS_QUEUE,
   EMAIL_QUEUE,
   INVENTORY_QUEUE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { DomainEventsProcessorWorker } from "#/infrastructure/messaging/bullmq/workers/domain-events-processor.worker.js";
 

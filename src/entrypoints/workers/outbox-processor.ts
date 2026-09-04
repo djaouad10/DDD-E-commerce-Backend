@@ -1,4 +1,4 @@
-import { buildOutboxProcessorContainer } from "#/composition/outbox-processor-composition.js";
+import { buildOutboxProcessorContainer } from "#/composition/roots/outbox-processor.composition.js";
 import { OutboxProcessorWorker } from "#/infrastructure/messaging/bullmq/workers/outbox-processor.worker.js";
 import { createLogger } from "#/shared/logging/logger.js";
 

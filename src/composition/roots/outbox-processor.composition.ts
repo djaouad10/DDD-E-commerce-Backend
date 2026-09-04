@@ -1,15 +1,15 @@
 import { OutboxProcessorService } from "#/application/services/outbox-processor/outbox-processor.service.js";
 import { PostgresOutboxRepository } from "#/infrastructure/databases/repositories/postgres/postgres-outbox-repository.js";
 import { createBullMqOutboxQueue } from "#/infrastructure/messaging/bullmq/queue/outbox.queue.js";
-import { Container } from "./container.js";
-import { registerSharedInfrastructure } from "./shared-registry.js";
+import { Container } from "../utils/container.js";
+import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   DB,
   OUTBOX_PROCESSOR_SERVICE,
   OUTBOX_QUEUE,
   OUTBOX_REPOSITORY,
   REDIS,
-} from "./tokens.js";
+} from "../utils/tokens.js";
 
 export function buildOutboxProcessorContainer(): Container {
   const container = new Container();

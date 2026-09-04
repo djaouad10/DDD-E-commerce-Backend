@@ -1,4 +1,4 @@
-import { Container } from "#/composition/container.js";
+import { Container } from "#/composition/utils/container.js";
 import { env } from "#/infrastructure/config/env.js";
 import { createServer } from "#/infrastructure/http/server/index.js";
 

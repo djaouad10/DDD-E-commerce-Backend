@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import { EmailQueueRatingApprovedHandlerService } from "./email-queue-rating-approved-handler.service.js";
 import {
@@ -17,7 +17,7 @@ import {
   PRODUCT_REPOSITORY,
   RATING_REPOSITORY,
   USER_REPOSITORY,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { User } from "#/domain/entities/user.js";
 import { Rating } from "#/domain/entities/rating.js";
 import { Category } from "#/domain/entities/category.js";

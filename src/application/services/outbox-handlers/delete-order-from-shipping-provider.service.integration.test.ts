@@ -1,11 +1,11 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import {
   clearDatabase,
   findIdempotencyKeyInDB,
 } from "#/tests/helpers/db-helpers.js";
 import type { Mock } from "vitest";
-import { DB, IDEMPOTENCY_KEYS_REPOSITORY } from "#/composition/tokens.js";
+import { DB, IDEMPOTENCY_KEYS_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DeleteOrderFromShippingProviderService } from "./delete-order-from-shipping-provider.service.js";
 import { DeleteOrderFromShippingProviderCommand } from "../../commands/outbox-handlers/delete-order-from-shipping-provider.command.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";

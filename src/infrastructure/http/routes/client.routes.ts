@@ -17,7 +17,7 @@ import {
   GET_CLIENTS_LIST_SERVICE,
   UNBAN_CLIENT_SERVICE,
   UPDATE_CLIENT_PROFILE_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { GetClientProfileQuery } from "#/application/queries/get-client-profile.query.js";
 import type { UserDTO } from "#/application/dto/user.dto.js";
 import { GetClientBanStatusQuery } from "#/application/queries/get-client-ban-status.query.js";
