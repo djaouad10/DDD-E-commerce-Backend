@@ -17,7 +17,7 @@ export class Money {
 
   static of(amount: number, currency: Currency): Money {
     if (amount < 0)
-      throw new ValidationError("amount", "Money can not be negative");
+      throw new ValidationError("Money.amount", "Money can not be negative");
 
     return new Money(amount, currency);
   }
@@ -25,7 +25,7 @@ export class Money {
   add(other: Money): Money {
     if (this.currency !== other.currency)
       throw new ValidationError(
-        "currency",
+        "Money.currency",
         "Money must have the same currency",
       );
 
@@ -35,12 +35,12 @@ export class Money {
   subtract(other: Money): Money {
     if (this.currency !== other.currency)
       throw new ValidationError(
-        "currency",
+        "Money.currency",
         "Money must have the same currency",
       );
 
     if (this.amount < other.amount)
-      throw new ValidationError("amount", "Money can not be negative");
+      throw new ValidationError("Money.amount", "Money can not be negative");
 
     return new Money(this.amount - other.amount, "DZD");
   }

@@ -7,17 +7,17 @@ export class UpdateVariationOfProductCommand {
     public readonly newTotalQty?: number,
     public readonly newWeightInGrams?: number,
   ) {
-    this.validate(newTotalQty, newWeightInGrams);
+    this.validate();
   }
 
-  private validate(newTotalQty?: number, newWeightInGrams?: number) {
-    if (newTotalQty && newTotalQty < 0) {
+  private validate() {
+    if (this.newTotalQty && this.newTotalQty < 0) {
       throw new ValidationError(
         "product.variation.qty",
         "variation qty must be greater than 0",
       );
     }
-    if (newWeightInGrams && newWeightInGrams <= 0) {
+    if (this.newWeightInGrams && this.newWeightInGrams <= 0) {
       throw new ValidationError(
         "product.variation.weightInGrams",
         "variation weightInGrams must be greater than 0",

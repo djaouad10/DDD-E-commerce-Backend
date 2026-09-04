@@ -9,7 +9,7 @@ export class UserId {
 
   static of(value: string): UserId {
     if (!value.match(/^usr_[a-zA-Z0-9]{32}$/)) {
-      throw new ValidationError("user ID", "must start with usr_");
+      throw new ValidationError("user.id", "invalid id format");
     }
 
     return new UserId(value);

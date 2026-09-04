@@ -34,7 +34,7 @@ export class Variation {
     weightInGrams: Weight,
   ): Variation {
     if (weightInGrams.unit !== "g")
-      throw new ValidationError("weightInGrams.unit", "must be grams");
+      throw new ValidationError("variation.weightInGrams.unit", "must be grams");
 
     // validation here then:
     const now = new Date();
@@ -63,7 +63,7 @@ export class Variation {
     updatedAt: Date,
   ): Variation {
     if (weightInGrams.unit !== "g")
-      throw new ValidationError("weightInGrams.unit", "must be grams");
+      throw new ValidationError("variation.weightInGrams.unit", "must be grams");
 
     return new Variation(
       id,

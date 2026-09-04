@@ -18,7 +18,7 @@ export class Slug {
   static of(value: string): Slug {
     // validation
     if (!/^[a-z0-9]+(-[a-z0-9]+)*-[A-Z0-9]{5}$/.test(value)) {
-      throw new ValidationError("slug value", "invalid slug value format");
+      throw new ValidationError("Slug.value", "invalid slug value format");
     }
     return new Slug(value);
   }

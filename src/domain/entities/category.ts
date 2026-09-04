@@ -17,7 +17,7 @@ export class Category {
     // validation
     if (name.length < 3) {
       throw new ValidationError(
-        "name",
+        "category.name",
         "Category name must be at least 3 characters long",
       );
     }
@@ -29,7 +29,7 @@ export class Category {
     // validation
     if (name.length < 3) {
       throw new ValidationError(
-        "name",
+        "category.name",
         "Category name must be at least 3 characters long",
       );
     }
@@ -42,7 +42,7 @@ export class Category {
     // validation
     if (name.length < 3) {
       throw new ValidationError(
-        "name",
+        "category.name",
         "Category name must be at least 3 characters long",
       );
     }

@@ -1,34 +1,35 @@
 import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
 import { DeliveryType } from "#/domain/value-objects/shipping-details.js";
 import z from "zod";
+import { idSchema, isoDateStringSchema, limitStringSchema, nameSchema, strictlyPositiveNumberStringSchema } from "./shared.js";
 
 export const getOrdersOfClientSearchParamsSchema = z.object({
-  clientId: z.string(),
-  limit: z.coerce.number().min(1).optional(),
+  clientId: idSchema,
+  limit: limitStringSchema.optional(),
   status: z.enum(OrderStatus).optional(),
   cursor: z
     .object({
-      createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      orderId: z.string(),
+      createdAt: isoDateStringSchema,
+      orderId: idSchema,
     })
     .optional(),
 });
 
 export const getOrderByTrackingNumberParamsSchema = z.object({
-  tracking: z.string(),
+  tracking: z.string().trim().min(1).max(100),
 });
 
 export const getOrderByIdParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const getOrdersSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1).optional(),
+  limit: limitStringSchema.optional(),
   status: z.enum(OrderStatus).optional(),
   cursor: z
     .object({
-      createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      orderId: z.string(),
+      createdAt: isoDateStringSchema,
+      orderId: idSchema,
     })
     .optional(),
 });
@@ -40,49 +41,49 @@ const phoneNumberSchema = z
 
 export const createOrderBodySchema = z.object({
   idempotencyKey: z.uuid(),
-  providedShippingPrice: z.coerce.number().positive().max(1000000),
+  providedShippingPrice: strictlyPositiveNumberStringSchema.max(1000000),
   selectedShippingProvider: z.enum(ShippingProvider),
   shippingDetails: z.object({
-    fullName: z.string().trim(),
+    fullName: nameSchema,
     firstPhone: phoneNumberSchema,
     secondPhone: phoneNumberSchema.optional(),
     wilayaCode: z.number().min(1).max(69),
-    commune: z.string().trim(),
+    commune: z.string().trim().min(1).max(100),
     postalCode: z
       .string()
       .trim()
       .regex(/^\d{3,5}$/, "invalid postal code"),
 
-    address: z.string().trim(),
+    address: z.string().trim().min(1).max(100),
     gpsLink: z.url().optional(),
-    clientNote: z.string().trim().optional(),
+    clientNote: z.string().trim().min(1).max(500).optional(),
     deliveryType: z.enum(DeliveryType),
     fragile: z.boolean(),
   }),
 });
 
 export const cancelOrderParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const confirmOrderParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const shipOrderParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const updateShippingDetailsParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const updateShippingDetailsBodySchema = z.object({
-  clientName: z.string().trim(),
+  clientName: nameSchema,
   phone: phoneNumberSchema,
   phone2: phoneNumberSchema.optional().nullable(),
-  address: z.string().trim(),
-  note: z.string().trim().optional().nullable(),
+  address: z.string().trim().min(1).max(100),
+  note: z.string().trim().min(1).max(500).optional().nullable(),
   isFragile: z.boolean(),
   gpsLink: z.url().optional().nullable(),
 });

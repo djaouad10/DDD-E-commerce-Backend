@@ -106,41 +106,41 @@ export class Product {
     // validation
     if (images.length === 0)
       throw new ValidationError(
-        "images",
+        "product.images",
         "product must have at least one image",
       );
 
     if (!images.find((i) => i.isMain()))
-      throw new ValidationError("images", "product must have a main image");
+      throw new ValidationError("product.images", "product must have a main image");
 
     if (variations.length === 0)
       throw new ValidationError(
-        "variations",
+        "product.variations",
         "product must have at least one variation",
       );
 
     const numberOfMainImages = images.filter((i) => i.isMain()).length;
     if (numberOfMainImages > 1)
       throw new ValidationError(
-        "images",
+        "product.images",
         "product can have only one main image",
       );
 
     if (averageRating !== null && (averageRating < 0 || averageRating > 5))
       throw new ValidationError(
-        "averageRating",
+        "product.averageRating",
         "average rating must be between 0 and 5",
       );
 
     if (discountedPrice && discountedPrice.amount > price.amount)
       throw new ValidationError(
-        "discountedPrice",
+        "product.discountedPrice",
         "discounted price must be less than the price",
       );
 
     if (discountedPrice && discountedPrice.currency !== price.currency)
       throw new ValidationError(
-        "discountedPrice",
+        "product.discountedPrice",
         "discounted price must have the same currency as the price",
       );
 
@@ -201,41 +201,41 @@ export class Product {
     // validation
     if (images.length === 0)
       throw new ValidationError(
-        "images",
+        "product.images",
         "product must have at least one image",
       );
 
     if (!images.find((i) => i.isMain()))
-      throw new ValidationError("images", "product must have a main image");
+      throw new ValidationError("product.images", "product must have a main image");
 
     if (variations.length === 0)
       throw new ValidationError(
-        "variations",
+        "product.variations",
         "product must have at least one variation",
       );
 
     const numberOfMainImages = images.filter((i) => i.isMain()).length;
     if (numberOfMainImages > 1)
       throw new ValidationError(
-        "images",
+        "product.images",
         "product can have only one main image",
       );
 
     if (averageRating !== null && (averageRating < 0 || averageRating > 5))
       throw new ValidationError(
-        "averageRating",
+        "product.averageRating",
         "average rating must be between 0 and 5",
       );
 
     if (discountedPrice && discountedPrice.amount > price.amount)
       throw new ValidationError(
-        "discountedPrice",
+        "product.discountedPrice",
         "discounted price must be less than the price",
       );
 
     if (discountedPrice && discountedPrice.currency !== price.currency)
       throw new ValidationError(
-        "discountedPrice",
+        "product.discountedPrice",
         "discounted price must have the same currency as the price",
       );
 
@@ -264,7 +264,7 @@ export class Product {
   updateName(newName: string): void {
     // validation
     if (newName.length === 0)
-      throw new ValidationError("name", "name is empty");
+      throw new ValidationError("newName", "name is empty");
 
     this._name = newName;
     this.slug = Slug.generate(newName);
@@ -304,7 +304,7 @@ export class Product {
   updatePrice(newPrice: Money): void {
     if (newPrice.currency !== this._price.currency)
       throw new ValidationError(
-        "currency",
+        "newPrice.currency",
         "price must have the same currency as existing price",
       );
 
@@ -313,7 +313,7 @@ export class Product {
       newPrice.amount <= this._discountedPrice.amount
     )
       throw new ValidationError(
-        "newPrice",
+        "newPrice.amount",
         "price must be greater than existing discounted price",
       );
 
@@ -329,13 +329,13 @@ export class Product {
       newDiscountedPrice.currency !== this._price.currency
     )
       throw new ValidationError(
-        "currency",
+        "newDiscountedPrice.currency",
         "discounted price must have the same currency as existing price",
       );
 
     if (newDiscountedPrice && newDiscountedPrice.amount >= this._price.amount)
       throw new ValidationError(
-        "newDiscountedPrice",
+        "newDiscountedPrice.amount",
         "discounted price must be less than existing price",
       );
 
@@ -447,7 +447,7 @@ export class Product {
       throw new NotFoundError("product.variation", variationId.value);
 
     if (this._variations.length === 1)
-      throw new ValidationError("variations", "cannot remove last variation");
+      throw new ValidationError("product.variations", "cannot remove last variation");
 
     this._variations = this._variations.filter(
       (v) => !v.id.equals(variationId),

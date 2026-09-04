@@ -1,3 +1,3 @@
 export class GetProductVariationsQuery {
-  constructor(public productId: string) {}
+  constructor(public readonly productId: string) {}
 }

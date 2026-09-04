@@ -1,6 +1,6 @@
 export class GetProductVariationsWithCartFlagQuery {
   constructor(
-    public productId: string,
-    public userId: string,
+    public readonly productId: string,
+    public readonly userId: string,
   ) {}
 }

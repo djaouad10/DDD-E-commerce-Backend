@@ -100,7 +100,7 @@ export class User {
   updateName(newName: string): void {
     if (newName === this._name) return;
 
-    if (!newName) throw new ValidationError("name", "name cannot be empty");
+    if (!newName) throw new ValidationError("newName", "name cannot be empty");
 
     this._name = newName;
 
@@ -114,7 +114,7 @@ export class User {
     if (newImage === this._image) return;
 
     if (typeof newImage === "string" && !newImage)
-      throw new ValidationError("image", "image cannot be empty");
+      throw new ValidationError("newImage", "image cannot be empty");
 
     this._image = newImage;
 

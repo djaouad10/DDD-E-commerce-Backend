@@ -9,7 +9,7 @@ export class CategoryId {
 
   static of(value: string): CategoryId {
     if (!value.match(/^cat_[a-zA-Z0-9]{32}$/)) {
-      throw new ValidationError("category ID", "must start with cat_");
+      throw new ValidationError("category.id", "invalid id format");
     }
 
     return new CategoryId(value);

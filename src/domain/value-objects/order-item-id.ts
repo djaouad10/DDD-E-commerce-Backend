@@ -9,7 +9,7 @@ export class OrderItemId {
 
   static of(value: string): OrderItemId {
     if (!value.match(/^orditm_[a-zA-Z0-9]{32}$/)) {
-      throw new ValidationError("order item ID", "must start with orditm_");
+      throw new ValidationError("orderItem.id", "invalid id format");
     }
 
     return new OrderItemId(value);

@@ -22,38 +22,29 @@ export class CreateProductCommand {
     }[],
     public readonly categoryId?: string,
   ) {
-    this.validate(price, discountPrice, variations);
+    this.validate();
   }
 
-  private validate(
-    price: number,
-    discountPrice: number | null,
-    variations: {
-      size: Size;
-      color: Color;
-      totalQty: number;
-      weightInGrams: number;
-    }[],
-  ) {
-    if (price < 0) {
+  private validate() {
+    if (this.price < 0) {
       throw new ValidationError("product.price", "must be greater than 0");
     }
 
-    if (discountPrice !== null && discountPrice < 0) {
+    if (this.discountPrice !== null && this.discountPrice < 0) {
       throw new ValidationError(
         "product.discountPrice",
         "must be greater than 0",
       );
     }
 
-    if (discountPrice !== null && discountPrice >= price) {
+    if (this.discountPrice !== null && this.discountPrice >= this.price) {
       throw new ValidationError(
         "product.discountPrice",
         "must be less than price",
       );
     }
 
-    for (const variation of variations) {
+    for (const variation of this.variations) {
       if (variation.totalQty < 0)
         throw new ValidationError(
           "product.variation.totalQty",

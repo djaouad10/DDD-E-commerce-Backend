@@ -1,17 +1,18 @@
 import z from "zod";
+import { idSchema, nameSchema } from "./shared.js";
 
 export const createCategoryBodySchema = z.object({
-  name: z.string().min(3),
+  name: nameSchema,
 });
 
 export const updateCategoryBodySchema = z.object({
-  name: z.string().min(3),
+  name: nameSchema,
 });
 
 export const updateCategoryParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });
 
 export const deleteCategoryParamsSchema = z.object({
-  id: z.string(),
+  id: idSchema,
 });

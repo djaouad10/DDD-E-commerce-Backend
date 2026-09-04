@@ -6,11 +6,11 @@ export class BanClientCommand {
     public readonly banExpiresInSeconds?: number,
     public readonly reason?: string,
   ) {
-    this.validate(banExpiresInSeconds);
+    this.validate();
   }
 
-  private validate(banExpiresInSeconds: number | undefined) {
-    if (banExpiresInSeconds && banExpiresInSeconds <= 0) {
+  private validate() {
+    if (this.banExpiresInSeconds && this.banExpiresInSeconds <= 0) {
       throw new ValidationError(
         "banExpiresInSeconds",
         "must be greater than 0",

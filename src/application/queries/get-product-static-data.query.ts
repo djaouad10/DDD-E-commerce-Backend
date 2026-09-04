@@ -1,3 +1,3 @@
 export class GetProductStaticDataQuery {
-  constructor(public productId: string) {}
+  constructor(public readonly productId: string) {}
 }

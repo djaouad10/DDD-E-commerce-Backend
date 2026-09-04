@@ -9,7 +9,7 @@ export class FileId {
 
   static of(value: string): FileId {
     if (!value.match(/^file_[a-zA-Z0-9]{32}$/)) {
-      throw new ValidationError("file ID", "must start with file_");
+      throw new ValidationError("file.id", "invalid id format");
     }
 
     return new FileId(value);

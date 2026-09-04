@@ -1,4 +1,7 @@
-import { BadRequestError } from "#/shared/errors/domain-error.js";
+import {
+  BadRequestError,
+  ValidationError,
+} from "#/shared/errors/domain-error.js";
 
 type UpdateProductCommandData = {
   price?: number;
@@ -15,27 +18,32 @@ export class UpdateProductCommand {
     public readonly productId: string,
     public readonly data: UpdateProductCommandData,
   ) {
-    this.validate(data);
+    this.validate();
   }
 
-  private validate(data: UpdateProductCommandData) {
+  private validate() {
     if (
-      data.price === undefined &&
-      data.discountPrice === undefined &&
-      data.name === undefined &&
-      data.description === undefined &&
-      data.brand === undefined &&
-      data.material === undefined &&
-      data.categoryId === undefined
+      this.data.price === undefined &&
+      this.data.discountPrice === undefined &&
+      this.data.name === undefined &&
+      this.data.description === undefined &&
+      this.data.brand === undefined &&
+      this.data.material === undefined &&
+      this.data.categoryId === undefined
     )
       throw new BadRequestError(
         "provide at least one field to update in product",
         { productId: this.productId },
       );
 
-    if (data.price && data.discountPrice && data.price <= data.discountPrice)
-      throw new BadRequestError("discount price must be less than price", {
-        productId: this.productId,
-      });
+    if (
+      this.data.price &&
+      this.data.discountPrice &&
+      this.data.price <= this.data.discountPrice
+    )
+      throw new ValidationError(
+        "product.discountPrice",
+        "discount price must be less than price",
+      );
   }
 }

@@ -11,17 +11,17 @@ export class CreateVariationOfProductCommand {
       weightInGrams: number;
     },
   ) {
-    this.validate(this.data.totalQty, this.data.weightInGrams);
+    this.validate();
   }
 
-  private validate(totalQty: number, weightInGrams: number) {
-    if (totalQty < 0)
+  private validate() {
+    if (this.data.totalQty < 0)
       throw new ValidationError(
         "product.variation.totalQty",
         "must be greater than 0",
       );
 
-    if (weightInGrams <= 0)
+    if (this.data.weightInGrams <= 0)
       throw new ValidationError(
         "product.variation.weightInGrams",
         "must be greater than 0",

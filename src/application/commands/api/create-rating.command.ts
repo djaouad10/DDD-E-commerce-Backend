@@ -7,11 +7,11 @@ export class CreateRatingCommand {
     public readonly rating: number,
     public readonly comment: string | null,
   ) {
-    this.validate(rating);
+    this.validate();
   }
 
-  private validate(rating: number) {
-    if (rating < 0 || rating > 5)
+  private validate() {
+    if (this.rating < 0 || this.rating > 5)
       throw new ValidationError("rating", "rating must be between 0 and 5");
   }
 }

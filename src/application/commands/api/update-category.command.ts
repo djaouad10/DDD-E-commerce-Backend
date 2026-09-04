@@ -7,13 +7,13 @@ export class UpdateCategoryCommand {
     public categoryId: string,
     name: string,
   ) {
-    this.validate(name);
+    this.name = name.trim().toLocaleLowerCase();
 
-    this.name = name.toLocaleLowerCase();
+    this.validate();
   }
 
-  validate(name: string) {
-    if (name.length < 3) {
+  validate() {
+    if (this.name.length < 3) {
       throw new ValidationError(
         "category.name",
         "name must be at least 3 characters long",

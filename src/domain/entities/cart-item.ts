@@ -15,7 +15,7 @@ export class CartItem {
 
   // factory
   static create(variationId: VariationId, qty: number): CartItem {
-    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+    if (qty <= 0) throw new ValidationError("cartItem.qty", "must be greater than 0");
 
     return new CartItem(CartItemId.generate(), variationId, qty, new Date());
   }
@@ -27,7 +27,7 @@ export class CartItem {
     qty: number,
     updatedAt: Date,
   ): CartItem {
-    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+    if (qty <= 0) throw new ValidationError("cartItem.qty", "must be greater than 0");
 
     return new CartItem(id, variationId, qty, updatedAt);
   }

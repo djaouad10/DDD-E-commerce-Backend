@@ -6,11 +6,11 @@ export class AddItemToCartCommand {
     public readonly variationId: string,
     public readonly qty: number,
   ) {
-    this.validate(qty);
+    this.validate();
   }
 
-  private validate(qty: number) {
-    if (qty <= 0) {
+  private validate() {
+    if (this.qty <= 0) {
       throw new ValidationError(
         "cart.item.qty",
         "cart item qty must be greater than 0",
