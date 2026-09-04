@@ -67,6 +67,8 @@ export class Order {
     private _orderItems: OrderItem[],
     private readonly _createdAt: Date,
     private _updatedAt: Date,
+    private _version: number,
+    private _isNew: boolean,
   ) {}
 
   static create(
@@ -98,6 +100,8 @@ export class Order {
       orderItems,
       now,
       now,
+      0,
+      true,
     );
 
     order.recordThat(
@@ -126,6 +130,7 @@ export class Order {
     orderItems: OrderItem[],
     createdAt: Date,
     updatedAt: Date,
+    version: number,
   ) {
     // reconstitute from DB, reuse the same ID
     // this is used by repository/mapper to reconstitute DB row => Domain object
@@ -141,6 +146,8 @@ export class Order {
       orderItems,
       createdAt,
       updatedAt,
+      version,
+      false,
     );
   }
 
@@ -439,6 +446,14 @@ export class Order {
 
   getTotalWeightInKg(): Weight {
     return this.getTotalWeightInGrams().toKg();
+  }
+
+  getVersion(): number {
+    return this._version;
+  }
+
+  isNew(): boolean {
+    return this._isNew;
   }
 
   // mappers
