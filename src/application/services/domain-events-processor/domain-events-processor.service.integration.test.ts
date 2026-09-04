@@ -22,8 +22,8 @@ describe("DomainEventsProcessorService", () => {
   let eventPublisherMock: { publish: Mock };
   let service: DomainEventsProcessorService;
 
-  beforeAll(() => {
-    const testApp = createTestApp();
+  beforeAll(async () => {
+    const testApp = await createTestApp();
     container = testApp.container;
     outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
   });

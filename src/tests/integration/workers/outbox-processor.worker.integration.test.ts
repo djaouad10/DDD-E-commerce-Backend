@@ -13,8 +13,8 @@ import { OUTBOX_QUEUE } from "#/composition/utils/tokens.js";
 describe("OutboxProcessorWorker", () => {
   let container: Container;
 
-  beforeAll(() => {
-    const testApp = createTestApp();
+  beforeAll(async () => {
+    const testApp = await createTestApp();
     container = testApp.container;
   });
 

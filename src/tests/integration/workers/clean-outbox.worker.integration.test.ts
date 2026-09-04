@@ -12,8 +12,8 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 describe("CleanOutboxWorker", () => {
   let container: Container;
 
-  beforeAll(() => {
-    const testApp = createTestApp();
+  beforeAll(async () => {
+    const testApp = await createTestApp();
     container = testApp.container;
   });
 

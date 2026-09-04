@@ -23,7 +23,7 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
   let request: ReturnType<typeof supertest>;
 
   beforeAll(async () => {
-    const testApp = createTestApp();
+    const testApp = await createTestApp();
     container = testApp.container;
     app = testApp.app;
     request = supertest(app);

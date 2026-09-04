@@ -24,7 +24,7 @@ describe("GET /api/v1/cart", () => {
   let request: ReturnType<typeof supertest>;
 
   beforeAll(async () => {
-    const testApp = createTestApp();
+    const testApp = await createTestApp();
     container = testApp.container;
     app = testApp.app;
     request = supertest(app);

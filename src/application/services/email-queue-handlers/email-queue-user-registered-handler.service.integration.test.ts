@@ -27,7 +27,7 @@ describe("EmailQueueUserRegisteredHandlerService", () => {
   let emailGatewayMock: { sendEmail: Mock };
 
   beforeAll(async () => {
-    const testApp = createTestApp();
+    const testApp = await createTestApp();
     container = testApp.container;
 
     const db = container.resolveSingleton(DB);

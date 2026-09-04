@@ -15,8 +15,8 @@ describe("CleanOutboxService", () => {
   let container: Container;
   let service: CleanOutboxService;
 
-  beforeAll(() => {
-    const testApp = createTestApp();
+  beforeAll(async () => {
+    const testApp = await createTestApp();
 
     container = testApp.container;
 
