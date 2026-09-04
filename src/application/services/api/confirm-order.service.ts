@@ -1,9 +1,9 @@
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import type { OutboxJobPayloadType } from "#/infrastructure/messaging/jobs/validation.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 import type { ConfirmOrderCommand } from "../../commands/api/confirm-order.command.js";
 import {
   OutboxAction,
@@ -14,7 +14,7 @@ export class ConfirmOrderService {
   private logger = createLogger("ConfirmOrderService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private orderRepository: OrderRepository,
     private outboxRepository: OutboxRepository,
   ) {}

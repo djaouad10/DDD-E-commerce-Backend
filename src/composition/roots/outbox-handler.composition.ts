@@ -14,6 +14,7 @@ import {
   CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
   DB,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
+  DRIZZLE_DB,
   HTTP_CLIENT,
   IDEMPOTENCY_KEYS_REPOSITORY,
   ORDER_REPOSITORY,
@@ -28,13 +29,13 @@ export function buildOutboxHandlerContainer(): Container {
 
   container.register(
     IDEMPOTENCY_KEYS_REPOSITORY,
-    (scope) => new PostgresIdempotencyKeysRepository(scope.resolve(DB)),
+    () => new PostgresIdempotencyKeysRepository(),
     "singleton",
   );
 
   container.register(
     ORDER_REPOSITORY,
-    (scope) => new PostgresOrderRepository(scope.resolve(DB)),
+    (scope) => new PostgresOrderRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 

@@ -90,9 +90,13 @@ import type { EmailQueueUserRegisteredHandlerService } from "#/application/servi
 import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
 import type { CleanOutboxService } from "#/application/services/outbox-cleaner/clean-outbox.service.js";
 import type { ResetStuckOutboxRowsService } from "#/application/services/stuck-outbox-resetter/reset-stuck-outbox-rows.service.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 
 // Infrastructure tokens
-export const DB = Symbol("db") as InjectionToken<DrizzleDBClient>;
+export const DB = Symbol("db") as InjectionToken<DBClient>;
+export const DRIZZLE_DB = Symbol(
+  "drizzle-db",
+) as InjectionToken<DrizzleDBClient>; // for test db helpers and drizzle specific infra helpers
 export const REDIS = Symbol("redis") as InjectionToken<Redis>;
 export const UTAPI = Symbol("utApi") as InjectionToken<UTApi>;
 export const HTTP_CLIENT = Symbol("httpClient") as InjectionToken<HttpClient>;

@@ -1,8 +1,8 @@
 import type { CategorySnapshot } from "#/domain/entities-snapshots/category.snapshot.js";
 import { Category } from "#/domain/entities/category.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 import type { CreateCategoryCommand } from "../../commands/api/create-category.command.js";
 import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
@@ -10,7 +10,7 @@ export class CreateCategoryService {
   private logger = createLogger("CreateCategoryService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private categoryRepository: CategoryRepository,
     private outboxRepository: OutboxRepository,
   ) {}

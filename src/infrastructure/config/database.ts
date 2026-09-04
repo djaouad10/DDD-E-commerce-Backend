@@ -3,7 +3,7 @@ import postgres from "postgres";
 import * as schema from "#/infrastructure/databases/schema.js";
 import { env } from "./env.js";
 
-export const createDb = ({
+export const createDrizzleDB = ({
   connectionUrl,
   maxPoolSize,
 }: {
@@ -20,7 +20,7 @@ export const createDb = ({
   });
 };
 
-export type DrizzleDBClient = ReturnType<typeof createDb>;
+export type DrizzleDBClient = ReturnType<typeof createDrizzleDB>;
 export type DrizzleTransactionClient = Parameters<
   Parameters<DrizzleDBClient["transaction"]>[0]
 >[0];

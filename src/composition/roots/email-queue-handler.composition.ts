@@ -20,6 +20,7 @@ import { Container } from "../utils/container.js";
 import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   DB,
+  DRIZZLE_DB,
   EMAIL_GATEWAY,
   EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
   EMAIL_QUEUE_ORDER_CONFIRMED_HANDLER_SERVICE,
@@ -46,37 +47,37 @@ export function buildEmailQueueHandlerContainer(): Container {
 
   container.register(
     IDEMPOTENCY_KEYS_REPOSITORY,
-    (scope) => new PostgresIdempotencyKeysRepository(scope.resolve(DB)),
+    () => new PostgresIdempotencyKeysRepository(),
     "singleton",
   );
 
   container.register(
     ORDER_REPOSITORY,
-    (scope) => new PostgresOrderRepository(scope.resolve(DB)),
+    (scope) => new PostgresOrderRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     PRODUCT_REPOSITORY,
-    (scope) => new PostgresProductRepository(scope.resolve(DB)),
+    (scope) => new PostgresProductRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     USER_REPOSITORY,
-    (scope) => new PostgresUserRepository(scope.resolve(DB)),
+    (scope) => new PostgresUserRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     RATING_REPOSITORY,
-    (scope) => new PostgresRatingRepository(scope.resolve(DB)),
+    (scope) => new PostgresRatingRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     USER_QUERIES,
-    (scope) => new PostgresUserQueries(scope.resolve(DB)),
+    (scope) => new PostgresUserQueries(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 

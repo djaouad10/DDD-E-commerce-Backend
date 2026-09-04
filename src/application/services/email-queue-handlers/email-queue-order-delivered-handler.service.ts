@@ -5,17 +5,17 @@ import type { OrderRepository } from "#/domain/repositories/order.repository.js"
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { buildOrderDeliveredEmailTemplate } from "#/infrastructure/notifications/templates/order-delivered.email.template.js";
 
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 
 export class EmailQueueOrderDeliveredHandlerService {
   private logger = createLogger("EmailQueueOrderDeliveredHandlerService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private emailGateway: EmailGateway,
     private userRepository: UserRepository,
     private orderRepository: OrderRepository,

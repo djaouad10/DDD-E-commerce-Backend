@@ -287,11 +287,6 @@ export class PostgresProductRepository implements ProductRepository {
 
     const db = tx as DrizzleTransactionClient;
 
-    // the variations deletion will cascade to orderItems, which have an on delete restrict constraints on variationId column, so this opeation could fail
-    // so should I check for this here, or should I check for this in application layer, so if the code ever reaches the product.save you know no orderItem is connected to a variation of this product
-
-    // solution: only delete variations that are actually gone(u checked in application layer they have no orderItems) and upsert the rest!!!!
-
     const productRow = PostgresProductMapper.toRow(productAgg);
     const variationsRows = PostgresProductMapper.toVariationRows(productAgg);
     const filesRows = PostgresProductMapper.toFileRows(productAgg);
@@ -427,14 +422,12 @@ export class PostgresProductRepository implements ProductRepository {
     }
   }
 
-  async delete(id: ProductId, tx?: TransactionClient): Promise<void> {
+  async delete(id: ProductId, tx: TransactionClient): Promise<void> {
     this.logger.debug("delete called", { id: id.value });
 
     const db = tx as DrizzleTransactionClient;
 
     try {
-      // this should be called after making sure there are no orderItems connected to this product in application layer
-      // variations and files will be deleted automatically (on delete cascade)
       await this.logger.measure("db.delete(product)", () =>
         db.delete(product).where(eq(product.id, id.value)),
       );

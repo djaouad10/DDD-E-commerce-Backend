@@ -2,7 +2,7 @@ import type { Container } from "#/composition/utils/container.js";
 import {
   CART_REPOSITORY,
   CATEGORY_REPOSITORY,
-  DB,
+  DRIZZLE_DB,
   IDEMPOTENCY_KEYS_REPOSITORY,
   ORDER_REPOSITORY,
   PRODUCT_REPOSITORY,
@@ -34,7 +34,7 @@ export async function createCategoryInDB(
   container: Container,
   category: Category,
 ): Promise<void> {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const categoryRepository = container.resolveSingleton(CATEGORY_REPOSITORY);
 
   await db.transaction(async (tx) => {
@@ -46,7 +46,7 @@ export async function saveCartInDB(
   container: Container,
   cart: Cart,
 ): Promise<void> {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const cartRepository = container.resolveSingleton(CART_REPOSITORY);
 
   await db.transaction(async (tx) => {
@@ -59,7 +59,7 @@ export async function createUserInDB(
   userObj: User,
   createdAt?: Date,
 ) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   await db.insert(user).values({
     id: userObj.id.value,
     email: userObj.email,
@@ -74,7 +74,7 @@ export async function createUserInDB(
 }
 
 export async function saveOrderInDB(container: Container, order: Order) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
 
   await db.transaction(async (tx) => {
@@ -96,7 +96,7 @@ export async function setupOrderInDB(
     variations?: Variation[];
   },
 ): Promise<Order> {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
   const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
   const categoryRepository = container.resolveSingleton(CATEGORY_REPOSITORY);
@@ -150,7 +150,7 @@ export async function createProductInDB(
   container: Container,
   product: Product,
 ) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
 
   await db.transaction(async (tx) => {
@@ -159,7 +159,7 @@ export async function createProductInDB(
 }
 
 export async function createRatingInDB(container: Container, rating: Rating) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const ratingRepository = container.resolveSingleton(RATING_REPOSITORY);
 
   await db.transaction(async (tx) => {
@@ -171,7 +171,7 @@ export async function findIdempotencyKeyInDB(
   container: Container,
   key: string,
 ) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const idempotencyKeysRepository = container.resolveSingleton(
     IDEMPOTENCY_KEYS_REPOSITORY,
   );
@@ -186,7 +186,7 @@ export async function createOutboxEnrtyInDB(
   category: OutboxCategory,
   data: { id: string; status: OutboxStatus; processedAt: Date | null },
 ) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
 
   await db.transaction(async (tx) => {
     if (category === OutboxCategory.OUTBOX_JOB) {
@@ -218,7 +218,7 @@ export async function createOutboxEnrtyInDB(
 }
 
 export async function getAllOutboxRowsFromDB(container: Container) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
 
   return await db.transaction(async (tx) => {
     return await tx.select().from(outbox);
@@ -250,7 +250,7 @@ export async function seedOutboxTableWithCompletedRows(
 }
 
 export async function clearDatabase(container: Container): Promise<void> {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
 
   await db.execute(sql`
   TRUNCATE TABLE

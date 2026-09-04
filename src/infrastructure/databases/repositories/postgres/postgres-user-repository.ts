@@ -1,7 +1,7 @@
 import type { User } from "#/domain/entities/user.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
+import type { DrizzleDBClient, DrizzleTransactionClient } from "#/infrastructure/config/database.js";
 import { eq } from "drizzle-orm";
 import {
   PostgresUserMapper,
@@ -121,7 +121,7 @@ export class PostgresUserRepository implements UserRepository {
   async save(userAgg: User, tx: TransactionClient): Promise<void> {
     this.logger.debug("save called", { id: userAgg.id.value });
 
-    const db = tx as DrizzleDBClient;
+    const db = tx as DrizzleTransactionClient;
 
     const userRow: UserRow = PostgresUserMapper.toRow(userAgg);
 

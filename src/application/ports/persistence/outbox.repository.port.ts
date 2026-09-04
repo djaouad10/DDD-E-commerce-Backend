@@ -91,10 +91,10 @@ export interface OutboxRepository {
       payload: Record<string, unknown>;
       scheduledAt?: Date; // optional, defaults to now
     },
-    tx?: TransactionClient,
+    tx: TransactionClient,
   ): Promise<void>;
 
-  saveEvents(events: DomainEvent[], tx?: TransactionClient): Promise<void>;
+  saveEvents(events: DomainEvent[], tx: TransactionClient): Promise<void>;
 
   getPendingJobs(limit: number): Promise<OutboxJobEntry[]>;
 

@@ -2,9 +2,9 @@ import type { CartRepository } from "#/domain/repositories/cart.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { CartItemId } from "#/domain/value-objects/cart-item-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 import type { UpdateCartItemCommand } from "../../commands/api/update-cart-item.command.js";
 import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
@@ -12,7 +12,7 @@ export class UpdateCartItemService {
   private logger = createLogger("UpdateCartItemService");
 
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private cartRepository: CartRepository,
     private outboxRepository: OutboxRepository,
     private userRepository: UserRepository,

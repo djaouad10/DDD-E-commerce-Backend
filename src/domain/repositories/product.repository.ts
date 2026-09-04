@@ -9,6 +9,6 @@ export type ProductRepository = {
   findBySlug(slug: Slug): Promise<Product | null>;
   findByVariationIds(variationIds: VariationId[]): Promise<Product[]>;
   findMany(ids: ProductId[]): Promise<Product[]>;
-  save(product: Product, tx?: TransactionClient): Promise<void>;
-  delete(id: ProductId, tx?: TransactionClient): Promise<void>;
+  save(product: Product, tx: TransactionClient): Promise<void>;
+  delete(id: ProductId, tx: TransactionClient): Promise<void>;
 };

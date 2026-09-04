@@ -1,16 +1,16 @@
 import type { CategorySnapshot } from "#/domain/entities-snapshots/category.snapshot.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
 import { CategoryId } from "#/domain/value-objects/category-id.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { DBClient } from "#/shared/types/db-client.js";
 import type { UpdateCategoryCommand } from "../../commands/api/update-category.command.js";
 import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
 export class UpdateCategoryService {
   private logger = createLogger("UpdateCategoryService");
   constructor(
-    private db: DrizzleDBClient,
+    private db: DBClient,
     private categoryRepository: CategoryRepository,
     private outboxRepository: OutboxRepository,
   ) {}

@@ -3,7 +3,7 @@ import { PostgresOutboxRepository } from "#/infrastructure/databases/repositorie
 import { Container } from "../utils/container.js";
 import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
-  DB,
+  DRIZZLE_DB,
   OUTBOX_REPOSITORY,
   RESET_STUCK_OUTBOX_ROWS_SERVICE,
 } from "../utils/tokens.js";
@@ -15,7 +15,7 @@ export function buildResetStuckOutboxRowsWorkerContainer(): Container {
 
   container.register(
     OUTBOX_REPOSITORY,
-    (scope) => new PostgresOutboxRepository(scope.resolve(DB)),
+    (scope) => new PostgresOutboxRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 

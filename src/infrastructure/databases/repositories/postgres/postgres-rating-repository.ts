@@ -166,7 +166,7 @@ export class PostgresRatingRepository implements RatingRepository {
   async delete(
     userId: UserId,
     productId: ProductId,
-    tx?: TransactionClient,
+    tx: TransactionClient,
   ): Promise<void> {
     this.logger.debug("delete called", {
       userId: userId.value,

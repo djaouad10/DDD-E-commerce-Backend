@@ -1,4 +1,4 @@
-import { createDb } from "#/infrastructure/config/database.js";
+import { createDrizzleDB } from "#/infrastructure/config/database.js";
 import { env } from "#/infrastructure/config/env.js";
 import { createRedisConnection } from "#/infrastructure/config/redis-connection.js";
 import { Container } from "../../utils/container.js";
@@ -113,6 +113,7 @@ import {
   DOMAIN_EVENTS_PROCESSOR_SERVICE,
   EVENT_PUBLISHER,
   RESET_STUCK_OUTBOX_ROWS_SERVICE,
+  DRIZZLE_DB,
 } from "../../utils/tokens.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -198,9 +199,13 @@ import { ResetStuckOutboxRowsService } from "#/application/services/stuck-outbox
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
 
-  const testDb = createDb({ connectionUrl: env.DATABASE_URL, maxPoolSize: 1 });
+  const testDb = createDrizzleDB({
+    connectionUrl: env.DATABASE_URL,
+    maxPoolSize: 1,
+  });
 
   container.registerInstance(DB, testDb);
+  container.registerInstance(DRIZZLE_DB, testDb);
 
   const testRedis = createRedisConnection({
     host: env.REDIS_HOST,
@@ -258,86 +263,86 @@ export function buildIntegrationTestsContainer(): Container {
   // register repositories (singletons)
   container.register(
     CART_REPOSITORY,
-    (scope) => new PostgresCartRepository(scope.resolve(DB)),
+    (scope) => new PostgresCartRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     CATEGORY_REPOSITORY,
-    (scope) => new PostgresCategoryRepository(scope.resolve(DB)),
+    (scope) => new PostgresCategoryRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     ORDER_REPOSITORY,
-    (scope) => new PostgresOrderRepository(scope.resolve(DB)),
+    (scope) => new PostgresOrderRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     PRODUCT_REPOSITORY,
-    (scope) => new PostgresProductRepository(scope.resolve(DB)),
+    (scope) => new PostgresProductRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     RATING_REPOSITORY,
-    (scope) => new PostgresRatingRepository(scope.resolve(DB)),
+    (scope) => new PostgresRatingRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     USER_REPOSITORY,
-    (scope) => new PostgresUserRepository(scope.resolve(DB)),
+    (scope) => new PostgresUserRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     OUTBOX_REPOSITORY,
-    (scope) => new PostgresOutboxRepository(scope.resolve(DB)),
+    (scope) => new PostgresOutboxRepository(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     IDEMPOTENCY_KEYS_REPOSITORY,
-    (scope) => new PostgresIdempotencyKeysRepository(scope.resolve(DB)),
+    () => new PostgresIdempotencyKeysRepository(),
     "singleton",
   );
 
   // register read models (singletons)
   container.register(
     CART_QUERIES,
-    (scope) => new PostgresCartQueries(scope.resolve(DB)),
+    (scope) => new PostgresCartQueries(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     CATEGORY_QUERIES,
-    (scope) => new PostgresCategoryQueries(scope.resolve(DB)),
+    (scope) => new PostgresCategoryQueries(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     ORDER_QUERIES,
-    (scope) => new PostgresOrderQueries(scope.resolve(DB)),
+    (scope) => new PostgresOrderQueries(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     PRODUCT_QUERIES,
-    (scope) => new PostgresProductQueries(scope.resolve(DB)),
+    (scope) => new PostgresProductQueries(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     RATING_QUERIES,
-    (scope) => new PostgresRatingQueries(scope.resolve(DB)),
+    (scope) => new PostgresRatingQueries(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
   container.register(
     USER_QUERIES,
-    (scope) => new PostgresUserQueries(scope.resolve(DB)),
+    (scope) => new PostgresUserQueries(scope.resolve(DRIZZLE_DB)),
     "singleton",
   );
 
