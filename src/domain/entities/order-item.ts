@@ -22,11 +22,12 @@ export class OrderItem {
     weightAtOrderTime: Weight,
     unitDiscountPriceAtOrderTime: Money | null,
   ): OrderItem {
-    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+    if (qty <= 0)
+      throw new ValidationError("orderItem.qty", "must be greater than 0");
 
     if (weightAtOrderTime.unit !== "g")
       throw new ValidationError(
-        "weightAtOrderTime",
+        "orderItem.weightAtOrderTime",
         "weight must be in grams at creation",
       );
 
@@ -48,11 +49,12 @@ export class OrderItem {
     unitDiscountPriceAtOrderTime: Money | null,
     weightAtOrderTime: Weight,
   ): OrderItem {
-    if (qty <= 0) throw new ValidationError("qty", "must be greater than 0");
+    if (qty <= 0)
+      throw new ValidationError("orderItem.qty", "must be greater than 0");
 
     if (weightAtOrderTime.unit !== "g")
       throw new ValidationError(
-        "weightAtOrderTime",
+        "orderItem.weightAtOrderTime",
         "weight must be in grams at reconstitution",
       );
 

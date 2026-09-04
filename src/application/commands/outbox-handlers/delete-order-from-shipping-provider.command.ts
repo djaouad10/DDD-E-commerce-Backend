@@ -11,6 +11,6 @@ export class DeleteOrderFromShippingProviderCommand {
 
   private validate() {
     if (!this.trackingNumber)
-      throw new ValidationError("trackingNumber", "trackingNumber is required");
+      throw new ValidationError("order.trackingNumber", "trackingNumber is required");
   }
 }

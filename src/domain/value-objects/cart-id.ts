@@ -9,7 +9,7 @@ export class CartId {
 
   static of(value: string): CartId {
     if (!value.match(/^crt_[a-zA-Z0-9]{32}$/)) {
-      throw new ValidationError("cart ID", "must start with crt_");
+      throw new ValidationError("cart.id", "invalid id format");
     }
 
     return new CartId(value);

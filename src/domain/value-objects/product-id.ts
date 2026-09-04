@@ -9,7 +9,7 @@ export class ProductId {
 
   static of(value: string): ProductId {
     if (!value.match(/^prod_[a-zA-Z0-9]{32}$/)) {
-      throw new ValidationError("product ID", "must start with prod_");
+      throw new ValidationError("product.id", "invalid id format");
     }
 
     return new ProductId(value);

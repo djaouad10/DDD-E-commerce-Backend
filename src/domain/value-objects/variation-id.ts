@@ -9,7 +9,7 @@ export class VariationId {
 
   static of(value: string): VariationId {
     if (!value.match(/^var_[a-zA-Z0-9]{32}$/)) {
-      throw new ValidationError("variation ID", "must start with var_");
+      throw new ValidationError("variation.id", "invalid id format");
     }
 
     return new VariationId(value);

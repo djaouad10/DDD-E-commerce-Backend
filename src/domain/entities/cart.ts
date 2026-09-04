@@ -27,7 +27,7 @@ export class Cart {
   static create(userId: UserId, items: CartItem[]): Cart {
     if (new Set(items.map((item) => item.id.value)).size !== items.length)
       throw new ValidationError(
-        "items",
+        "cart.items",
         "can't create a cart with duplicate items",
       );
 
@@ -38,7 +38,7 @@ export class Cart {
   static reconstitute(id: CartId, userId: UserId, items: CartItem[]): Cart {
     if (new Set(items.map((item) => item.id.value)).size !== items.length)
       throw new ValidationError(
-        "items",
+        "cart.items",
         "can't reconstitute a cart with duplicate items",
       );
 
@@ -56,7 +56,7 @@ export class Cart {
 
     if (this._items.length >= 50)
       throw new ValidationError(
-        "cart",
+        "cart.items",
         "cart is full, cannot add more than 50 items",
       );
 

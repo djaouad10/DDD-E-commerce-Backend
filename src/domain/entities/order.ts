@@ -155,7 +155,7 @@ export class Order {
 
   confirm(): void {
     if (!orderStateMachine[this._status].includes(OrderStatus.CONFIRMED)) {
-      throw new ValidationError("status", "invalid status transition");
+      throw new ValidationError("order.status", "invalid status transition");
     }
 
     this._status = OrderStatus.CONFIRMED;
@@ -176,7 +176,7 @@ export class Order {
 
   cancel(): void {
     if (!orderStateMachine[this._status].includes(OrderStatus.CANCELLED)) {
-      throw new ValidationError("status", "invalid status transition");
+      throw new ValidationError("order.status", "invalid status transition");
     }
 
     this._status = OrderStatus.CANCELLED;
@@ -188,7 +188,7 @@ export class Order {
 
   markAsPreTransit(): void {
     if (!orderStateMachine[this._status].includes(OrderStatus.PRE_TRANSIT)) {
-      throw new ValidationError("status", "invalid status transition");
+      throw new ValidationError("order.status", "invalid status transition");
     }
 
     this._status = OrderStatus.PRE_TRANSIT;
@@ -208,7 +208,7 @@ export class Order {
   // In Order class
   markAsShipping(): void {
     if (!orderStateMachine[this._status].includes(OrderStatus.SHIPPING)) {
-      throw new ValidationError("status", "invalid status transition");
+      throw new ValidationError("order.status", "invalid status transition");
     }
     this._status = OrderStatus.SHIPPING;
     this._updatedAt = new Date();
@@ -226,7 +226,7 @@ export class Order {
 
   markAsDelivered(): void {
     if (!orderStateMachine[this._status].includes(OrderStatus.DELIVERED)) {
-      throw new ValidationError("status", "invalid status transition");
+      throw new ValidationError("order.status", "invalid status transition");
     }
     this._status = OrderStatus.DELIVERED;
     this._updatedAt = new Date();
@@ -244,7 +244,7 @@ export class Order {
 
   markAsReturned(): void {
     if (!orderStateMachine[this._status].includes(OrderStatus.RETURNED)) {
-      throw new ValidationError("status", "invalid status transition");
+      throw new ValidationError("order.status", "invalid status transition");
     }
     this._status = OrderStatus.RETURNED;
     this._updatedAt = new Date();
@@ -262,7 +262,7 @@ export class Order {
 
   markAsSuspended(): void {
     if (!orderStateMachine[this._status].includes(OrderStatus.SUSPENDED)) {
-      throw new ValidationError("status", "invalid status transition");
+      throw new ValidationError("order.status", "invalid status transition");
     }
 
     const previousStatus = this._status;
@@ -283,7 +283,7 @@ export class Order {
 
   resumeFromSuspension(): void {
     if (!orderStateMachine[this._status].includes(OrderStatus.SHIPPING)) {
-      throw new ValidationError("status", "invalid status transition");
+      throw new ValidationError("order.status", "invalid status transition");
     }
     this._status = OrderStatus.SHIPPING;
     this._updatedAt = new Date();
@@ -339,7 +339,7 @@ export class Order {
       this._status !== OrderStatus.CONFIRMED
     ) {
       throw new ValidationError(
-        "status",
+        "order.status",
         "can't update shipping details when order is not PENDING or CONFIRMED",
       );
     }

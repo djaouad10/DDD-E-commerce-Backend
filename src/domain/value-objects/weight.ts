@@ -12,14 +12,14 @@ export class Weight {
 
   static of(weight: number, unit: WeightUnit): Weight {
     if (weight < 0)
-      throw new ValidationError("weight", "weight can not be negative");
+      throw new ValidationError("weight.weight", "weight can not be negative");
 
     return new Weight(weight, unit);
   }
 
   add(other: Weight): Weight {
     if (this.unit !== other.unit)
-      throw new ValidationError("units", "weight units must be the same");
+      throw new ValidationError("weight.unit", "weight units must be the same");
 
     return new Weight(this.weight + other.weight, this.unit);
   }
@@ -31,7 +31,7 @@ export class Weight {
 
   toKg(): Weight {
     if (this.unit === "kg")
-      throw new ValidationError("units", "weight is already in kg");
+      throw new ValidationError("weight.unit", "weight is already in kg");
     const weightInKg = Math.round((this.weight / 1000) * 100) / 100;
     return new Weight(weightInKg, "kg");
   }
