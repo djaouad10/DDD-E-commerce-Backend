@@ -1,72 +1,78 @@
 import z from "zod";
+import {
+  idSchema,
+  isoDateStringSchema,
+  limitStringSchema,
+  nonNegativeNumberStringSchema,
+} from "./shared.js";
 
 export const getApprovedRatingsOfProductParamsSchema = z.object({
-  productId: z.string(),
+  productId: idSchema,
 });
 
 export const getApprovedRatingsOfProductSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1).optional(),
+  limit: limitStringSchema.optional(),
   cursor: z
     .object({
-      createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      userId: z.string(),
+      createdAt: isoDateStringSchema,
+      userId: idSchema,
     })
     .optional(),
 });
 
 export const getPendingRatingsOfProductParamsSchema = z.object({
-  productId: z.string(),
+  productId: idSchema,
 });
 
 export const getPendingRatingsOfProductSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1).optional(),
+  limit: limitStringSchema.optional(),
   cursor: z
     .object({
-      createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      userId: z.string(),
+      createdAt: isoDateStringSchema,
+      userId: idSchema,
     })
     .optional(),
 });
 
 export const getRatingsOfClientParamsSchema = z.object({
-  clientId: z.string(),
+  clientId: idSchema,
 });
 
 export const getRatingsOfClientSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1).optional(),
+  limit: limitStringSchema.optional(),
   cursor: z
     .object({
-      createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      productId: z.string(),
+      createdAt: isoDateStringSchema,
+      productId: idSchema,
     })
     .optional(),
 });
 
 export const didIRateProductParamsSchema = z.object({
-  productId: z.string(),
+  productId: idSchema,
 });
 
 export const createRatingParamsSchema = z.object({
-  productId: z.string(),
+  productId: idSchema,
 });
 
 export const createRatingBodySchema = z.object({
-  rating: z.coerce.number().min(0).max(5),
-  comment: z.string().nullable(),
+  rating: nonNegativeNumberStringSchema.max(5),
+  comment: z.string().trim().min(1).max(1000).nullable(),
 });
 
 export const deleteRatingParamsSchema = z.object({
-  productId: z.string(),
+  productId: idSchema,
 });
 
 export const deleteRatingSearchParamsSchema = z.object({
-  clientId: z.string(),
+  clientId: idSchema,
 });
 
 export const approveRatingParamsSchema = z.object({
-  productId: z.string(),
+  productId: idSchema,
 });
 
 export const approveRatingSearchParamsSchema = z.object({
-  clientId: z.string(),
+  clientId: idSchema,
 });
