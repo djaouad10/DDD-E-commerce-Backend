@@ -4,7 +4,7 @@ import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { ApproveRatingCommand } from "../commands/approve-rating.command.js";
+import type { ApproveRatingCommand } from "../commands/api/approve-rating.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class ApproveRatingService {

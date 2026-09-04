@@ -16,7 +16,7 @@ import {
   ValidationError,
 } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { CreateOrderCommand } from "../commands/create-order.command.js";
+import type { CreateOrderCommand } from "../commands/api/create-order.command.js";
 import type { IdempotencyKeysRepository } from "../repositories/idempotency-keys.repository.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 

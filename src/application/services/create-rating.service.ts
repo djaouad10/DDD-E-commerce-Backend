@@ -7,7 +7,7 @@ import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { CreateRatingCommand } from "../commands/create-rating.command.js";
+import type { CreateRatingCommand } from "../commands/api/create-rating.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class CreateRatingService {

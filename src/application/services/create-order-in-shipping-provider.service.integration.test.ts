@@ -13,7 +13,7 @@ import {
   ORDER_REPOSITORY,
 } from "#/composition/tokens.js";
 import { CreateOrderInShippingProviderService } from "./create-order-in-shipping-provider.service.js";
-import { CreateOrderInShippingProviderCommand } from "../commands/create-order-in-shipping-provider.command.js";
+import { CreateOrderInShippingProviderCommand } from "../commands/outbox-handlers/create-order-in-shipping-provider.command.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
 import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { User } from "#/domain/entities/user.js";

@@ -3,7 +3,7 @@ import { Category } from "#/domain/entities/category.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { CreateCategoryCommand } from "../commands/create-category.command.js";
+import type { CreateCategoryCommand } from "../commands/api/create-category.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class CreateCategoryService {

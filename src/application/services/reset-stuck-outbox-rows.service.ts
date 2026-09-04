@@ -1,5 +1,5 @@
 import { createLogger } from "#/shared/logging/logger.js";
-import type { ResetStuckOutboxRowsCommand } from "../commands/reset-stuck-outbox-rows.command.js";
+import type { ResetStuckOutboxRowsCommand } from "../commands/stuck-outbox-resetter/reset-stuck-outbox-rows.command.js";
 import { type OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class ResetStuckOutboxRowsService {

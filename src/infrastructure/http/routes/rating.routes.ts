@@ -31,9 +31,9 @@ import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { clientMiddleware } from "../middleware/client-middleware.js";
 import { DidUserRateProductQuery } from "#/application/queries/did-user-rate-product.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
-import { CreateRatingCommand } from "#/application/commands/create-rating.command.js";
-import { DeleteRatingCommand } from "#/application/commands/delete-rating.command.js";
-import { ApproveRatingCommand } from "#/application/commands/approve-rating.command.js";
+import { CreateRatingCommand } from "#/application/commands/api/create-rating.command.js";
+import { DeleteRatingCommand } from "#/application/commands/api/delete-rating.command.js";
+import { ApproveRatingCommand } from "#/application/commands/api/approve-rating.command.js";
 
 const router = Router();
 

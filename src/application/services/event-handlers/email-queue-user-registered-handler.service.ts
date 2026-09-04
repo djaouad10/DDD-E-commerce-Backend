@@ -1,4 +1,4 @@
-import type { EmailQueueUserRegisteredHandlerCommand } from "#/application/commands/event-handlers/email-queue-user-registered-handler.command.js";
+import type { EmailQueueUserRegisteredHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-user-registered-handler.command.js";
 import type { IdempotencyKeysRepository } from "#/application/repositories/idempotency-keys.repository.js";
 import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";

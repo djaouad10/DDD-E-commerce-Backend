@@ -7,7 +7,7 @@ import { VariationId } from "#/domain/value-objects/variation-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { AddItemToCartCommand } from "../commands/add-item-to-cart.command.js";
+import type { AddItemToCartCommand } from "../commands/api/add-item-to-cart.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class AddItemToCartService {
@@ -46,7 +46,6 @@ export class AddItemToCartService {
         await this.outboxRepository.saveEvents(events, tx);
       }
     });
-
 
     return newItem.toSnapshot();
   }

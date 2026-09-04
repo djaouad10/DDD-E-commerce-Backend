@@ -1,4 +1,4 @@
-import type { EmailQueueOrderCreatedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-created-handler.command.js";
+import type { EmailQueueOrderCreatedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-created-handler.command.js";
 import type { IdempotencyKeysRepository } from "#/application/repositories/idempotency-keys.repository.js";
 import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";

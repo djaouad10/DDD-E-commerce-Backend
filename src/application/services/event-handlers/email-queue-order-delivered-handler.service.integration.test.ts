@@ -15,7 +15,7 @@ import {
   USER_REPOSITORY,
 } from "#/composition/tokens.js";
 import { User } from "#/domain/entities/user.js";
-import { EmailQueueOrderDeliveredHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-delivered-handler.command.js";
+import { EmailQueueOrderDeliveredHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-delivered-handler.command.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
 import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";

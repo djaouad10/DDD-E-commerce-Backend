@@ -19,7 +19,7 @@ import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
 import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { EmailQueueOrderConfirmedHandlerService } from "./email-queue-order-confirmed-handler.service.js";
-import { EmailQueueOrderConfirmedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-confirmed-handler.command.js";
+import { EmailQueueOrderConfirmedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-confirmed-handler.command.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 
 describe("EmailQueueOrderConfirmedHandlerService", () => {

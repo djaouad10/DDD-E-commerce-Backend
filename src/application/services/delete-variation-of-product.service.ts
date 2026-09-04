@@ -4,7 +4,7 @@ import { VariationId } from "#/domain/value-objects/variation-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { DeleteVariationOfProductCommand } from "../commands/delete-variation-of-product.command.js";
+import type { DeleteVariationOfProductCommand } from "../commands/api/delete-variation-of-product.command.js";
 import type { OrderQueries } from "../read-models/order.queries.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 

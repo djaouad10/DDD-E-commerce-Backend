@@ -3,7 +3,7 @@ import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { UnbanClientCommand } from "../commands/unban-client.command.js";
+import type { UnbanClientCommand } from "../commands/api/unban-client.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class UnbanClientService {

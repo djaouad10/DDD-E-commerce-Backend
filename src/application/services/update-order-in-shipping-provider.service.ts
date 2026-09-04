@@ -4,7 +4,7 @@ import { OrderId } from "#/domain/value-objects/order-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { GatewayError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { UpdateOrderInShippingProviderCommand } from "../commands/update-order-in-shipping-provider.command.js";
+import type { UpdateOrderInShippingProviderCommand } from "../commands/outbox-handlers/update-order-in-shipping-provider.command.js";
 import type { IdempotencyKeysRepository } from "../repositories/idempotency-keys.repository.js";
 
 export class UpdateOrderInShippingProviderService {

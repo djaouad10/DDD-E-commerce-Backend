@@ -1,5 +1,5 @@
 import { OUTBOX_PROCESSOR_SERVICE } from "#/composition/tokens.js";
-import { OutboxProcessorCommand } from "#/application/commands/outbox-processor.command.js";
+import { OutboxProcessorCommand } from "#/application/commands/outbox-processor/outbox-processor.command.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { runWithContext } from "#/shared/context/request-context.js";

@@ -3,7 +3,7 @@ import { sleep } from "#/shared/utils/sleep.js";
 import { runWithContext } from "#/shared/context/request-context.js";
 import type { Container } from "#/composition/container.js";
 import { CLEAN_OUTBOX_SERVICE } from "#/composition/tokens.js";
-import { CleanOutboxCommand } from "#/application/commands/clean-outbox.command.js";
+import { CleanOutboxCommand } from "#/application/commands/outbox-cleaner/clean-outbox.command.js";
 
 const logger = createLogger("CleanOutboxWorker");
 

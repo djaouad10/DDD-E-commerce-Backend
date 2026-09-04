@@ -1,4 +1,4 @@
-import { CreateCategoryCommand } from "#/application/commands/create-category.command.js";
+import { CreateCategoryCommand } from "#/application/commands/api/create-category.command.js";
 import {
   CREATE_CATEGORY_SERVICE,
   DELETE_CATEGORY_SERVICE,
@@ -14,8 +14,8 @@ import {
 } from "../validators/categories.js";
 import { validate } from "../utils/validation.js";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
-import { UpdateCategoryCommand } from "#/application/commands/update-category.command.js";
-import { DeleteCategoryCommand } from "#/application/commands/delete-category.command.js";
+import { UpdateCategoryCommand } from "#/application/commands/api/update-category.command.js";
+import { DeleteCategoryCommand } from "#/application/commands/api/delete-category.command.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 
 const router = Router();

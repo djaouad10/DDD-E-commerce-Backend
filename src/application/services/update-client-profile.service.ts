@@ -3,7 +3,7 @@ import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { ForbiddenError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { UpdateClientProfileCommand } from "../commands/update-client-profile.command.js";
+import type { UpdateClientProfileCommand } from "../commands/api/update-client-profile.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class UpdateClientProfileService {

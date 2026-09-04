@@ -5,7 +5,7 @@ import { Weight } from "#/domain/value-objects/weight.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { UpdateVariationOfProductCommand } from "../commands/update-variation-of-product.command.js";
+import type { UpdateVariationOfProductCommand } from "../commands/api/update-variation-of-product.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class UpdateVariationOfProductService {

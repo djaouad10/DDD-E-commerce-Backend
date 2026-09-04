@@ -12,7 +12,7 @@ import { OutboxStatus } from "#/application/repositories/outbox.repository.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import { ResetStuckOutboxRowsService } from "./reset-stuck-outbox-rows.service.js";
-import { ResetStuckOutboxRowsCommand } from "../commands/reset-stuck-outbox-rows.command.js";
+import { ResetStuckOutboxRowsCommand } from "../commands/stuck-outbox-resetter/reset-stuck-outbox-rows.command.js";
 
 describe("ResetStuckOutboxRowsService", () => {
   let container: Container;

@@ -14,7 +14,7 @@ import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { Mock } from "vitest";
 import { DomainEventsProcessorService } from "./domain-events-processor.service.js";
 import type { EventPublisher } from "../ports/event-publisher.port.js";
-import { DomainEventsProcessorCommand } from "../commands/domain-events-processor.command.js";
+import { DomainEventsProcessorCommand } from "../commands/api/domain-events-processor.command.js";
 
 describe("DomainEventsProcessorService", () => {
   let container: Container;

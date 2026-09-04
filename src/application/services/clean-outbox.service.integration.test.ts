@@ -8,7 +8,7 @@ import {
   seedOutboxTableWithCompletedRows,
 } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
-import { CleanOutboxCommand } from "../commands/clean-outbox.command.js";
+import { CleanOutboxCommand } from "../commands/outbox-cleaner/clean-outbox.command.js";
 import { CleanOutboxService } from "./clean-outbox.service.js";
 
 describe("CleanOutboxService", () => {

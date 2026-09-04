@@ -1,7 +1,7 @@
-import { CreateOrderInShippingProviderCommand } from "#/application/commands/create-order-in-shipping-provider.command.js";
-import { ActivateShipmentInShippingProviderCommand } from "#/application/commands/activate-shipment-in-shipping-provider.command.js";
-import { DeleteOrderFromShippingProviderCommand } from "#/application/commands/delete-order-from-shipping-provider.command.js";
-import { UpdateOrderInShippingProviderCommand } from "#/application/commands/update-order-in-shipping-provider.command.js";
+import { CreateOrderInShippingProviderCommand } from "#/application/commands/outbox-handlers/create-order-in-shipping-provider.command.js";
+import { ActivateShipmentInShippingProviderCommand } from "#/application/commands/outbox-handlers/activate-shipment-in-shipping-provider.command.js";
+import { DeleteOrderFromShippingProviderCommand } from "#/application/commands/outbox-handlers/delete-order-from-shipping-provider.command.js";
+import { UpdateOrderInShippingProviderCommand } from "#/application/commands/outbox-handlers/update-order-in-shipping-provider.command.js";
 import { OutboxAction } from "#/application/repositories/outbox.repository.js";
 import type { CreateOrderInShippingProviderService } from "#/application/services/create-order-in-shipping-provider.service.js";
 import type { ActivateShipmentInShippingProviderService } from "#/application/services/activate-shipment-in-shipping-provider.service.js";

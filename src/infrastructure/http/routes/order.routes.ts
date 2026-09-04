@@ -29,11 +29,11 @@ import { GetOrderByTrackingNumberQuery } from "#/application/queries/get-order-b
 import { GetOrderByIdQuery } from "#/application/queries/get-order-by-id.query.js";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { GetOrdersQuery } from "#/application/queries/get-orders.query.js";
-import { CreateOrderCommand } from "#/application/commands/create-order.command.js";
-import { CancelOrderCommand } from "#/application/commands/cancel-order.command.js";
-import { ConfirmOrderCommand } from "#/application/commands/confirm-order.command.js";
-import { ShipOrderCommand } from "#/application/commands/ship-order-command.js";
-import { UpdateShippingDetailsCommand } from "#/application/commands/update-shipping-details.command.js";
+import { CreateOrderCommand } from "#/application/commands/api/create-order.command.js";
+import { CancelOrderCommand } from "#/application/commands/api/cancel-order.command.js";
+import { ConfirmOrderCommand } from "#/application/commands/api/confirm-order.command.js";
+import { ShipOrderCommand } from "#/application/commands/api/ship-order-command.js";
+import { UpdateShippingDetailsCommand } from "#/application/commands/api/update-shipping-details.command.js";
 
 const router = Router();
 

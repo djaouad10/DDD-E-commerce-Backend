@@ -4,7 +4,7 @@ import { OrderId } from "#/domain/value-objects/order-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { CreateOrderInShippingProviderCommand } from "../commands/create-order-in-shipping-provider.command.js";
+import type { CreateOrderInShippingProviderCommand } from "../commands/outbox-handlers/create-order-in-shipping-provider.command.js";
 import type { IdempotencyKeysRepository } from "../repositories/idempotency-keys.repository.js";
 
 export class CreateOrderInShippingProviderService {

@@ -3,7 +3,7 @@ import { ProductId } from "#/domain/value-objects/product-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { AddSecondaryImageToProductCommand } from "../commands/add-secondary-image-to-product.command.js";
+import type { AddSecondaryImageToProductCommand } from "../commands/api/add-secondary-image-to-product.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 import { File } from "#/domain/entities/file.js";
 

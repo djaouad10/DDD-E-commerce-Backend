@@ -3,7 +3,7 @@ import type { OrderRepository } from "#/domain/repositories/order.repository.js"
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { GatewayError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { ActivateShipmentInShippingProviderCommand } from "../commands/activate-shipment-in-shipping-provider.command.js";
+import type { ActivateShipmentInShippingProviderCommand } from "../commands/outbox-handlers/activate-shipment-in-shipping-provider.command.js";
 import type { IdempotencyKeysRepository } from "../repositories/idempotency-keys.repository.js";
 
 export class ActivateShipmentInShippingProviderService {

@@ -12,7 +12,7 @@ import {
   ValidationError,
 } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { CancelOrderCommand } from "../commands/cancel-order.command.js";
+import type { CancelOrderCommand } from "../commands/api/cancel-order.command.js";
 import {
   OutboxAction,
   type OutboxRepository,

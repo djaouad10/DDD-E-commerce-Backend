@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
-import { UpdateProductMainImageCommand } from "#/application/commands/update-product-main-image.command.js";
+import { UpdateProductMainImageCommand } from "#/application/commands/api/update-product-main-image.command.js";
 import {
   ADD_SECONDARY_IMAGE_TO_PRODUCT_SERVICE,
   CREATE_PRODUCT_SERVICE,
@@ -41,7 +41,7 @@ import {
   updateVariationOfProductParamsSchema,
 } from "../validators/products.js";
 import { validate } from "../utils/validation.js";
-import { DeleteProductImageCommand } from "#/application/commands/delete-product-image.command.js";
+import { DeleteProductImageCommand } from "#/application/commands/api/delete-product-image.command.js";
 import { GetProductVariationsQuery } from "#/application/queries/get-product-variations.query.js";
 import { GetProductVariationsWithCartFlagQuery } from "#/application/queries/get-product-variations-with-cart-flag.query.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
@@ -49,13 +49,13 @@ import { GetProductsQuery } from "#/application/queries/get-products.query.js";
 import { GetLowStockProductsQuery } from "#/application/queries/get-low-stock-products.query.js";
 import { GetProductStaticDataQuery } from "#/application/queries/get-product-static-data.query.js";
 import { GetProductUpdateDataQuery } from "#/application/queries/get-product-update-data.query.js";
-import { AddSecondaryImageToProductCommand } from "#/application/commands/add-secondary-image-to-product.command.js";
-import { UpdateVariationOfProductCommand } from "#/application/commands/update-variation-of-product.command.js";
-import { CreateVariationOfProductCommand } from "#/application/commands/create-variation-of-product.command.js";
-import { CreateProductCommand } from "#/application/commands/create-product-command.js";
-import { UpdateProductCommand } from "#/application/commands/update-product.command.js";
-import { DeleteVariationOfProductCommand } from "#/application/commands/delete-variation-of-product.command.js";
-import { DeleteProductCommand } from "#/application/commands/delete-product.command.js";
+import { AddSecondaryImageToProductCommand } from "#/application/commands/api/add-secondary-image-to-product.command.js";
+import { UpdateVariationOfProductCommand } from "#/application/commands/api/update-variation-of-product.command.js";
+import { CreateVariationOfProductCommand } from "#/application/commands/api/create-variation-of-product.command.js";
+import { CreateProductCommand } from "#/application/commands/api/create-product-command.js";
+import { UpdateProductCommand } from "#/application/commands/api/update-product.command.js";
+import { DeleteVariationOfProductCommand } from "#/application/commands/api/delete-variation-of-product.command.js";
+import { DeleteProductCommand } from "#/application/commands/api/delete-product.command.js";
 
 const router = Router();
 

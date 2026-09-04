@@ -1,7 +1,7 @@
 import { type OutboxRepository } from "../repositories/outbox.repository.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { EventPublisher } from "../ports/event-publisher.port.js";
-import type { DomainEventsProcessorCommand } from "../commands/domain-events-processor.command.js";
+import type { DomainEventsProcessorCommand } from "../commands/api/domain-events-processor.command.js";
 
 export class DomainEventsProcessorService {
   private logger = createLogger("DomainEventsProcessorService");

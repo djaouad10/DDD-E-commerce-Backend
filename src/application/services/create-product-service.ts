@@ -2,7 +2,7 @@ import type { ProductSnapshot } from "#/domain/entities-snapshots/product.snapsh
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { CreateProductCommand } from "../commands/create-product-command.js";
+import type { CreateProductCommand } from "../commands/api/create-product-command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 import { File } from "#/domain/entities/file.js";
 import { Product } from "#/domain/entities/product.js";

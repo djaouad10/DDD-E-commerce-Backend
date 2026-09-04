@@ -3,7 +3,7 @@ import { UserId } from "#/domain/value-objects/user-id.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { BanClientCommand } from "../commands/ban-client.command.js";
+import type { BanClientCommand } from "../commands/api/ban-client.command.js";
 import type { OutboxRepository } from "../repositories/outbox.repository.js";
 
 export class BanClientService {

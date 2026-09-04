@@ -4,7 +4,7 @@ import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import type { OutboxJobPayloadType } from "#/infrastructure/messaging/jobs/validation.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { UpdateShippingDetailsCommand } from "../commands/update-shipping-details.command.js";
+import type { UpdateShippingDetailsCommand } from "../commands/api/update-shipping-details.command.js";
 import {
   OutboxAction,
   type OutboxRepository,
