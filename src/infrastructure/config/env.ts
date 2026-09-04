@@ -19,6 +19,7 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string(),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]),
     UPLOADTHING_APP_ID: z.string(),
+    UPLOADTHING_TOKEN: z.string(),
     REDIS_HOST: z.string().min(1),
     REDIS_PORT: z.coerce.number().default(6379),
     WORLD_EXPRESS_API_URL: z.url(),

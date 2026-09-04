@@ -12,8 +12,8 @@ import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.
 describe("ResetStuckOutboxRowsWorker", () => {
   let container: Container;
 
-  beforeAll(() => {
-    const testApp = createTestApp();
+  beforeAll(async () => {
+    const testApp = await createTestApp();
     container = testApp.container;
   });
 

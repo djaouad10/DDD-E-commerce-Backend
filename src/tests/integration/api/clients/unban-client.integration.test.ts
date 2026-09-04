@@ -19,7 +19,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
   let request: ReturnType<typeof supertest>;
 
   beforeAll(async () => {
-    const testApp = createTestApp();
+    const testApp = await createTestApp();
     container = testApp.container;
     app = testApp.app;
     request = supertest(app);

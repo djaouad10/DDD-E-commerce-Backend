@@ -25,8 +25,8 @@ describe("OutboxProcessorService", () => {
   let queueMock: { add: Mock };
   let service: OutboxProcessorService;
 
-  beforeAll(() => {
-    const testApp = createTestApp();
+  beforeAll(async () => {
+    const testApp = await createTestApp();
     container = testApp.container;
     outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
   });

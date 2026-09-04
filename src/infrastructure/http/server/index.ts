@@ -8,11 +8,30 @@ import { contextMiddleware } from "../middleware/context-middleware.js";
 import routes from "../routes/index.js";
 import { errorHandlingMiddleware } from "../middleware/error-handling-middleware.js";
 import { requestTimerMiddleware } from "../middleware/request-timer-middleware.js";
-export function createServer(container: Container) {
+import { toNodeHandler } from "better-auth/node";
+import { AUTH } from "#/composition/utils/tokens.js";
+import { createRouteHandler } from "uploadthing/express";
+import { createUploadThingFileRouter } from "#/infrastructure/upload/uploadthing.js";
+import { env } from "#/infrastructure/config/env.js";
+export async function createServer(container: Container) {
   const app = express();
 
   app.use(express.json());
   app.use(cors());
+
+  const auth = await container.resolveSingleton(AUTH);
+  app.all("/api/auth/*splat", toNodeHandler(auth));
+
+
+  app.use(
+  "/api/uploadthing",
+  createRouteHandler({
+    router: createUploadThingFileRouter(container.resolveSingleton(AUTH)),
+    config: {
+      token: env.UPLOADTHING_TOKEN,
+    },
+  }),
+);
 
   app.use(requestTimerMiddleware);
   app.use(scopeMiddleware(container));

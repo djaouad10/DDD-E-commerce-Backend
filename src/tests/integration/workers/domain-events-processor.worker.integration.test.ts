@@ -18,8 +18,8 @@ import { DomainEventsProcessorWorker } from "#/infrastructure/messaging/bullmq/w
 describe("DomainEventsProcessorWorker", () => {
   let container: Container;
 
-  beforeAll(() => {
-    const testApp = createTestApp();
+  beforeAll(async () => {
+    const testApp = await createTestApp();
     container = testApp.container;
   });
 
