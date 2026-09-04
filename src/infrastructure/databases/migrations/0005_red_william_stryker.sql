@@ -1,0 +1,1 @@
+ALTER TABLE "order" ADD COLUMN "version" bigint DEFAULT 0 NOT NULL;

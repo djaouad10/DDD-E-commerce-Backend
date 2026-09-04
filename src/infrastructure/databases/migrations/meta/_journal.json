@@ -36,6 +36,13 @@
       "when": 1788279429158,
       "tag": "0004_sudden_daimon_hellstrom",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788504630893,
+      "tag": "0005_red_william_stryker",
+      "breakpoints": true
     }
   ]
 }
