@@ -11,7 +11,7 @@ import {
   outboxJobPayloadsSchemas,
   type OutboxJobPayloadType,
 } from "../../jobs/validation.js";
-import type { OutboxAction } from "#/application/repositories/outbox.repository.js";
+import type { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 import {
   buildOutboxCommand,
   executeOutboxHandler,

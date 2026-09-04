@@ -4,7 +4,7 @@ import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { GatewayError, NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { ActivateShipmentInShippingProviderCommand } from "../../commands/outbox-handlers/activate-shipment-in-shipping-provider.command.js";
-import type { IdempotencyKeysRepository } from "../../repositories/idempotency-keys.repository.js";
+import type { IdempotencyKeysRepository } from "../../ports/persistence/idempotency-keys.repository.port.js";
 
 export class ActivateShipmentInShippingProviderService {
   private logger = createLogger("ActivateShipmentInShippingProviderService");

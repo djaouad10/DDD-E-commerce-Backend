@@ -8,7 +8,7 @@ import type { ConfirmOrderCommand } from "../../commands/api/confirm-order.comma
 import {
   OutboxAction,
   type OutboxRepository,
-} from "../../repositories/outbox.repository.js";
+} from "../../ports/persistence/outbox.repository.port.js";
 
 export class ConfirmOrderService {
   private logger = createLogger("ConfirmOrderService");

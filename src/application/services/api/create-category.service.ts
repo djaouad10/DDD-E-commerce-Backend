@@ -4,7 +4,7 @@ import type { CategoryRepository } from "#/domain/repositories/category.reposito
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { CreateCategoryCommand } from "../../commands/api/create-category.command.js";
-import type { OutboxRepository } from "../../repositories/outbox.repository.js";
+import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
 export class CreateCategoryService {
   private logger = createLogger("CreateCategoryService");

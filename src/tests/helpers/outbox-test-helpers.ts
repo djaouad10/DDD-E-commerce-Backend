@@ -7,7 +7,7 @@ import {
   OutboxAction,
   OutboxCategory,
   OutboxStatus,
-} from "#/application/repositories/outbox.repository.js";
+} from "#/application/ports/persistence/outbox.repository.port.js";
 import type { DomainEventCode } from "#/domain/events/domain-event.js";
 
 export type SeedOutboxJobRowOverrides = {

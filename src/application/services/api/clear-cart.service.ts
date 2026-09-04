@@ -5,7 +5,7 @@ import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { ClearCartCommand } from "../../commands/api/clear-cart.command.js";
-import type { OutboxRepository } from "../../repositories/outbox.repository.js";
+import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
 export class ClearCartService {
   private logger = createLogger("ClearCartService");

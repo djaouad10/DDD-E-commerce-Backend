@@ -14,7 +14,7 @@ import type { Redis } from "ioredis";
 import { OutboxHandlerWorker } from "#/infrastructure/messaging/bullmq/workers/outbox-handler.worker.js"; // adjust path
 import type { Mock } from "vitest";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
-import { OutboxAction } from "#/application/repositories/outbox.repository.js";
+import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 import { ShippingProvider } from "#/domain/entities/order.js";
 import { ORDER_REPOSITORY } from "#/composition/tokens.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";

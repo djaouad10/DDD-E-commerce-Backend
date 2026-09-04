@@ -7,11 +7,11 @@ import {
   getOutboxRowById,
 } from "#/tests/helpers/outbox-test-helpers.js";
 import { OUTBOX_REPOSITORY } from "#/composition/tokens.js";
-import type { OutboxRepository } from "#/application/repositories/outbox.repository.js";
+import type { OutboxRepository } from "#/application/ports/persistence/outbox.repository.port.js";
 import {
   OutboxStatus,
   OutboxAction,
-} from "#/application/repositories/outbox.repository.js";
+} from "#/application/ports/persistence/outbox.repository.port.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { OutboxProcessorService } from "./outbox-processor.service.js";
 import { OutboxProcessorCommand } from "../../commands/outbox-processor/outbox-processor.command.js";

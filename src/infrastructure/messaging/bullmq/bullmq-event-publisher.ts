@@ -1,4 +1,4 @@
-import type { EventPublisher } from "#/application/ports/event-publisher.port.js";
+import type { EventPublisher } from "#/application/ports/messaging/event-publisher.port.js";
 import type { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { Queue, FlowProducer, FlowJob } from "bullmq";
 

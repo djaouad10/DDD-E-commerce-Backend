@@ -8,7 +8,7 @@ import type { ShipOrderCommand } from "../../commands/api/ship-order-command.js"
 import {
   OutboxAction,
   type OutboxRepository,
-} from "../../repositories/outbox.repository.js";
+} from "../../ports/persistence/outbox.repository.port.js";
 
 export class ShipOrderService {
   private logger = createLogger("ShipOrderService");

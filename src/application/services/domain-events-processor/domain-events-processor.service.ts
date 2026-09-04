@@ -1,6 +1,6 @@
-import { type OutboxRepository } from "#/application/repositories/outbox.repository.js";
+import { type OutboxRepository } from "#/application/ports/persistence/outbox.repository.port.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import type { EventPublisher } from "#/application/ports/event-publisher.port.js";
+import type { EventPublisher } from "#/application/ports/messaging/event-publisher.port.js";
 import type { DomainEventsProcessorCommand } from "#/application/commands/domain-events-processor/domain-events-processor.command.js";
 
 export class DomainEventsProcessorService {

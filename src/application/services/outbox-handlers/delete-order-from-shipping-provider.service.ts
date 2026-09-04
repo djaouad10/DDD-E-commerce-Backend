@@ -3,7 +3,7 @@ import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { GatewayError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DeleteOrderFromShippingProviderCommand } from "../../commands/outbox-handlers/delete-order-from-shipping-provider.command.js";
-import type { IdempotencyKeysRepository } from "../../repositories/idempotency-keys.repository.js";
+import type { IdempotencyKeysRepository } from "../../ports/persistence/idempotency-keys.repository.port.js";
 
 export class DeleteOrderFromShippingProviderService {
   private logger = createLogger("DeleteOrderFromShippingProviderService");

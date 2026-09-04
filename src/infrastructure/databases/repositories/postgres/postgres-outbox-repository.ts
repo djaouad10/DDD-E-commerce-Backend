@@ -9,7 +9,7 @@ import {
   type UpdateRowToFailedParams,
   type UpdateRowToPendingParams,
   type UpdateRowToProcessingParams,
-} from "#/application/repositories/outbox.repository.js";
+} from "#/application/ports/persistence/outbox.repository.port.js";
 import type {
   DrizzleDBClient,
   DrizzleTransactionClient,

@@ -8,7 +8,7 @@ import type { UpdateShippingDetailsCommand } from "../../commands/api/update-shi
 import {
   OutboxAction,
   type OutboxRepository,
-} from "../../repositories/outbox.repository.js";
+} from "../../ports/persistence/outbox.repository.port.js";
 
 export class UpdateShippingDetailsService {
   private logger = createLogger("UpdateShippingDetailsService");

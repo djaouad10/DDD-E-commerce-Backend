@@ -1,5 +1,5 @@
 import type { EmailQueueOrderDeliveredHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-delivered-handler.command.js";
-import type { IdempotencyKeysRepository } from "#/application/repositories/idempotency-keys.repository.js";
+import type { IdempotencyKeysRepository } from "#/application/ports/persistence/idempotency-keys.repository.port.js";
 import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";

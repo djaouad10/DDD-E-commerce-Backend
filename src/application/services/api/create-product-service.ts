@@ -3,7 +3,7 @@ import type { ProductRepository } from "#/domain/repositories/product.repository
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { CreateProductCommand } from "../../commands/api/create-product-command.js";
-import type { OutboxRepository } from "../../repositories/outbox.repository.js";
+import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 import { File } from "#/domain/entities/file.js";
 import { Product } from "#/domain/entities/product.js";
 import { Slug } from "#/domain/value-objects/slug.js";

@@ -16,7 +16,7 @@ import type { CancelOrderCommand } from "../../commands/api/cancel-order.command
 import {
   OutboxAction,
   type OutboxRepository,
-} from "../../repositories/outbox.repository.js";
+} from "../../ports/persistence/outbox.repository.port.js";
 
 export class CancelOrderService {
   private logger = createLogger("CancelOrderService");

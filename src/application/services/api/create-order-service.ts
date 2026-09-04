@@ -17,8 +17,8 @@ import {
 } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { CreateOrderCommand } from "../../commands/api/create-order.command.js";
-import type { IdempotencyKeysRepository } from "../../repositories/idempotency-keys.repository.js";
-import type { OutboxRepository } from "../../repositories/outbox.repository.js";
+import type { IdempotencyKeysRepository } from "../../ports/persistence/idempotency-keys.repository.port.js";
+import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
 export class CreateOrderService {
   private logger = createLogger("CreateOrderService");

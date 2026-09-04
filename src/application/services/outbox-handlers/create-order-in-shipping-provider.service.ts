@@ -5,7 +5,7 @@ import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { CreateOrderInShippingProviderCommand } from "../../commands/outbox-handlers/create-order-in-shipping-provider.command.js";
-import type { IdempotencyKeysRepository } from "../../repositories/idempotency-keys.repository.js";
+import type { IdempotencyKeysRepository } from "../../ports/persistence/idempotency-keys.repository.port.js";
 
 export class CreateOrderInShippingProviderService {
   private logger = createLogger("CreateOrderInShippingProviderService");

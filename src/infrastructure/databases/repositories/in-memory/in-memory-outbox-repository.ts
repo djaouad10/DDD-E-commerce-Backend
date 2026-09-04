@@ -7,15 +7,15 @@ import type {
   UpdateRowToFailedParams,
   UpdateRowToPendingParams,
   UpdateRowToProcessingParams,
-} from "#/application/repositories/outbox.repository.js";
-import { OutboxCategory } from "#/application/repositories/outbox.repository.js";
+} from "#/application/ports/persistence/outbox.repository.port.js";
+import { OutboxCategory } from "#/application/ports/persistence/outbox.repository.port.js";
 import type {
   DomainEvent,
   DomainEventCode,
 } from "#/domain/events/domain-event.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { generateOutboxId } from "../../outbox/utils.js";
-import { OutboxStatus } from "#/application/repositories/outbox.repository.js";
+import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 
 type InMemoryEntry =
   | {

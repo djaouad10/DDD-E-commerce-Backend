@@ -7,7 +7,7 @@ import {
   getOutboxRowById,
 } from "#/tests/helpers/outbox-test-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
-import { OutboxStatus } from "#/application/repositories/outbox.repository.js";
+import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 import { OUTBOX_QUEUE } from "#/composition/tokens.js";
 
 describe("OutboxProcessorWorker", () => {

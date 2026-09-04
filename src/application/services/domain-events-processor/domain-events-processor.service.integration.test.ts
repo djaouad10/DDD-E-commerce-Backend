@@ -7,13 +7,13 @@ import {
   getOutboxRowById,
 } from "#/tests/helpers/outbox-test-helpers.js";
 import { OUTBOX_REPOSITORY } from "#/composition/tokens.js";
-import type { OutboxRepository } from "#/application/repositories/outbox.repository.js";
-import { OutboxStatus } from "#/application/repositories/outbox.repository.js";
+import type { OutboxRepository } from "#/application/ports/persistence/outbox.repository.port.js";
+import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import type { Mock } from "vitest";
 import { DomainEventsProcessorService } from "./domain-events-processor.service.js";
-import type { EventPublisher } from "#/application/ports/event-publisher.port.js";
+import type { EventPublisher } from "#/application/ports/messaging/event-publisher.port.js";
 import { DomainEventsProcessorCommand } from "#/application/commands/domain-events-processor/domain-events-processor.command.js";
 
 describe("DomainEventsProcessorService", () => {

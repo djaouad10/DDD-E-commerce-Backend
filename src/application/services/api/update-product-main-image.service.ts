@@ -5,7 +5,7 @@ import { NotFoundError } from "#/shared/errors/domain-error.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { UpdateProductMainImageCommand } from "../../commands/api/update-product-main-image.command.js";
 import { File } from "#/domain/entities/file.js";
-import type { OutboxRepository } from "../../repositories/outbox.repository.js";
+import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
 export class UpdateProductMainImageService {
   private logger = createLogger("UpdateProductMainImageService");

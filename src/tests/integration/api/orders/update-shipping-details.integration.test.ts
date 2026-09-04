@@ -15,7 +15,7 @@ import { User } from "#/domain/entities/user.js";
 import { ORDER_REPOSITORY, OUTBOX_REPOSITORY } from "#/composition/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
-import { OutboxAction } from "#/application/repositories/outbox.repository.js";
+import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 
 describe("PATCH /api/v1/orders/:id/shipping-details", () => {
   let app: Express;

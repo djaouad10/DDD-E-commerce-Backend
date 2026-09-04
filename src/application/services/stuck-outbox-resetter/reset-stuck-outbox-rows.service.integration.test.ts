@@ -7,8 +7,8 @@ import {
   getOutboxRowById,
 } from "#/tests/helpers/outbox-test-helpers.js";
 import { OUTBOX_REPOSITORY } from "#/composition/tokens.js";
-import type { OutboxRepository } from "#/application/repositories/outbox.repository.js";
-import { OutboxStatus } from "#/application/repositories/outbox.repository.js";
+import type { OutboxRepository } from "#/application/ports/persistence/outbox.repository.port.js";
+import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { ValidationError } from "#/shared/errors/domain-error.js";
 import { ResetStuckOutboxRowsService } from "./reset-stuck-outbox-rows.service.js";

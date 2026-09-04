@@ -1,5 +1,5 @@
 import type { Queue } from "bullmq";
-import { type OutboxRepository } from "../../repositories/outbox.repository.js";
+import { type OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 import type { OutboxProcessorCommand } from "../../commands/outbox-processor/outbox-processor.command.js";
 import { createLogger } from "#/shared/logging/logger.js";
 

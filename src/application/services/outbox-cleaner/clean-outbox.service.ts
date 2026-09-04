@@ -1,7 +1,7 @@
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { CleanOutboxCommand } from "../../commands/outbox-cleaner/clean-outbox.command.js";
-import type { OutboxRepository } from "../../repositories/outbox.repository.js";
+import type { OutboxRepository } from "../../ports/persistence/outbox.repository.port.js";
 
 export class CleanOutboxService {
   private logger = createLogger("CleanOutboxService");
