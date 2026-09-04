@@ -5,19 +5,19 @@ import {
   BadRequestError,
   ValidationError,
 } from "#/shared/errors/domain-error.js";
-import { buildOutboxHandlerContainer } from "#/composition/outbox-handler-composition.js";
+import { buildOutboxHandlerContainer } from "#/composition/roots/outbox-handler.composition.js";
 
 import {
   outboxJobPayloadsSchemas,
   type OutboxJobPayloadType,
 } from "../../jobs/validation.js";
-import type { OutboxAction } from "#/application/repositories/outbox.repository.js";
+import type { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 import {
   buildOutboxCommand,
   executeOutboxHandler,
 } from "../../jobs/outbox-handler-utils.js";
 import { runWithContext } from "#/shared/context/request-context.js";
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 
 export class OutboxHandlerWorker {
   private logger = createLogger("OutboxHandlerWorker");

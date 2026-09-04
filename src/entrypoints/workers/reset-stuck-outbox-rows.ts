@@ -1,4 +1,4 @@
-import { buildResetStuckOutboxRowsWorkerContainer } from "#/composition/reset-stuck-outbox-rows-worker.composition.js";
+import { buildResetStuckOutboxRowsWorkerContainer } from "#/composition/roots/reset-stuck-outbox-rows-worker.composition.js";
 import { ResetStuckOutboxRowsWorker } from "#/infrastructure/messaging/bullmq/workers/reset-stuck-outbox-rows.worker.js";
 import { createLogger } from "#/shared/logging/logger.js";
 

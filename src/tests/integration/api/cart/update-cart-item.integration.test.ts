@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,
@@ -17,7 +17,7 @@ import { Cart } from "#/domain/entities/cart.js";
 import { CartItem } from "#/domain/entities/cart-item.js";
 import { CartItemId } from "#/domain/value-objects/cart-item-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import { CART_REPOSITORY } from "#/composition/tokens.js";
+import { CART_REPOSITORY } from "#/composition/utils/tokens.js";
 
 describe("PATCH /api/v1/cart/items/:id", () => {
   let app: Express;

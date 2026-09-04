@@ -2,7 +2,7 @@
 import type {
   IdempotencyKeyEntry,
   IdempotencyKeysRepository,
-} from "#/application/repositories/idempotency-keys.repository.js";
+} from "#/application/ports/persistence/idempotency-keys.repository.port.js";
 import { ConflictError } from "#/shared/errors/domain-error.js";
 
 export class InMemoryIdempotencyKeysRepository implements IdempotencyKeysRepository {

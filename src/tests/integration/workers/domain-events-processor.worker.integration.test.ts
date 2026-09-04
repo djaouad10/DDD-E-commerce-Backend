@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import {
@@ -6,12 +6,12 @@ import {
   seedOutboxDomainEventRow,
 } from "#/tests/helpers/outbox-test-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
-import { OutboxStatus } from "#/application/repositories/outbox.repository.js";
+import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 import {
   ANALYTICS_QUEUE,
   EMAIL_QUEUE,
   INVENTORY_QUEUE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { DomainEventsProcessorWorker } from "#/infrastructure/messaging/bullmq/workers/domain-events-processor.worker.js";
 

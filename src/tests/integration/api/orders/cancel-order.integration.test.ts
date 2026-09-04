@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,
@@ -24,14 +24,14 @@ import {
   ORDER_REPOSITORY,
   OUTBOX_REPOSITORY,
   PRODUCT_REPOSITORY,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { OrderItem } from "#/domain/entities/order-item.js";
 import { Money } from "#/domain/value-objects/money.js";
 import { Weight } from "#/domain/value-objects/weight.js";
-import { OutboxAction } from "#/application/repositories/outbox.repository.js";
+import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 
 describe("PATCH /api/v1/orders/:id/cancel", () => {
   let app: Express;

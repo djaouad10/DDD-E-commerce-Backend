@@ -14,7 +14,7 @@ import {
   GET_COMMUNES_OF_WILAYA_SERVICE,
   GET_DELIVERY_FEES_OF_WILAYA_SERVICE,
   GET_SHIPPING_LABEL_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { GetActiveWilayasOfProviderQuery } from "#/application/queries/get-active-wilayas-of-provider.query.js";
 import { GetCommunesOfWilayaQuery } from "#/application/queries/get-communes-of-wilaya.query.js";
 import { GetDeliveryFeesOfWilayaQuery } from "#/application/queries/get-delivery-fees-of-wilaya.query.js";

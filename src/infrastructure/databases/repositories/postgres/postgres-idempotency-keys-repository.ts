@@ -1,7 +1,7 @@
 import type {
   IdempotencyKeyEntry,
   IdempotencyKeysRepository,
-} from "#/application/repositories/idempotency-keys.repository.js";
+} from "#/application/ports/persistence/idempotency-keys.repository.port.js";
 
 import type {
   DrizzleDBClient,
@@ -25,7 +25,7 @@ export class PostgresIdempotencyKeysRepository implements IdempotencyKeysReposit
   ): Promise<void> {
     this.logger.debug("create called", { key, handlerName });
 
-    const db = tx ? tx as DrizzleTransactionClient : this.db;
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
 
     try {
       await this.logger.measure("db.insert(idempotencyKeys)", () =>

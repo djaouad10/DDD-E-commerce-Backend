@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { ResetStuckOutboxRowsWorker } from "#/infrastructure/messaging/bullmq/workers/reset-stuck-outbox-rows.worker.js";
 import { sleep } from "#/shared/utils/sleep.js";
 import { clearDatabase } from "#/tests/helpers/db-helpers.js";
@@ -7,7 +7,7 @@ import {
   getOutboxRowById,
 } from "#/tests/helpers/outbox-test-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
-import { OutboxStatus } from "#/application/repositories/outbox.repository.js";
+import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 
 describe("ResetStuckOutboxRowsWorker", () => {
   let container: Container;

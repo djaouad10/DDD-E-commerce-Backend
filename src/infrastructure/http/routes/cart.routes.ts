@@ -6,9 +6,9 @@ import {
   DELETE_CART_ITEM_SERVICE,
   GET_USER_CART_SERVICE,
   UPDATE_CART_ITEM_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { GetUserCartQuery } from "#/application/queries/get-user-cart.query.js";
-import { UpdateCartItemCommand } from "#/application/commands/update-cart-item.command.js";
+import { UpdateCartItemCommand } from "#/application/commands/api/update-cart-item.command.js";
 import { validate } from "../utils/validation.js";
 import {
   updateCartItemBodySchema,
@@ -16,9 +16,9 @@ import {
   deleteCartItemParamsSchema,
   addItemToCartBodySchema,
 } from "../validators/cart.js";
-import { DeleteCartItemCommand } from "#/application/commands/delete-cart-item.command.js";
-import { ClearCartCommand } from "#/application/commands/clear-cart.command.js";
-import { AddItemToCartCommand } from "#/application/commands/add-item-to-cart.command.js";
+import { DeleteCartItemCommand } from "#/application/commands/api/delete-cart-item.command.js";
+import { ClearCartCommand } from "#/application/commands/api/clear-cart.command.js";
+import { AddItemToCartCommand } from "#/application/commands/api/add-item-to-cart.command.js";
 
 const router = Router();
 

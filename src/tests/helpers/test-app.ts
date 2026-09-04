@@ -1,5 +1,5 @@
-import type { Container } from "#/composition/container.js";
-import { buildIntegrationTestsContainer } from "#/composition/tests/integration-tests-composition.js";
+import type { Container } from "#/composition/utils/container.js";
+import { buildIntegrationTestsContainer } from "#/composition/roots/tests/integration-tests-composition.js";
 import { createServer } from "#/infrastructure/http/server/index.js";
 import type { Express } from "express";
 import nock from "nock";

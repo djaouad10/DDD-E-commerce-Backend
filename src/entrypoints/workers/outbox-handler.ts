@@ -1,5 +1,5 @@
-import { buildOutboxHandlerContainer } from "#/composition/outbox-handler-composition.js";
-import { REDIS } from "#/composition/tokens.js";
+import { buildOutboxHandlerContainer } from "#/composition/roots/outbox-handler.composition.js";
+import { REDIS } from "#/composition/utils/tokens.js";
 import { OutboxHandlerWorker } from "#/infrastructure/messaging/bullmq/workers/outbox-handler.worker.js";
 import { createLogger } from "#/shared/logging/logger.js";
 

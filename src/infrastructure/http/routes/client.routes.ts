@@ -17,16 +17,16 @@ import {
   GET_CLIENTS_LIST_SERVICE,
   UNBAN_CLIENT_SERVICE,
   UPDATE_CLIENT_PROFILE_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { GetClientProfileQuery } from "#/application/queries/get-client-profile.query.js";
 import type { UserDTO } from "#/application/dto/user.dto.js";
 import { GetClientBanStatusQuery } from "#/application/queries/get-client-ban-status.query.js";
 import { adminMiddleware } from "../middleware/admin-middleware.js";
 import { GetClientsListQuery } from "#/application/queries/get-clients-list.query.js";
-import { BanClientCommand } from "#/application/commands/ban-client.command.js";
-import { UnbanClientCommand } from "#/application/commands/unban-client.command.js";
+import { BanClientCommand } from "#/application/commands/api/ban-client.command.js";
+import { UnbanClientCommand } from "#/application/commands/api/unban-client.command.js";
 import { clientMiddleware } from "../middleware/client-middleware.js";
-import { UpdateClientProfileCommand } from "#/application/commands/update-client-profile.command.js";
+import { UpdateClientProfileCommand } from "#/application/commands/api/update-client-profile.command.js";
 
 const router = Router();
 

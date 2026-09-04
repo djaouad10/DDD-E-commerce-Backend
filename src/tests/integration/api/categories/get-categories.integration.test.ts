@@ -3,7 +3,7 @@ import type { Express } from "express";
 import nock from "nock";
 import { createTestApp, cleanupTestApp } from "#/tests/helpers/test-app.js";
 import { Category } from "#/domain/entities/category.js";
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,

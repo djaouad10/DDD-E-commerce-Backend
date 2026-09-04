@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,
@@ -83,7 +83,7 @@ describe("GET /api/v1/products/:id/update-data", () => {
             expect.objectContaining({
               name: expect.any(String),
               url: expect.any(String),
-            })
+            }),
           ]),
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
@@ -91,8 +91,10 @@ describe("GET /api/v1/products/:id/update-data", () => {
       );
 
       // Images shape
-      expect(response.body.product.images).toHaveLength(product.getImages().length);
-  
+      expect(response.body.product.images).toHaveLength(
+        product.getImages().length,
+      );
+
       expect(
         response.body.product.images.some(
           (img: any) => img.name === mainImage.getName(),

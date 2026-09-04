@@ -1,22 +1,22 @@
-import { EmailQueueOrderCancelledHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-cancelled-handler.command.js";
-import { EmailQueueOrderConfirmedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-confirmed-handler.command.js";
-import { EmailQueueOrderCreatedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-created-handler.command.js";
-import { EmailQueueOrderDeliveredHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-delivered-handler.command.js";
-import { EmailQueueOrderReturnedHandlerCommand } from "#/application/commands/event-handlers/email-queue-order-returned-handler.command.js";
-import { EmailQueueRatingApprovedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-approved-handler.command.js";
-import { EmailQueueRatingRejectedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-rejected-handler.command.js";
-import { EmailQueueRatingSubmittedHandlerCommand } from "#/application/commands/event-handlers/email-queue-rating-submitted-handler.command.js";
-import { EmailQueueUserRegisteredHandlerCommand } from "#/application/commands/event-handlers/email-queue-user-registered-handler.command.js";
-import { EmailQueueOrderCancelledHandlerService } from "#/application/services/event-handlers/email-queue-order-cancelled-handler.service.js";
-import type { EmailQueueOrderConfirmedHandlerService } from "#/application/services/event-handlers/email-queue-order-confirmed-handler.service.js";
-import type { EmailQueueOrderCreatedHandlerService } from "#/application/services/event-handlers/email-queue-order-created-handler.service.js";
-import type { EmailQueueOrderDeliveredHandlerService } from "#/application/services/event-handlers/email-queue-order-delivered-handler.service.js";
-import type { EmailQueueOrderReturnedHandlerService } from "#/application/services/event-handlers/email-queue-order-returned-handler.service.js";
-import type { EmailQueueRatingApprovedHandlerService } from "#/application/services/event-handlers/email-queue-rating-approved-handler.service.js";
-import type { EmailQueueRatingRejectedHandlerService } from "#/application/services/event-handlers/email-queue-rating-rejected-handler.service.js";
-import type { EmailQueueRatingSubmittedHandlerService } from "#/application/services/event-handlers/email-queue-rating-submitted-handler.service.js";
-import type { EmailQueueUserRegisteredHandlerService } from "#/application/services/event-handlers/email-queue-user-registered-handler.service.js";
-import type { InjectionToken, Scope } from "#/composition/container.js";
+import { EmailQueueOrderCancelledHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-cancelled-handler.command.js";
+import { EmailQueueOrderConfirmedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-confirmed-handler.command.js";
+import { EmailQueueOrderCreatedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-created-handler.command.js";
+import { EmailQueueOrderDeliveredHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-delivered-handler.command.js";
+import { EmailQueueOrderReturnedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-returned-handler.command.js";
+import { EmailQueueRatingApprovedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-rating-approved-handler.command.js";
+import { EmailQueueRatingRejectedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-rating-rejected-handler.command.js";
+import { EmailQueueRatingSubmittedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-rating-submitted-handler.command.js";
+import { EmailQueueUserRegisteredHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-user-registered-handler.command.js";
+import { EmailQueueOrderCancelledHandlerService } from "#/application/services/email-queue-handlers/email-queue-order-cancelled-handler.service.js";
+import type { EmailQueueOrderConfirmedHandlerService } from "#/application/services/email-queue-handlers/email-queue-order-confirmed-handler.service.js";
+import type { EmailQueueOrderCreatedHandlerService } from "#/application/services/email-queue-handlers/email-queue-order-created-handler.service.js";
+import type { EmailQueueOrderDeliveredHandlerService } from "#/application/services/email-queue-handlers/email-queue-order-delivered-handler.service.js";
+import type { EmailQueueOrderReturnedHandlerService } from "#/application/services/email-queue-handlers/email-queue-order-returned-handler.service.js";
+import type { EmailQueueRatingApprovedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-approved-handler.service.js";
+import type { EmailQueueRatingRejectedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-rejected-handler.service.js";
+import type { EmailQueueRatingSubmittedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-submitted-handler.service.js";
+import type { EmailQueueUserRegisteredHandlerService } from "#/application/services/email-queue-handlers/email-queue-user-registered-handler.service.js";
+import type { InjectionToken, Scope } from "#/composition/utils/container.js";
 import {
   EMAIL_QUEUE_ORDER_CREATED_HANDLER_SERVICE,
   EMAIL_QUEUE_ORDER_CANCELLED_HANDLER_SERVICE,
@@ -27,7 +27,7 @@ import {
   EMAIL_QUEUE_RATING_REJECTED_HANDLER_SERVICE,
   EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
   EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
-} from "#/composition/tokens.js";
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { DomainEventsPayloadTypes } from "./validation.js";
 

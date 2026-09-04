@@ -1,5 +1,5 @@
-import type { Container } from "#/composition/container.js";
-import { DB } from "#/composition/tokens.js";
+import type { Container } from "#/composition/utils/container.js";
+import { DB } from "#/composition/utils/tokens.js";
 import { outbox } from "#/infrastructure/databases/schema.js";
 import { eq, inArray } from "drizzle-orm";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
@@ -7,7 +7,7 @@ import {
   OutboxAction,
   OutboxCategory,
   OutboxStatus,
-} from "#/application/repositories/outbox.repository.js";
+} from "#/application/ports/persistence/outbox.repository.port.js";
 import type { DomainEventCode } from "#/domain/events/domain-event.js";
 
 export type SeedOutboxJobRowOverrides = {

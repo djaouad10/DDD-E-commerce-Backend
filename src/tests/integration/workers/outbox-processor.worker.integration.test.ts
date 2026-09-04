@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { OutboxProcessorWorker } from "#/infrastructure/messaging/bullmq/workers/outbox-processor.worker.js"; // adjust path
 import { sleep } from "#/shared/utils/sleep.js";
 import { clearDatabase } from "#/tests/helpers/db-helpers.js";
@@ -7,8 +7,8 @@ import {
   getOutboxRowById,
 } from "#/tests/helpers/outbox-test-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
-import { OutboxStatus } from "#/application/repositories/outbox.repository.js";
-import { OUTBOX_QUEUE } from "#/composition/tokens.js";
+import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
+import { OUTBOX_QUEUE } from "#/composition/utils/tokens.js";
 
 describe("OutboxProcessorWorker", () => {
   let container: Container;

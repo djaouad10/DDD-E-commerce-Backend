@@ -1,4 +1,4 @@
-import { OutboxAction } from "#/application/repositories/outbox.repository.js";
+import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
 import { Color, Size } from "#/domain/entities/product.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";

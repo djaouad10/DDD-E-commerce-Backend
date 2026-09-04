@@ -1,4 +1,4 @@
-import { buildCleanOutboxContainer } from "#/composition/clean-outbox-worker.composition.js";
+import { buildCleanOutboxContainer } from "#/composition/roots/clean-outbox-worker.composition.js";
 import { CleanOutboxWorker } from "#/infrastructure/messaging/bullmq/workers/clean-outbox.worker.js";
 import { createLogger } from "#/shared/logging/logger.js";
 

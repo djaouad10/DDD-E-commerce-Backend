@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
 import { CleanOutboxWorker } from "#/infrastructure/messaging/bullmq/workers/clean-outbox.worker.js";
 import { sleep } from "#/shared/utils/sleep.js";

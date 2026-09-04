@@ -1,4 +1,4 @@
-import type { Container } from "#/composition/container.js";
+import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,
@@ -14,7 +14,10 @@ import type { Express } from "express";
 import { Category } from "#/domain/entities/category.js";
 import { User } from "#/domain/entities/user.js";
 import { Rating } from "#/domain/entities/rating.js";
-import { RATING_REPOSITORY, OUTBOX_REPOSITORY } from "#/composition/tokens.js";
+import {
+  RATING_REPOSITORY,
+  OUTBOX_REPOSITORY,
+} from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { RatingRejected } from "#/domain/events/rating/rating-rejected.js";
 
