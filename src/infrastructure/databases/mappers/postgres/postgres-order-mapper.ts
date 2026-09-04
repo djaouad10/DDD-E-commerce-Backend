@@ -58,7 +58,7 @@ export class PostgresOrderMapper {
       ),
       items,
       orderRow.created_at,
-      orderRow.updated_at,
+      orderRow.updated_at,orderRow.version
     );
   }
 
@@ -86,6 +86,7 @@ export class PostgresOrderMapper {
       },
       created_at: order.getCreatedAt(),
       updated_at: order.getUpdatedAt(),
+      version: order.getVersion(),
     };
   }
 
