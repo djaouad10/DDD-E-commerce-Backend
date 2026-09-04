@@ -3,32 +3,32 @@ import { DeliveryType } from "#/domain/value-objects/shipping-details.js";
 import z from "zod";
 
 export const getOrdersOfClientSearchParamsSchema = z.object({
-  clientId: z.string(),
-  limit: z.coerce.number().min(1).optional(),
+  clientId: z.string().trim().min(1).max(100),
+  limit: z.coerce.number().min(1).max(500).optional(),
   status: z.enum(OrderStatus).optional(),
   cursor: z
     .object({
       createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      orderId: z.string(),
+      orderId: z.string().trim().min(1).max(100),
     })
     .optional(),
 });
 
 export const getOrderByTrackingNumberParamsSchema = z.object({
-  tracking: z.string(),
+  tracking: z.string().trim().min(1).max(100),
 });
 
 export const getOrderByIdParamsSchema = z.object({
-  id: z.string(),
+  id: z.string().trim().min(1).max(100),
 });
 
 export const getOrdersSearchParamsSchema = z.object({
-  limit: z.coerce.number().min(1).optional(),
+  limit: z.coerce.number().min(1).max(500).optional(),
   status: z.enum(OrderStatus).optional(),
   cursor: z
     .object({
       createdAt: z.iso.datetime().pipe(z.coerce.date()),
-      orderId: z.string(),
+      orderId: z.string().trim().min(1).max(100),
     })
     .optional(),
 });
@@ -43,46 +43,46 @@ export const createOrderBodySchema = z.object({
   providedShippingPrice: z.coerce.number().positive().max(1000000),
   selectedShippingProvider: z.enum(ShippingProvider),
   shippingDetails: z.object({
-    fullName: z.string().trim(),
+    fullName: z.string().trim().min(1).max(200),
     firstPhone: phoneNumberSchema,
     secondPhone: phoneNumberSchema.optional(),
     wilayaCode: z.number().min(1).max(69),
-    commune: z.string().trim(),
+    commune: z.string().trim().min(1).max(100),
     postalCode: z
       .string()
       .trim()
       .regex(/^\d{3,5}$/, "invalid postal code"),
 
-    address: z.string().trim(),
+    address: z.string().trim().min(1).max(100),
     gpsLink: z.url().optional(),
-    clientNote: z.string().trim().optional(),
+    clientNote: z.string().trim().min(1).max(500).optional(),
     deliveryType: z.enum(DeliveryType),
     fragile: z.boolean(),
   }),
 });
 
 export const cancelOrderParamsSchema = z.object({
-  id: z.string(),
+  id: z.string().trim().min(1).max(100),
 });
 
 export const confirmOrderParamsSchema = z.object({
-  id: z.string(),
+  id: z.string().trim().min(1).max(100),
 });
 
 export const shipOrderParamsSchema = z.object({
-  id: z.string(),
+  id: z.string().trim().min(1).max(100),
 });
 
 export const updateShippingDetailsParamsSchema = z.object({
-  id: z.string(),
+  id: z.string().trim().min(1).max(100),
 });
 
 export const updateShippingDetailsBodySchema = z.object({
-  clientName: z.string().trim(),
+  clientName: z.string().trim().min(1).max(200),
   phone: phoneNumberSchema,
   phone2: phoneNumberSchema.optional().nullable(),
-  address: z.string().trim(),
-  note: z.string().trim().optional().nullable(),
+  address: z.string().trim().min(1).max(100),
+  note: z.string().trim().min(1).max(500).optional().nullable(),
   isFragile: z.boolean(),
   gpsLink: z.url().optional().nullable(),
 });
