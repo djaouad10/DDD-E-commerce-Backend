@@ -1,5 +1,4 @@
 import type { Container } from "#/composition/utils/container.js";
-import { DB } from "#/composition/utils/tokens.js";
 import { outbox } from "#/infrastructure/databases/schema.js";
 import { eq, inArray } from "drizzle-orm";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
@@ -9,6 +8,7 @@ import {
   OutboxStatus,
 } from "#/application/ports/persistence/outbox.repository.port.js";
 import type { DomainEventCode } from "#/domain/events/domain-event.js";
+import { DRIZZLE_DB } from "#/composition/utils/tokens.js";
 
 export type SeedOutboxJobRowOverrides = {
   id?: string;
@@ -28,7 +28,7 @@ export async function seedOutboxJobRow(
   container: Container,
   overrides: SeedOutboxJobRowOverrides = {},
 ): Promise<string> {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const id = overrides.id ?? generateOutboxId();
 
   await db.insert(outbox).values({
@@ -69,7 +69,7 @@ export async function seedOutboxDomainEventRow(
   eventType: DomainEventCode,
   overrides: SeedOutboxDomainEventRowOverrides = {},
 ): Promise<string> {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   const id = overrides.id ?? generateOutboxId();
 
   await db.insert(outbox).values({
@@ -90,11 +90,11 @@ export async function seedOutboxDomainEventRow(
 }
 
 export async function getOutboxRowById(container: Container, id: string) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   return db.query.outbox.findFirst({ where: eq(outbox.id, id) });
 }
 
 export async function getOutboxRowsByIds(container: Container, ids: string[]) {
-  const db = container.resolveSingleton(DB);
+  const db = container.resolveSingleton(DRIZZLE_DB);
   return db.query.outbox.findMany({ where: inArray(outbox.id, ids) });
 }
