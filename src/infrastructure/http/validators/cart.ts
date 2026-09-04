@@ -1,19 +1,19 @@
 import z from "zod";
-import { strictlyPositiveNumberStringSchema } from "./shared.js";
+import { idSchema, strictlyPositiveNumberStringSchema } from "./shared.js";
 
 export const updateCartItemBodySchema = z.object({
-  newQty: z.number().min(1).max(100),
+  newQty: strictlyPositiveNumberStringSchema.max(100),
 });
 
 export const updateCartItemParamsSchema = z.object({
-  id: strictlyPositiveNumberStringSchema.max(100),
+  id: idSchema,
 });
 
 export const deleteCartItemParamsSchema = z.object({
-  id: strictlyPositiveNumberStringSchema.max(100),
+  id: idSchema,
 });
 
 export const addItemToCartBodySchema = z.object({
-  variationId: strictlyPositiveNumberStringSchema.max(100),
+  variationId: idSchema,
   qty: strictlyPositiveNumberStringSchema.max(100),
 });
