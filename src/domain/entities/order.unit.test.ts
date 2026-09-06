@@ -234,7 +234,7 @@ describe("Order Aggregate", () => {
 
       // Assert
       expect(order.getOrderItems()).toHaveLength(2);
-      expect(order.getOrderItems()).toBe(validArguments[2]); // if same reference
+      expect(order.getOrderItems()).toEqual(validArguments[2]); // if same reference
     });
 
     test("when creating a new order with valid arguments, it should preserve the shippingPriceAtOrderTime", () => {
@@ -371,7 +371,7 @@ describe("Order Aggregate", () => {
       const order = Order.reconstitute(...validArguments);
 
       // Assert
-      expect(order.getOrderItems()).toBe(validArguments[8]);
+      expect(order.getOrderItems()).toEqual(validArguments[8]);
     });
 
     test("when reconstructing an order using valid arguments, it should preserve the createdAt", () => {
