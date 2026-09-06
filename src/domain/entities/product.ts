@@ -589,11 +589,11 @@ export class Product {
   }
 
   getImages(): File[] {
-    return this._images;
+    return [...this._images];
   }
 
   getVariations(): Variation[] {
-    return this._variations;
+    return [...this._variations];
   }
 
   getBrand(): string {

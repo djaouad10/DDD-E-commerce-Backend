@@ -28,8 +28,8 @@ import {
   ORDER_REPOSITORY,
   RATING_REPOSITORY,
   CART_REPOSITORY,
-  DB,
   AUTH,
+  DRIZZLE_DB,
 } from "#/composition/utils/tokens.js";
 
 // Import schema for direct deletes
@@ -299,7 +299,7 @@ async function seed() {
 
   // Build container and get dependencies
   const container = buildApiContainer();
-  const dbInstance = container.resolveSingleton(DB);
+  const dbInstance = container.resolveSingleton(DRIZZLE_DB);
   const categoryRepo = container.resolveSingleton(CATEGORY_REPOSITORY);
   const productRepo = container.resolveSingleton(PRODUCT_REPOSITORY);
   const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
