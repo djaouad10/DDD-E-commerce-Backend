@@ -407,7 +407,7 @@ export class Order {
   }
 
   getOrderItems(): OrderItem[] {
-    return this._orderItems;
+    return [...this._orderItems];
   }
 
   getCreatedAt(): Date {

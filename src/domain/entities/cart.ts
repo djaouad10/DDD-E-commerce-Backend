@@ -116,7 +116,7 @@ export class Cart {
 
   // query methods
   getItems(): CartItem[] {
-    return this._items;
+    return [...this._items];
   }
 
   getUpdatedAt(): Date {
