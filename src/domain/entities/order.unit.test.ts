@@ -1126,6 +1126,92 @@ describe("Order Aggregate", () => {
     });
   });
 
+  describe("invalid status transitions", () => {
+    it("when you call markAsPreTransit on a PENDING order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.PENDING,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+    });
+
+    it("when you call markAsShipping on a CONFIRMED order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.CONFIRMED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      // Act & Assert
+      expect(() => order.markAsShipping()).toThrow(ValidationError);
+    });
+
+    it("when you call markAsDelivered on a PRE_TRANSIT order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.PRE_TRANSIT,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
+    });
+
+    it("when you call markAsReturned on a CONFIRMED order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.CONFIRMED,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      expect(() => order.markAsReturned()).toThrow(ValidationError);
+    });
+
+    it("when you call markAsSuspended on a PENDING order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.PENDING,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      expect(() => order.markAsSuspended()).toThrow(ValidationError);
+    });
+
+    it("when you call resumeFromSuspension on a PENDING order, it throws a ValidationError", () => {
+      // Arrange
+      const validArguments = makeValidReconstituteArguments({
+        status: OrderStatus.PENDING,
+      });
+
+      const order = Order.reconstitute(...validArguments);
+
+      expect(() => order.resumeFromSuspension()).toThrow(ValidationError);
+    });
+
+    it.each([
+      OrderStatus.DELIVERED,
+      OrderStatus.RETURNED,
+      OrderStatus.CANCELLED,
+    ])("terminal state rejects all transitions", (status) => {
+      const validArguments = makeValidReconstituteArguments({ status });
+      const order = Order.reconstitute(...validArguments);
+      expect(() => order.confirm()).toThrow(ValidationError);
+      expect(() => order.cancel()).toThrow(ValidationError);
+      expect(() => order.markAsPreTransit()).toThrow(ValidationError);
+      expect(() => order.markAsShipping()).toThrow(ValidationError);
+      expect(() => order.markAsDelivered()).toThrow(ValidationError);
+      expect(() => order.markAsReturned()).toThrow(ValidationError);
+      expect(() => order.markAsSuspended()).toThrow(ValidationError);
+    });
+  });
+
   describe("Order.getTotalItemsPrice()", () => {
     test("when items have no discount, it should return the sum of the items prices", () => {
       // Arrange
