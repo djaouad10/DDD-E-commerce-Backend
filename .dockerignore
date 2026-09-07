@@ -1,0 +1,9 @@
+node_modules
+dist
+.env*
+README.md
+7Q Framework
+coverage
+src/tests
+src/composition/roots/tests
+docker-compose*
