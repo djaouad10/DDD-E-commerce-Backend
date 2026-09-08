@@ -35,6 +35,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+
       # when setting up the coolify server, add the following
       # - name: Trigger Coolify deploy
       #   run: |
