@@ -57,9 +57,10 @@ export function handleWorldExpressErrors(
       case 429:
         throw new GatewayError("WorldExpress", error);
 
-      case 422:
+      case 422: {
         const errorMessage = extractMessageFrom422Error(error.responseBody);
         throw new ValidationError("request", errorMessage);
+      }
 
       // Handles any other 4xx client errors (Bad Request, Unauthorized, Payment Required, etc.)
       case 402:
@@ -122,7 +123,11 @@ export function handleWorldExpressErrors(
  */
 function extractMessageFrom422Error(responseBody: unknown): string {
   if (typeof responseBody === "object" && responseBody !== null) {
-    const body = responseBody as any;
+    const body = responseBody as unknown as {
+      message?: string;
+      errors?: Record<string, string[]>;
+    };
+
     if (body.message && typeof body.message === "string") {
       return body.message;
     }

@@ -35,12 +35,14 @@ export function errorHandlingMiddleware(
   res: Response,
   _next: NextFunction,
 ): void {
+  const errorObj = err as unknown as Record<string, unknown>;
+
   const ctx = getContext();
   const requestId = ctx?.requestId ?? "unknown";
-  const isOperational = (err as any).isOperational === true;
-  const code = (err as any).code || "INTERNAL_ERROR";
-  const statusCode = (err as any).statusCode || 500;
-  const details = (err as any).details || {};
+  const isOperational = errorObj.isOperational === true;
+  const code = (errorObj.code as string) || "INTERNAL_ERROR";
+  const statusCode = (errorObj.statusCode as number) || 500;
+  const details = (errorObj.details as Record<string, unknown>) || {};
 
   // Calculate total request duration
   const durationMs = ctx?.startTime
@@ -83,7 +85,7 @@ export function errorHandlingMiddleware(
     error: {
       code,
       message: userMessage,
-      requestId, 
+      requestId,
       ...(isOperational && Object.keys(details).length > 0 ? { details } : {}),
     },
   };

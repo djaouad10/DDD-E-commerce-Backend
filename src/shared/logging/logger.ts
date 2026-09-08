@@ -77,7 +77,7 @@ export class Logger {
       entry.error = {
         name: error.name,
         message: error.message,
-        code: (error as any).code,
+        code: (error as { code?: string }).code ?? "UNKNOWN_CODE",
         ...(error.stack && { stack: error.stack }),
       };
     }

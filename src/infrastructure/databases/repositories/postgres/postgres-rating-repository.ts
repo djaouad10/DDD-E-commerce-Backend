@@ -136,7 +136,7 @@ export class PostgresRatingRepository implements RatingRepository {
 
     const ratingRow: RatingRow = PostgresRatingMapper.toRow(ratingAgg);
     // remove the created_at field so it doesn't get overwritten by the onConflict
-    const { created_at, ...ratingRowToUpsert } = ratingRow;
+    const { created_at: _created_at, ...ratingRowToUpsert } = ratingRow;
 
     try {
       await this.logger.measure("db.insert(rating)", () =>

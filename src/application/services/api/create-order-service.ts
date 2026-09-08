@@ -77,7 +77,7 @@ export class CreateOrderService {
         this.cartRepository.findByUserId(UserId.of(userId)),
       ]);
 
-    let providerDeliveryPrice =
+    const providerDeliveryPrice =
       shippingDetails.deliveryType === "TO_DESK"
         ? providerDeliveryPriceOfWilaya.stopDeskFee
         : providerDeliveryPriceOfWilaya.homeDeliveryFee;

@@ -1,0 +1,58 @@
+name: ddd-e-commerce-backend
+
+x-service-defaults: &service-defaults
+  image: ghcr.io/djaouad10/ddd-e-commerce-backend:latest
+  restart: unless-stopped
+  env_file: .env
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  api:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/api/index.js"]
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  outbox-handler:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/workers/outbox-handler.js"]
+
+  email-queue-handler:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/workers/email-queue-handler.js"]
+
+  outbox-processor:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/workers/outbox-processor.js"]
+    scale: 1
+
+  domain-events-processor:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/workers/domain-events-processor.js"]
+    scale: 1
+
+  clean-outbox:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/workers/clean-outbox.js"]
+    scale: 1
+
+  reset-stuck-outbox-rows:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/workers/reset-stuck-outbox-rows.js"]
+    scale: 1

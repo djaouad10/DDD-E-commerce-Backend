@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  pull_requests:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npx tsc -p tsconfig.build.json --noEmit
+      - name: Lint
+        run: npm run lint
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions\checkout@v4
+      - uses: actions\setup-node@v4
+        with:
+          - node-version: 22
+          - cache: npm
+      - run: npm ci
+      - run: npm run test:unit
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Create .env.test
+        run: |
+          cat <<EOF > .env.test
+          NODE_ENV=test
+          DATABASE_URL=postgresql://test:test@localhost:5433/ecommerce_ddd_test
+          REDIS_HOST=127.0.0.1
+          REDIS_PORT=6380
+          BETTER_AUTH_SECRET=test-secret-min-32-characters-long!!
+          BETTER_AUTH_URL=http://localhost:3000
+          UPLOADTHING_TOKEN=blablabla
+          UPLOADTHING_APP_ID=appidddd
+          WORLD_EXPRESS_API_URL=https://world-express.ecotrack.dz/api/v1
+          WORLD_EXPRESS_API_KEY=blablabla
+          EMAIL_SENDER_ADDRESS=email@gmail.com
+          EMAIL_SENDER_NAME=blablabla
+          SERVICE_NAME=e-commerce-api
+          BREVO_API_KEY=blablabla
+          BREVO_BASE_URL=https://api.brevo.com/v3/smtp/email
+          PORT=3000
+          DEBUG_DB=false
+          GOOGLE_CLIENT_ID=sdfsfsdf
+          GOOGLE_CLIENT_SECRET=sssdf
+          LOG_LEVEL=fatal
+          EOF
+      - run: npm run test:integration
+
+  security-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high --omit=dev
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@v3

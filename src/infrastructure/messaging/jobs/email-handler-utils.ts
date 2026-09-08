@@ -222,9 +222,10 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
       ) as EmailQueueEventToCommand[T];
     }
 
-    default:
+    default: {
       const _exhaustive: never = event;
       throw new Error(`Unhandled Email Queue Domain Event: ${_exhaustive}`);
+    }
   }
 }
 
