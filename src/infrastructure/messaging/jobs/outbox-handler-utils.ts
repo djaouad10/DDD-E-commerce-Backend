@@ -83,9 +83,10 @@ export function buildOutboxCommand<T extends OutboxAction>(
       ) as OutboxActionToCommand[T];
     }
 
-    default:
+    default: {
       const _exhaustive: never = action;
       throw new Error(`Unhandled outbox action: ${_exhaustive}`);
+    }
   }
 }
 

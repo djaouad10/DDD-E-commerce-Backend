@@ -13,7 +13,6 @@ import type {
   DomainEvent,
   DomainEventCode,
 } from "#/domain/events/domain-event.js";
-import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { generateOutboxId } from "../../outbox/utils.js";
 import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 
@@ -49,14 +48,11 @@ type InMemoryEntry =
 export class InMemoryOutboxRepository implements OutboxRepository {
   private entries: InMemoryEntry[] = [];
 
-  async saveJob(
-    params: {
-      action: OutboxAction;
-      payload: Record<string, unknown>;
-      scheduledAt?: Date;
-    },
-    _tx?: TransactionClient,
-  ): Promise<void> {
+  async saveJob(params: {
+    action: OutboxAction;
+    payload: Record<string, unknown>;
+    scheduledAt?: Date;
+  }): Promise<void> {
     this.entries.push({
       id: generateOutboxId(),
       category: OutboxCategory.OUTBOX_JOB,
@@ -69,10 +65,7 @@ export class InMemoryOutboxRepository implements OutboxRepository {
     });
   }
 
-  async saveEvents(
-    events: DomainEvent[],
-    _tx?: TransactionClient,
-  ): Promise<void> {
+  async saveEvents(events: DomainEvent[]): Promise<void> {
     for (const event of events) {
       this.entries.push({
         id: generateOutboxId(),

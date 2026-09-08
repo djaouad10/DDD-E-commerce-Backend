@@ -409,8 +409,8 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       await createUserInDB(container, user);
 
       // First, verify user is banned with some expiry
-      let userRepository = container.resolveSingleton(USER_REPOSITORY);
-      let foundUser = await userRepository.find(user.id);
+      const userRepository = container.resolveSingleton(USER_REPOSITORY);
+      const foundUser = await userRepository.find(user.id);
       expect(foundUser!.isBanned()).toBe(true);
 
       // Act

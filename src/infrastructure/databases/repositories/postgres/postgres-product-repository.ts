@@ -404,7 +404,7 @@ export class PostgresProductRepository implements ProductRepository {
 
         variationsRows.map((v) => {
           // to avoid overwriting the createdAt timestamp by the onConflictDoUpdate
-          const { created_at: createdAtVariation, ...variationToUpsert } = v;
+          const { created_at: _createdAtVariation, ...variationToUpsert } = v;
           upserts.push(
             this.logger.measure("db.insert(variation)", () =>
               db

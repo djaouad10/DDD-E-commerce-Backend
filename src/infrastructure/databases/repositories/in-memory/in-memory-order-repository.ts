@@ -1,7 +1,6 @@
 import type { Order } from "#/domain/entities/order.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import type { OrderId } from "#/domain/value-objects/order-id.js";
-import type { TransactionClient } from "#/shared/types/transaction-client.js";
 
 export class InMemoryOrderRepository implements OrderRepository {
   private orders: Order[] = [];
@@ -22,7 +21,7 @@ export class InMemoryOrderRepository implements OrderRepository {
     return this.orders.filter((order) => ids.some((id) => id.equals(order.id)));
   }
 
-  async save(order: Order, _tx?: TransactionClient): Promise<void> {
+  async save(order: Order): Promise<void> {
     const index = this.orders.findIndex((o) => o.id.equals(order.id));
 
     if (index >= 0) {
@@ -32,7 +31,7 @@ export class InMemoryOrderRepository implements OrderRepository {
     }
   }
 
-  async delete(id: OrderId, _tx?: TransactionClient): Promise<void> {
+  async delete(id: OrderId): Promise<void> {
     this.orders = this.orders.filter((o) => !o.id.equals(id));
   }
 }

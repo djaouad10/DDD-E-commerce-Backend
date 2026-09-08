@@ -30,14 +30,11 @@ export class GetOrderByTrackingNumberService {
     // I need to fetch the variations of each orderItem and include them in the result
     const variationIds = order.getOrderItems().map((oi) => oi.variationId);
 
-    // this should be impossible since Order.create already validates the orderItems.length > 0
-    let orderItems: OrderItemDTO[] = [];
-
     const variations = await Promise.all(
       variationIds.map((id) => this.productQueries.findVariation(id)),
     );
 
-    orderItems = order.getOrderItems().map((oi, i) => {
+    const orderItems: OrderItemDTO[] = order.getOrderItems().map((oi, i) => {
       const v = variations[i];
 
       // this should be impossible since I don't allow variation deletion if it was linked to at least one order item
