@@ -1,12 +1,17 @@
+import type {
+  AgnosticHeaders,
+  AuthPort,
+  AuthSession,
+} from "#/application/ports/auth/auth.port.js";
+import type { UserRole } from "#/domain/entities/user.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import type { Auth } from "#/infrastructure/config/auth.js";
-import type { Request } from "express";
 
-export const fakeAuth = {
+export const fakeBetterAuth = {
   api: {
-    getSession: async ({ headers }: { headers: Request["headers"] }) => {
+    getSession: async (headers: AgnosticHeaders) => {
       const authHeader = headers["authorization"];
-      console.log("AAAAAAAAAAA", authHeader);
+
+      if (typeof authHeader !== "string") return null;
 
       if (!authHeader?.startsWith("Bearer ")) return null;
 
@@ -14,12 +19,12 @@ export const fakeAuth = {
 
       if (token === "test-admin-token") {
         return {
-          user: { id: UserId.generate().value, role: "ADMIN" },
+          user: { id: UserId.generate().value, role: "ADMIN" as UserRole },
         };
       }
       if (token === "test-client-token") {
         return {
-          user: { id: UserId.generate().value, role: "CLIENT" },
+          user: { id: UserId.generate().value, role: "CLIENT" as UserRole },
         };
       }
 
@@ -27,16 +32,37 @@ export const fakeAuth = {
       const [baseToken, userId] = token.split(" ");
       if (baseToken === "test-client-token" && userId) {
         return {
-          user: { id: userId, role: "CLIENT" },
+          user: { id: userId, role: "CLIENT" as UserRole },
         };
       }
       if (baseToken === "test-admin-token" && userId) {
         return {
-          user: { id: userId, role: "ADMIN" },
+          user: { id: userId, role: "ADMIN" as UserRole },
         };
       }
 
       return null;
     },
   },
-} as any as Auth;
+};
+
+export class FakeAuthPort implements AuthPort {
+  async getSession(headers: AgnosticHeaders): Promise<AuthSession | null> {
+    const user = await fakeBetterAuth.api.getSession(headers);
+
+    if (!user) return null;
+
+    return {
+      user: {
+        id: user.user.id,
+        role: user.user.role,
+        email: "test-email",
+        emailVerified: true,
+        name: "test-name",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        image: null,
+      },
+    };
+  }
+}

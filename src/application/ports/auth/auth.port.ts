@@ -1,5 +1,7 @@
 import type { UserRole } from "#/domain/entities/user.js";
 
+export type AgnosticHeaders = Record<string, string | string[] | undefined>;
+
 export type AuthSession = {
   user: {
     role: UserRole;
@@ -15,5 +17,5 @@ export type AuthSession = {
 };
 
 export interface AuthPort {
-  getSession(headers: Record<string, string>): Promise<AuthSession | null>;
+  getSession(headers: AgnosticHeaders): Promise<AuthSession | null>;
 }

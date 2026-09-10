@@ -1,4 +1,5 @@
 import type {
+  AgnosticHeaders,
   AuthPort,
   AuthSession,
 } from "#/application/ports/auth/auth.port.js";
@@ -12,13 +13,12 @@ export class BetterAuthAdapter implements AuthPort {
   private logger = createLogger("BetterAuthAdapter");
 
   private auth: Auth;
-  private constructor(db: DrizzleDBClient, userRepo: UserRepository) {
+
+  constructor(db: DrizzleDBClient, userRepo: UserRepository) {
     this.auth = initializeAuth(db, userRepo);
   }
 
-  async getSession(
-    headers: Record<string, string>,
-  ): Promise<AuthSession | null> {
+  async getSession(headers: AgnosticHeaders): Promise<AuthSession | null> {
     this.logger.info("getSession called", { headers });
 
     try {
