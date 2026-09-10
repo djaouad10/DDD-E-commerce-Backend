@@ -31,7 +31,7 @@ export function handleUploadThingErrors(
 
       // Authorization
       case "FORBIDDEN":
-        throw new ForbiddenError("upload a file", "unknown user");
+        throw new ForbiddenError("upload a file");
 
       // UploadThing is broken/down → infrastructure problem
       case "UPLOAD_FAILED":

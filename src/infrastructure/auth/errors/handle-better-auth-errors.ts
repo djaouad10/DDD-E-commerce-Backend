@@ -22,10 +22,7 @@ export function handleBetterAuthErrors(error: unknown, context: string): never {
         throw new UnauthorizedError(error.message);
 
       case "FORBIDDEN":
-        throw new ForbiddenError(
-          "perform this authentication action",
-          "unknown",
-        );
+        throw new ForbiddenError("perform this authentication action");
 
       case "BAD_REQUEST":
         throw new BadRequestError(error.message, {
