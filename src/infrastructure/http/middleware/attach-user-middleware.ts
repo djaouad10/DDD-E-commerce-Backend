@@ -6,9 +6,9 @@ export async function attachUserMiddleware(
   _res: Response,
   next: NextFunction,
 ) {
-  const auth = await req.scope.resolve(AUTH);
+  const auth = req.scope.resolve(AUTH);
 
-  const session = await auth.api.getSession({ headers: req.headers });
+  const session = await auth.getSession(req.headers);
 
   if (session) {
     req.user = { id: session.user.id, role: session.user.role };
