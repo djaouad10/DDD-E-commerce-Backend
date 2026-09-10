@@ -17,7 +17,7 @@ import {
   HttpConnectionError,
   HttpTimeoutError,
   NotFoundError,
-} from "#/shared/errors/domain-error.js";
+} from "#/shared/errors/errors.js";
 import {
   handleWorldExpressErrors,
   WorldExpressApiError,

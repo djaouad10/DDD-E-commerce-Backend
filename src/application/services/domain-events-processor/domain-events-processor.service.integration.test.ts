@@ -10,7 +10,7 @@ import { OUTBOX_REPOSITORY } from "#/composition/utils/tokens.js";
 import type { OutboxRepository } from "#/application/ports/persistence/outbox.repository.port.js";
 import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { Mock } from "vitest";
 import { DomainEventsProcessorService } from "./domain-events-processor.service.js";
 import type { EventPublisher } from "#/application/ports/messaging/event-publisher.port.js";

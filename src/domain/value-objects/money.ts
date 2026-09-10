@@ -1,5 +1,5 @@
 import type { MoneySnapshot } from "#/domain/entities-snapshots/money.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 
 // add more currencies here in the future
 

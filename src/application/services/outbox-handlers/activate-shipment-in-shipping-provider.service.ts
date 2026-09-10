@@ -1,6 +1,6 @@
 import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
-import { GatewayError, NotFoundError } from "#/shared/errors/domain-error.js";
+import { GatewayError, NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { ActivateShipmentInShippingProviderCommand } from "../../commands/outbox-handlers/activate-shipment-in-shipping-provider.command.js";

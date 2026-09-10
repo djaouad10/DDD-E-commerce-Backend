@@ -1,4 +1,4 @@
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 
 export class ProductId {
   private constructor(readonly value: string) {}

@@ -1,10 +1,7 @@
 import { createLogger } from "#/shared/logging/logger.js";
 import { Worker } from "bullmq";
 import type { Redis } from "ioredis";
-import {
-  BadRequestError,
-  ValidationError,
-} from "#/shared/errors/domain-error.js";
+import { BadRequestError, ValidationError } from "#/shared/errors/errors.js";
 
 import { runWithContext } from "#/shared/context/request-context.js";
 import { buildEmailQueueHandlerContainer } from "#/composition/roots/email-queue-handler.composition.js";

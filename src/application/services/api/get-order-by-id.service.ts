@@ -1,7 +1,7 @@
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import { ForbiddenError, NotFoundError } from "#/shared/errors/domain-error.js";
+import { ForbiddenError, NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { OrderDTO, OrderItemDTO } from "../../dto/order.dto.js";
 import type { GetOrderByIdQuery } from "../../queries/get-order-by-id.query.js";

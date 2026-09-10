@@ -13,7 +13,7 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "#/shared/errors/domain-error.js";
+} from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { CreateOrderCommand } from "../../commands/api/create-order.command.js";

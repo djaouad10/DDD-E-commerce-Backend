@@ -3,7 +3,7 @@ import { Variation } from "#/domain/entities/variation.js";
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { Weight } from "#/domain/value-objects/weight.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { CreateVariationOfProductCommand } from "../../commands/api/create-variation-of-product.command.js";

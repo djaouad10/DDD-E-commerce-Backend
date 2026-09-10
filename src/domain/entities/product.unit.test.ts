@@ -11,7 +11,7 @@ import {
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "#/shared/errors/domain-error.js";
+} from "#/shared/errors/errors.js";
 import { VariationId } from "../value-objects/variation-id.js";
 import { FileId } from "../value-objects/file-id.js";
 

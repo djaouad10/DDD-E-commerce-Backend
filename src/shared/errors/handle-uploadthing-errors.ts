@@ -5,7 +5,7 @@ import {
   ForbiddenError,
   GatewayError,
   ValidationError,
-} from "./domain-error.js";
+} from "./errors.js";
 
 export function handleUploadThingErrors(
   error: unknown,

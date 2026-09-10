@@ -15,7 +15,7 @@ import {
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { OutboxProcessorService } from "./outbox-processor.service.js";
 import { OutboxProcessorCommand } from "../../commands/outbox-processor/outbox-processor.command.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { Queue } from "bullmq";
 import type { Mock } from "vitest";
 

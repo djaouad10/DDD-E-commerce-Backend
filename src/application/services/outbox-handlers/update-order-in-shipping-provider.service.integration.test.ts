@@ -19,7 +19,7 @@ import {
   ConflictError,
   GatewayError,
   NotFoundError,
-} from "#/shared/errors/domain-error.js";
+} from "#/shared/errors/errors.js";
 import { User } from "#/domain/entities/user.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 

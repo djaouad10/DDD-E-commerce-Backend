@@ -1,4 +1,4 @@
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import { ProductId } from "./product-id.js";
 
 // what to test

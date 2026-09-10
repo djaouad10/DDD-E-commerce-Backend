@@ -1,5 +1,5 @@
 import type { VariationSnapshot } from "#/domain/entities-snapshots/variation.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { VariationId } from "../value-objects/variation-id.js";
 import { Weight } from "../value-objects/weight.js";
@@ -34,7 +34,10 @@ export class Variation {
     weightInGrams: Weight,
   ): Variation {
     if (weightInGrams.unit !== "g")
-      throw new ValidationError("variation.weightInGrams.unit", "must be grams");
+      throw new ValidationError(
+        "variation.weightInGrams.unit",
+        "must be grams",
+      );
 
     // validation here then:
     const now = new Date();
@@ -63,7 +66,10 @@ export class Variation {
     updatedAt: Date,
   ): Variation {
     if (weightInGrams.unit !== "g")
-      throw new ValidationError("variation.weightInGrams.unit", "must be grams");
+      throw new ValidationError(
+        "variation.weightInGrams.unit",
+        "must be grams",
+      );
 
     return new Variation(
       id,

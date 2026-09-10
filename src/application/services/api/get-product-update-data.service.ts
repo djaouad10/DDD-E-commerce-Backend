@@ -3,7 +3,7 @@ import type { CategoryRepository } from "#/domain/repositories/category.reposito
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import type { CategoryId } from "#/domain/value-objects/category-id.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { ProductStaticDataDTO } from "../../dto/product.dto.js";
 import type { VariationDTO } from "../../dto/variation.dto.js";

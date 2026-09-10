@@ -1,6 +1,6 @@
 import type { ProductRepository } from "#/domain/repositories/product.repository.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
-import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
+import { ConflictError, NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DeleteProductCommand } from "../../commands/api/delete-product.command.js";
 import type { OrderQueries } from "../../read-models/order.queries.js";

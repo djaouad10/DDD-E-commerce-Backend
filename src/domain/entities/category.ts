@@ -1,5 +1,5 @@
 import type { CategorySnapshot } from "#/domain/entities-snapshots/category.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { CategoryId } from "../value-objects/category-id.js";
 

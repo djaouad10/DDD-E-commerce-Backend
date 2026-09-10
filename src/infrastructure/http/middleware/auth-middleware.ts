@@ -1,4 +1,4 @@
-import { UnauthorizedError } from "#/shared/errors/domain-error.js";
+import { UnauthorizedError } from "#/shared/errors/errors.js";
 import type { NextFunction, Request, Response } from "express";
 
 export async function authMiddleware(
@@ -10,5 +10,5 @@ export async function authMiddleware(
     throw new UnauthorizedError();
   }
 
-return  next();
+  return next();
 }

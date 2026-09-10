@@ -1,7 +1,4 @@
-import {
-  NotFoundError,
-  ValidationError,
-} from "#/shared/errors/domain-error.js";
+import { NotFoundError, ValidationError } from "#/shared/errors/errors.js";
 import { CartId } from "../value-objects/cart-id.js";
 import { UserId } from "../value-objects/user-id.js";
 import { VariationId } from "../value-objects/variation-id.js";

@@ -4,7 +4,7 @@ import { OrderItem } from "./order-item.js";
 import { Money } from "../value-objects/money.js";
 import { Weight } from "../value-objects/weight.js";
 import { OrderItemId } from "../value-objects/order-item-id.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 
 // What to test:
 // DONE 1. creat()

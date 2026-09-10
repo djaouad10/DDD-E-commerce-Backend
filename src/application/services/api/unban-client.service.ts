@@ -1,6 +1,6 @@
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { UnbanClientCommand } from "../../commands/api/unban-client.command.js";

@@ -1,5 +1,5 @@
 import type { RatingSnapshot } from "#/domain/entities-snapshots/rating.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { RatingApproved } from "../events/rating/rating-approved.js";
 import { RatingRejected } from "../events/rating/rating-rejected.js";
@@ -28,7 +28,10 @@ export class Rating {
     comment: string | null,
   ) {
     if (rating < 0 || rating > 5)
-      throw new ValidationError("rating.rating", "rating must be between 1 and 5");
+      throw new ValidationError(
+        "rating.rating",
+        "rating must be between 1 and 5",
+      );
 
     const now = new Date();
     const ratingSubmitted = new Rating(
@@ -65,7 +68,10 @@ export class Rating {
     updatedAt: Date,
   ) {
     if (rating < 0 || rating > 5)
-      throw new ValidationError("rating.rating", "rating must be between 1 and 5");
+      throw new ValidationError(
+        "rating.rating",
+        "rating must be between 1 and 5",
+      );
 
     return new Rating(
       userId,
@@ -139,7 +145,7 @@ export class Rating {
     return [...this._events];
   }
 
-private  recordThat(event: DomainEvent): void {
+  private recordThat(event: DomainEvent): void {
     this._events.push(event);
   }
 

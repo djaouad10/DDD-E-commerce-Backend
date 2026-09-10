@@ -7,7 +7,7 @@ import { OrderId } from "#/domain/value-objects/order-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { buildOrderDeliveredEmailTemplate } from "#/infrastructure/notifications/templates/order-delivered.email.template.js";
 
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 

@@ -1,4 +1,4 @@
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { ProductCursor } from "../read-models/product.queries.js";
 
 export class GetProductsQuery {

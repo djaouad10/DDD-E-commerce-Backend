@@ -1,5 +1,5 @@
 import type { WeightSnapshot } from "#/domain/entities-snapshots/weight.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 
 // add more units here in the future
 export type WeightUnit = "kg" | "g";

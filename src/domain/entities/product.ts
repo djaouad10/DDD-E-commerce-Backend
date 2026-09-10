@@ -3,7 +3,7 @@ import {
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "#/shared/errors/domain-error.js";
+} from "#/shared/errors/errors.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { FileUploaded } from "../events/file/file-uploaded.js";
 import { ProductCreated } from "../events/product/product-created.js";
@@ -111,7 +111,10 @@ export class Product {
       );
 
     if (!images.find((i) => i.isMain()))
-      throw new ValidationError("product.images", "product must have a main image");
+      throw new ValidationError(
+        "product.images",
+        "product must have a main image",
+      );
 
     if (variations.length === 0)
       throw new ValidationError(
@@ -206,7 +209,10 @@ export class Product {
       );
 
     if (!images.find((i) => i.isMain()))
-      throw new ValidationError("product.images", "product must have a main image");
+      throw new ValidationError(
+        "product.images",
+        "product must have a main image",
+      );
 
     if (variations.length === 0)
       throw new ValidationError(
@@ -447,7 +453,10 @@ export class Product {
       throw new NotFoundError("product.variation", variationId.value);
 
     if (this._variations.length === 1)
-      throw new ValidationError("product.variations", "cannot remove last variation");
+      throw new ValidationError(
+        "product.variations",
+        "cannot remove last variation",
+      );
 
     this._variations = this._variations.filter(
       (v) => !v.id.equals(variationId),

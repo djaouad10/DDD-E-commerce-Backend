@@ -3,7 +3,7 @@ import type {
   IdempotencyKeyEntry,
   IdempotencyKeysRepository,
 } from "#/application/ports/persistence/idempotency-keys.repository.port.js";
-import { ConflictError } from "#/shared/errors/domain-error.js";
+import { ConflictError } from "#/shared/errors/errors.js";
 
 export class InMemoryIdempotencyKeysRepository implements IdempotencyKeysRepository {
   private keys = new Map<string, { handlerName: string; payload?: unknown }>();

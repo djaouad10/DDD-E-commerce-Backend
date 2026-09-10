@@ -2,7 +2,7 @@ import type { ProductRepository } from "#/domain/repositories/product.repository
 import { CategoryId } from "#/domain/value-objects/category-id.js";
 import { Money } from "#/domain/value-objects/money.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { UpdateProductCommand } from "../../commands/api/update-product.command.js";

@@ -1,6 +1,6 @@
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { CartDTO } from "../../dto/cart.dto.js";
 import type { GetUserCartQuery } from "../../queries/get-user-cart.query.js";

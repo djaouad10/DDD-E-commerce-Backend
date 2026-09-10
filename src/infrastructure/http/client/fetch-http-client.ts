@@ -8,7 +8,7 @@ import {
   HttpConnectionError,
   HttpTimeoutError,
   HttpMalformedResponseError,
-} from "#/shared/errors/domain-error.js";
+} from "#/shared/errors/errors.js";
 
 export class FetchHttpClient implements HttpClient {
   constructor(private readonly defaultTimeoutMs: number = 30000) {}

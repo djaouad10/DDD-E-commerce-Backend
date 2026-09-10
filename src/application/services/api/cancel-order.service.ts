@@ -9,7 +9,7 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "#/shared/errors/domain-error.js";
+} from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { CancelOrderCommand } from "../../commands/api/cancel-order.command.js";

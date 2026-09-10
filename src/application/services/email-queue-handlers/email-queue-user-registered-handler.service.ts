@@ -4,7 +4,7 @@ import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { buildUserRegisteredEmailTemplate } from "#/infrastructure/notifications/templates/user-registered.email.template.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 

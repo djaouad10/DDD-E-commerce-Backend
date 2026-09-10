@@ -1,5 +1,5 @@
 import type { CartItemSnapshot } from "#/domain/entities-snapshots/cart-item.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { CartItemId } from "../value-objects/cart-item-id.js";
 import type { VariationId } from "../value-objects/variation-id.js";
@@ -15,7 +15,8 @@ export class CartItem {
 
   // factory
   static create(variationId: VariationId, qty: number): CartItem {
-    if (qty <= 0) throw new ValidationError("cartItem.qty", "must be greater than 0");
+    if (qty <= 0)
+      throw new ValidationError("cartItem.qty", "must be greater than 0");
 
     return new CartItem(CartItemId.generate(), variationId, qty, new Date());
   }
@@ -27,7 +28,8 @@ export class CartItem {
     qty: number,
     updatedAt: Date,
   ): CartItem {
-    if (qty <= 0) throw new ValidationError("cartItem.qty", "must be greater than 0");
+    if (qty <= 0)
+      throw new ValidationError("cartItem.qty", "must be greater than 0");
 
     return new CartItem(id, variationId, qty, updatedAt);
   }

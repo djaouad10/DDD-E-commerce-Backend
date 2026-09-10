@@ -1,7 +1,7 @@
 import type { CategorySnapshot } from "#/domain/entities-snapshots/category.snapshot.js";
 import type { CategoryRepository } from "#/domain/repositories/category.repository.js";
 import { CategoryId } from "#/domain/value-objects/category-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { DeleteCategoryCommand } from "../../commands/api/delete-category.command.js";

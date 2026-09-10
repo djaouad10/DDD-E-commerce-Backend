@@ -5,7 +5,7 @@ import {
   ValidationError,
   DatabaseError,
   DomainError,
-} from "#/shared/errors/domain-error.js";
+} from "#/shared/errors/errors.js";
 
 const PG = {
   NOT_NULL_VIOLATION: "23502",

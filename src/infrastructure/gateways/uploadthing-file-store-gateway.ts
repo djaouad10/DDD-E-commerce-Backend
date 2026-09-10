@@ -1,5 +1,5 @@
 import type { FileStoreGateway } from "#/domain/gateways/file-store.gateway.js";
-import { GatewayError } from "#/shared/errors/domain-error.js";
+import { GatewayError } from "#/shared/errors/errors.js";
 import { handleUploadThingErrors } from "#/shared/errors/handle-uploadthing-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { UTApi } from "uploadthing/server";

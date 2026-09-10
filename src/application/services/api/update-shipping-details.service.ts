@@ -1,7 +1,7 @@
 import type { OrderRepository } from "#/domain/repositories/order.repository.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import type { OutboxJobPayloadType } from "#/infrastructure/messaging/jobs/validation.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { UpdateShippingDetailsCommand } from "../../commands/api/update-shipping-details.command.js";

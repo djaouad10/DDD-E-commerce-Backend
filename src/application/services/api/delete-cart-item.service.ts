@@ -2,7 +2,7 @@ import type { CartRepository } from "#/domain/repositories/cart.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { CartItemId } from "#/domain/value-objects/cart-item-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { DeleteCartItemCommand } from "../../commands/api/delete-cart-item.command.js";

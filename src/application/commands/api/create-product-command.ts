@@ -1,5 +1,5 @@
 import type { Size, Color } from "#/domain/entities/product.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 
 export class CreateProductCommand {
   constructor(
