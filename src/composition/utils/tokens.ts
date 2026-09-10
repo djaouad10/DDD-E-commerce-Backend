@@ -27,7 +27,6 @@ import type { CreateOrderInShippingProviderService } from "#/application/service
 import type { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
 import type { UpdateOrderInShippingProviderService } from "#/application/services/outbox-handlers/update-order-in-shipping-provider.service.js";
 import type { ActivateShipmentInShippingProviderService } from "#/application/services/outbox-handlers/activate-shipment-in-shipping-provider.service.js";
-import type { Auth } from "#/infrastructure/config/auth.js";
 import type GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import type { CreateCategoryService } from "#/application/services/api/create-category.service.js";
 import type { UpdateCategoryService } from "#/application/services/api/update-category.service.js";
@@ -91,6 +90,7 @@ import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
 import type { CleanOutboxService } from "#/application/services/outbox-cleaner/clean-outbox.service.js";
 import type { ResetStuckOutboxRowsService } from "#/application/services/stuck-outbox-resetter/reset-stuck-outbox-rows.service.js";
 import type { DBClient } from "#/shared/types/db-client.js";
+import type { AuthPort } from "#/application/ports/auth/auth.port.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DBClient>;
@@ -198,7 +198,7 @@ export const BULLMQ_FLOW_PRODUCER = Symbol(
   "bullmqFlowProducer",
 ) as InjectionToken<FlowProducer>;
 
-export const AUTH = Symbol("auth") as InjectionToken<Auth>;
+export const AUTH = Symbol("auth") as InjectionToken<AuthPort>;
 
 // services
 export const OUTBOX_PROCESSOR_SERVICE = Symbol(
