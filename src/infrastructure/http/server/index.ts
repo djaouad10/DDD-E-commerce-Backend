@@ -9,7 +9,7 @@ import routes from "../routes/index.js";
 import { errorHandlingMiddleware } from "../middleware/error-handling-middleware.js";
 import { requestTimerMiddleware } from "../middleware/request-timer-middleware.js";
 import { toNodeHandler } from "better-auth/node";
-import { AUTH } from "#/composition/utils/tokens.js";
+import { AUTH, BETTER_AUTH } from "#/composition/utils/tokens.js";
 import { createRouteHandler } from "uploadthing/express";
 import { createUploadThingFileRouter } from "#/infrastructure/upload/uploadthing.js";
 import { env } from "#/infrastructure/config/env.js";
@@ -19,19 +19,18 @@ export async function createServer(container: Container) {
   app.use(express.json());
   app.use(cors());
 
-  const auth = await container.resolveSingleton(AUTH);
+  const auth = await container.resolveSingleton(BETTER_AUTH);
   app.all("/api/auth/*splat", toNodeHandler(auth));
 
-
   app.use(
-  "/api/uploadthing",
-  createRouteHandler({
-    router: createUploadThingFileRouter(container.resolveSingleton(AUTH)),
-    config: {
-      token: env.UPLOADTHING_TOKEN,
-    },
-  }),
-);
+    "/api/uploadthing",
+    createRouteHandler({
+      router: createUploadThingFileRouter(container.resolveSingleton(AUTH)),
+      config: {
+        token: env.UPLOADTHING_TOKEN,
+      },
+    }),
+  );
 
   app.use(requestTimerMiddleware);
   app.use(scopeMiddleware(container));

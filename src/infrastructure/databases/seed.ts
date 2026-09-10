@@ -28,7 +28,7 @@ import {
   ORDER_REPOSITORY,
   RATING_REPOSITORY,
   CART_REPOSITORY,
-  AUTH,
+  BETTER_AUTH,
   DRIZZLE_DB,
 } from "#/composition/utils/tokens.js";
 
@@ -305,7 +305,7 @@ async function seed() {
   const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
   const ratingRepo = container.resolveSingleton(RATING_REPOSITORY);
   const cartRepo = container.resolveSingleton(CART_REPOSITORY);
-  const auth = await container.resolveSingleton(AUTH);
+  const auth = await container.resolveSingleton(BETTER_AUTH);
   /* --------------------------- Clear DB ---------------------------- */
   // order_item -> variation is ON DELETE RESTRICT now, so order_item must
   // be cleared before variation
@@ -344,7 +344,7 @@ async function seed() {
   console.log(`  ✓ ${CATEGORIES.length} categories inserted`);
 
   /* --------------------------- Users --------------------------------- */
-  console.log("→ Creating users via Better Auth");
+  console.log("→ Creating users via Better BETTER_AUTH");
 
   const adminDefs = [
     { email: "admin@gmail.com", name: "Admin", password: "admin123" },

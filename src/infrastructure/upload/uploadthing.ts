@@ -1,12 +1,12 @@
 import { createUploadthing, type FileRouter } from "uploadthing/express";
 import { UploadThingError } from "uploadthing/server";
-import type { Auth } from "../config/auth.js";
+import type { AuthPort } from "#/application/ports/auth/auth.port.js";
 
 const f = createUploadthing();
 
 // FileRouter for your app, can contain multiple FileRoutes
 
-export function createUploadThingFileRouter(auth: Auth): FileRouter {
+export function createUploadThingFileRouter(auth: AuthPort): FileRouter {
   const router = {
     // Define as many FileRoutes as you like, each with a unique routeSlug
     productImage: f({
@@ -17,9 +17,9 @@ export function createUploadThingFileRouter(auth: Auth): FileRouter {
     })
       // Set permissions and file types for this FileRoute
       .middleware(async ({ req }) => {
-        const authObj = await auth;
+        const authObj = auth;
 
-        const data = await authObj.api.getSession({ headers: req.headers });
+        const data = await authObj.getSession(req.headers);
 
         //   If you throw, the user will not be able to upload
         if (!data?.user || data.user.role !== "ADMIN") {

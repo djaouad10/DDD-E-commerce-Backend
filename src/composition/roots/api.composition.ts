@@ -86,13 +86,13 @@ import {
   UPDATE_SHIPPING_DETAILS_SERVICE,
   UPDATE_CLIENT_PROFILE_SERVICE,
   DRIZZLE_DB,
+  BETTER_AUTH,
 } from "../utils/tokens.js";
 
 import { UTApi } from "uploadthing/server";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { env } from "#/infrastructure/config/env.js";
-import { initializeAuth } from "#/infrastructure/config/auth.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { CreateCategoryService } from "#/application/services/api/create-category.service.js";
 import { UpdateCategoryService } from "#/application/services/api/update-category.service.js";
@@ -144,6 +144,8 @@ import { ConfirmOrderService } from "#/application/services/api/confirm-order.se
 import { ShipOrderService } from "#/application/services/api/ship-order.service.js";
 import { UpdateShippingDetailsService } from "#/application/services/api/update-shipping-details.service.js";
 import { UpdateClientProfileService } from "#/application/services/api/update-client-profile.service.js";
+import { BetterAuthAdapter } from "#/infrastructure/auth/better-auth.adapter.js";
+import { initializeAuth } from "#/infrastructure/config/auth.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -267,6 +269,16 @@ export function buildApiContainer(): Container {
 
   container.register(
     AUTH,
+    (scope) =>
+      new BetterAuthAdapter(
+        scope.resolve(DRIZZLE_DB),
+        scope.resolve(USER_REPOSITORY),
+      ),
+    "singleton",
+  );
+
+  container.register(
+    BETTER_AUTH,
     (scope) =>
       initializeAuth(scope.resolve(DRIZZLE_DB), scope.resolve(USER_REPOSITORY)),
     "singleton",
