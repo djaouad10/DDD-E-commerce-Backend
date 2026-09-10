@@ -1,7 +1,7 @@
 import type { ShippingProvider } from "#/domain/entities/order.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { Currency } from "#/domain/value-objects/money.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 
 export class EmailQueueOrderCreatedHandlerCommand {
   constructor(
@@ -17,26 +17,26 @@ export class EmailQueueOrderCreatedHandlerCommand {
     this.validate();
   }
 
-   private validate() {
-      if (this.occurredOn > new Date()) {
-        throw new ValidationError(
-          "orderCreated.occurredOn",
-          "must be in the past",
-        );
-      }
-  
-      if (this.itemCount <= 0) {
-        throw new ValidationError(
-          "orderCreated.itemCount",
-          "must be greater than 0",
-        );
-      }
-  
-      if (this.totalPrice <= 0) {
-        throw new ValidationError(
-          "orderCreated.totalPrice",
-          "must be greater than 0",
-        );
-      }
+  private validate() {
+    if (this.occurredOn > new Date()) {
+      throw new ValidationError(
+        "orderCreated.occurredOn",
+        "must be in the past",
+      );
     }
+
+    if (this.itemCount <= 0) {
+      throw new ValidationError(
+        "orderCreated.itemCount",
+        "must be greater than 0",
+      );
+    }
+
+    if (this.totalPrice <= 0) {
+      throw new ValidationError(
+        "orderCreated.totalPrice",
+        "must be greater than 0",
+      );
+    }
+  }
 }

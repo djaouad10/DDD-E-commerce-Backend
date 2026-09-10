@@ -4,7 +4,7 @@
 // DONE 3. multiply()
 // 4. toKg()
 
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import { Weight } from "./weight.js";
 
 describe("Weight Value Object", () => {

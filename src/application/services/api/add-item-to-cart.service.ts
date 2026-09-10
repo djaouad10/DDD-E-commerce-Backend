@@ -4,7 +4,7 @@ import type { CartRepository } from "#/domain/repositories/cart.repository.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { VariationId } from "#/domain/value-objects/variation-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { AddItemToCartCommand } from "../../commands/api/add-item-to-cart.command.js";

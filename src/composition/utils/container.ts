@@ -1,4 +1,4 @@
-import { DependencyResolutionError } from "#/shared/errors/domain-error.js";
+import { DependencyResolutionError } from "#/shared/errors/errors.js";
 
 /**
  * a Constructor represents any class that can be instantiated "new".

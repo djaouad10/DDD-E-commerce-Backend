@@ -6,7 +6,7 @@ import type {
 } from "#/application/read-models/order.queries.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
+import { handleDrizzleErrors } from "#/infrastructure/databases/errors/handle-drizzle-errors.js";
 import type { VariationId } from "#/domain/value-objects/variation-id.js";
 import { order, orderItem, variation } from "../../schema.js";
 import { asc, eq } from "drizzle-orm";

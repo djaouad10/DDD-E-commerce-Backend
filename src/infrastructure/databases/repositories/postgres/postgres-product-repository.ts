@@ -13,10 +13,10 @@ import {
 import { file, product, rating, variation } from "../../schema.js";
 import type { Slug } from "#/domain/value-objects/slug.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
-import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
+import { handleDrizzleErrors } from "#/infrastructure/databases/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { VariationId } from "#/domain/value-objects/variation-id.js";
-import { ConflictError } from "#/shared/errors/domain-error.js";
+import { ConflictError } from "#/shared/errors/errors.js";
 
 export class PostgresProductRepository implements ProductRepository {
   private readonly logger = createLogger("PostgresProductRepository");

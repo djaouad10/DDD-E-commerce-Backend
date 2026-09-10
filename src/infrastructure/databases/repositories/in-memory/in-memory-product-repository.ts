@@ -3,7 +3,7 @@ import type { ProductRepository } from "#/domain/repositories/product.repository
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type { Slug } from "#/domain/value-objects/slug.js";
 import type { VariationId } from "#/domain/value-objects/variation-id.js";
-import { ConflictError } from "#/shared/errors/domain-error.js";
+import { ConflictError } from "#/shared/errors/errors.js";
 
 export class InMemoryProductRepository implements ProductRepository {
   private products: Product[] = [];

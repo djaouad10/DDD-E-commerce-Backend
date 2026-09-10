@@ -1,5 +1,5 @@
 import type { ShippingProviderGateway } from "#/domain/gateways/shipping-provider.gateway.js";
-import { GatewayError } from "#/shared/errors/domain-error.js";
+import { GatewayError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { DeleteOrderFromShippingProviderCommand } from "../../commands/outbox-handlers/delete-order-from-shipping-provider.command.js";

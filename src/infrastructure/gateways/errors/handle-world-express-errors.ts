@@ -6,7 +6,7 @@ import {
   NotFoundError,
   UnauthorizedError,
   ValidationError,
-} from "./domain-error.js";
+} from "#/shared/errors/errors.js";
 
 /**
  * Represents a non-2xx response from the WorldExpress API.

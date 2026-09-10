@@ -1,5 +1,5 @@
 import type { UserRole } from "#/domain/entities/user.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { UserCursor } from "../read-models/user.queries.js";
 
 export class GetClientsListQuery {

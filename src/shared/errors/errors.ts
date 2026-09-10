@@ -77,7 +77,7 @@ export class ForbiddenError extends DomainError {
   readonly code = "FORBIDDEN";
   readonly statusCode = 403;
 
-  constructor(action: string, userId: string) {
+  constructor(action: string, userId?: string) {
     super(`Not authorized to ${action}`, { action, userId });
   }
 }

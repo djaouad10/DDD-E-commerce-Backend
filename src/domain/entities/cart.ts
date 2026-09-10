@@ -1,8 +1,5 @@
 import type { CartSnapshot } from "#/domain/entities-snapshots/cart.snapshot.js";
-import {
-  NotFoundError,
-  ValidationError,
-} from "#/shared/errors/domain-error.js";
+import { NotFoundError, ValidationError } from "#/shared/errors/errors.js";
 import { CartCleared } from "../events/cart/cart-cleared.js";
 import { CartItemAdded } from "../events/cart/cart-item-added.js";
 import { CartItemQtyUpdated } from "../events/cart/cart-item-qty-updated.js";

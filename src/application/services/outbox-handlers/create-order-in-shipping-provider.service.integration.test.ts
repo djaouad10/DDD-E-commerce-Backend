@@ -15,7 +15,7 @@ import {
 import { CreateOrderInShippingProviderService } from "./create-order-in-shipping-provider.service.js";
 import { CreateOrderInShippingProviderCommand } from "../../commands/outbox-handlers/create-order-in-shipping-provider.command.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
-import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
+import { ConflictError, NotFoundError } from "#/shared/errors/errors.js";
 import { User } from "#/domain/entities/user.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 

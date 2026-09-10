@@ -1,4 +1,4 @@
-import { ForbiddenError } from "#/shared/errors/domain-error.js";
+import { ForbiddenError } from "#/shared/errors/errors.js";
 import type { NextFunction, Request, Response } from "express";
 
 export async function adminMiddleware(

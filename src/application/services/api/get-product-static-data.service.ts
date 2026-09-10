@@ -1,5 +1,5 @@
 import { ProductId } from "#/domain/value-objects/product-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { ProductStaticDataDTO } from "../../dto/product.dto.js";
 import type { GetProductStaticDataQuery } from "../../queries/get-product-static-data.query.js";

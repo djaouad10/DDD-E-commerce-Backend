@@ -1,4 +1,4 @@
-import { BadRequestError } from "#/shared/errors/domain-error.js";
+import { BadRequestError } from "#/shared/errors/errors.js";
 
 export class UpdateClientProfileCommand {
   constructor(

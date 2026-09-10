@@ -1,7 +1,7 @@
 import type { ShippingProvider } from "#/domain/entities/order.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { Currency } from "#/domain/value-objects/money.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 
 export class EmailQueueOrderConfirmedHandlerCommand {
   constructor(

@@ -10,7 +10,7 @@ import { OUTBOX_REPOSITORY } from "#/composition/utils/tokens.js";
 import type { OutboxRepository } from "#/application/ports/persistence/outbox.repository.port.js";
 import { OutboxStatus } from "#/application/ports/persistence/outbox.repository.port.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import { ResetStuckOutboxRowsService } from "./reset-stuck-outbox-rows.service.js";
 import { ResetStuckOutboxRowsCommand } from "../../commands/stuck-outbox-resetter/reset-stuck-outbox-rows.command.js";
 

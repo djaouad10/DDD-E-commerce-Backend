@@ -1,4 +1,4 @@
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import { Money } from "../value-objects/money.js";
 import { OrderId } from "../value-objects/order-id.js";
 import { ShippingDetails } from "../value-objects/shipping-details.js";

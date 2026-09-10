@@ -1,7 +1,7 @@
 import type { RatingRepository } from "#/domain/repositories/rating.repository.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
-import { NotFoundError } from "#/shared/errors/domain-error.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { DeleteRatingCommand } from "../../commands/api/delete-rating.command.js";

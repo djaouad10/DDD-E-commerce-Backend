@@ -1,5 +1,5 @@
 import type { UserSnapshot } from "#/domain/entities-snapshots/user.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { UserBanned } from "../events/user/user-banned.js";
 import { UserProfileUpdated } from "../events/user/user-profile-updated.js";

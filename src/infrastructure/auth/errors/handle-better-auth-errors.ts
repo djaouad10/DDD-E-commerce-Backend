@@ -9,7 +9,7 @@ import {
   NotFoundError,
   UnauthorizedError,
   ValidationError,
-} from "./domain-error.js";
+} from "#/shared/errors/errors.js";
 
 export function handleBetterAuthErrors(error: unknown, context: string): never {
   if (error instanceof DomainError) {
@@ -22,10 +22,7 @@ export function handleBetterAuthErrors(error: unknown, context: string): never {
         throw new UnauthorizedError(error.message);
 
       case "FORBIDDEN":
-        throw new ForbiddenError(
-          "perform this authentication action",
-          "unknown",
-        );
+        throw new ForbiddenError("perform this authentication action");
 
       case "BAD_REQUEST":
         throw new BadRequestError(error.message, {

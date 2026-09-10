@@ -24,7 +24,7 @@ import { Category } from "#/domain/entities/category.js";
 import { EmailQueueRatingSubmittedHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-rating-submitted-handler.command.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
-import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
+import { ConflictError, NotFoundError } from "#/shared/errors/errors.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 
 describe("EmailQueueRatingSubmittedHandlerService", () => {

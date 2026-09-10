@@ -1,7 +1,4 @@
-import {
-  BadRequestError,
-  ValidationError,
-} from "#/shared/errors/domain-error.js";
+import { BadRequestError, ValidationError } from "#/shared/errors/errors.js";
 
 type UpdateProductCommandData = {
   price?: number;

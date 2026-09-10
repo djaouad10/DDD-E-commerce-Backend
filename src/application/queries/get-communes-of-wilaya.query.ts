@@ -1,5 +1,5 @@
 import type { ShippingProvider } from "#/domain/entities/order.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 
 export class GetCommunesOfWilayaQuery {
   constructor(

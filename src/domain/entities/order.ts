@@ -1,5 +1,5 @@
 import type { OrderSnapshot } from "#/domain/entities-snapshots/order.snapshot.js";
-import { ValidationError } from "#/shared/errors/domain-error.js";
+import { ValidationError } from "#/shared/errors/errors.js";
 import type { DomainEvent } from "../events/domain-event.js";
 import { OrderCancelled } from "../events/order/order-cancelled.js";
 import { OrderConfirmed } from "../events/order/order-confirmed.js";

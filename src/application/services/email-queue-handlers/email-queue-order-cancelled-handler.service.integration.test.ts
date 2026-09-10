@@ -18,7 +18,7 @@ import { User } from "#/domain/entities/user.js";
 import { EmailQueueOrderCancelledHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-order-cancelled-handler.command.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
-import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
+import { ConflictError, NotFoundError } from "#/shared/errors/errors.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 

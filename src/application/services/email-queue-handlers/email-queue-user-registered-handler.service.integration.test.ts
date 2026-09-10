@@ -18,7 +18,7 @@ import { User } from "#/domain/entities/user.js";
 import { EmailQueueUserRegisteredHandlerCommand } from "#/application/commands/email-queue-handlers/email-queue-user-registered-handler.command.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
-import { ConflictError, NotFoundError } from "#/shared/errors/domain-error.js";
+import { ConflictError, NotFoundError } from "#/shared/errors/errors.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 
 describe("EmailQueueUserRegisteredHandlerService", () => {
