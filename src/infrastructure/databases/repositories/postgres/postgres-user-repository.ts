@@ -1,14 +1,17 @@
 import type { User } from "#/domain/entities/user.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
-import type { DrizzleDBClient, DrizzleTransactionClient } from "#/infrastructure/config/database.js";
+import type {
+  DrizzleDBClient,
+  DrizzleTransactionClient,
+} from "#/infrastructure/config/database.js";
 import { eq } from "drizzle-orm";
 import {
   PostgresUserMapper,
   type UserRow,
 } from "../../mappers/postgres/postgres-user-mapper.js";
 import { user } from "../../schema.js";
-import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
+import { handleDrizzleErrors } from "#/infrastructure/databases/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 

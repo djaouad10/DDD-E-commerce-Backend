@@ -23,7 +23,7 @@ import type {
 import { generateOutboxId } from "../../outbox/utils.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { and, eq, lte } from "drizzle-orm";
-import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
+import { handleDrizzleErrors } from "#/infrastructure/databases/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 
 export class PostgresOutboxRepository implements OutboxRepository {
@@ -40,7 +40,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
   ): Promise<void> {
     this.logger.debug("saveJob called", { action: params.action });
 
-    const db = tx as DrizzleTransactionClient 
+    const db = tx as DrizzleTransactionClient;
 
     try {
       await this.logger.measure("db.insert(outbox)", () =>
@@ -77,7 +77,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
       return;
     }
 
-    const db = tx as DrizzleTransactionClient 
+    const db = tx as DrizzleTransactionClient;
 
     const outboxRows = events.map((event) => ({
       id: generateOutboxId(),

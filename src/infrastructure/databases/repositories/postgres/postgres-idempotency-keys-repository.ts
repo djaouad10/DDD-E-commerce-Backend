@@ -4,7 +4,7 @@ import type {
 } from "#/application/ports/persistence/idempotency-keys.repository.port.js";
 
 import type { DrizzleTransactionClient } from "#/infrastructure/config/database.js";
-import { handleDrizzleErrors } from "#/shared/errors/handle-drizzle-errors.js";
+import { handleDrizzleErrors } from "#/infrastructure/databases/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { idempotencyKeys } from "../../schema.js";
