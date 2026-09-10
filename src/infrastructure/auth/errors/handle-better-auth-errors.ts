@@ -9,7 +9,7 @@ import {
   NotFoundError,
   UnauthorizedError,
   ValidationError,
-} from "./errors.js";
+} from "#/shared/errors/errors.js";
 
 export function handleBetterAuthErrors(error: unknown, context: string): never {
   if (error instanceof DomainError) {

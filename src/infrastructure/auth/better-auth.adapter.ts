@@ -7,7 +7,7 @@ import type { UserRepository } from "#/domain/repositories/user.repository.js";
 import { initializeAuth, type Auth } from "../config/auth.js";
 import type { DrizzleDBClient } from "../config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { handleBetterAuthErrors } from "#/shared/errors/handle-better-auth-errors.js";
+import { handleBetterAuthErrors } from "#/infrastructure/auth/errors/handle-better-auth-errors.js";
 
 export class BetterAuthAdapter implements AuthPort {
   private logger = createLogger("BetterAuthAdapter");

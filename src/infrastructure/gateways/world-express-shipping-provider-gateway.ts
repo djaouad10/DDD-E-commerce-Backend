@@ -21,7 +21,7 @@ import {
 import {
   handleWorldExpressErrors,
   WorldExpressApiError,
-} from "#/shared/errors/handle-world-express-errors.js";
+} from "#/infrastructure/gateways/errors/handle-world-express-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { HttpClient } from "../http/client/http-client.js";
 

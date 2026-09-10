@@ -5,7 +5,7 @@ import {
   ForbiddenError,
   GatewayError,
   ValidationError,
-} from "./errors.js";
+} from "#/shared/errors/errors.js";
 
 export function handleUploadThingErrors(
   error: unknown,
