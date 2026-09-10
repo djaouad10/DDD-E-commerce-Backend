@@ -114,13 +114,14 @@ import {
   EVENT_PUBLISHER,
   RESET_STUCK_OUTBOX_ROWS_SERVICE,
   DRIZZLE_DB,
+  BETTER_AUTH,
 } from "../../utils/tokens.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
 import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
-import { fakeAuth } from "#/tests/helpers/fake-auth.js";
+import { FakeAuthPort, fakeBetterAuth } from "#/tests/helpers/fake-auth.js";
 import { CreateCategoryService } from "#/application/services/api/create-category.service.js";
 import { UpdateCategoryService } from "#/application/services/api/update-category.service.js";
 import { DeleteCategoryService } from "#/application/services/api/delete-category.service.js";
@@ -195,6 +196,7 @@ import { createBullMqEmailQueue } from "#/infrastructure/messaging/bullmq/queue/
 import { DomainEventsProcessorService } from "#/application/services/domain-events-processor/domain-events-processor.service.js";
 import { BullMqEventPublisher } from "#/infrastructure/messaging/bullmq/bullmq-event-publisher.js";
 import { ResetStuckOutboxRowsService } from "#/application/services/stuck-outbox-resetter/reset-stuck-outbox-rows.service.js";
+import { type Auth } from "#/infrastructure/config/auth.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -382,7 +384,13 @@ export function buildIntegrationTestsContainer(): Container {
 
   // other
 
-  container.register(AUTH, () => fakeAuth, "singleton");
+  container.register(AUTH, () => new FakeAuthPort(), "singleton");
+
+  container.register(
+    BETTER_AUTH,
+    () => fakeBetterAuth as unknown as Auth,
+    "singleton",
+  );
 
   // register services
   container.register(

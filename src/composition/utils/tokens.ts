@@ -91,6 +91,7 @@ import type { CleanOutboxService } from "#/application/services/outbox-cleaner/c
 import type { ResetStuckOutboxRowsService } from "#/application/services/stuck-outbox-resetter/reset-stuck-outbox-rows.service.js";
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { AuthPort } from "#/application/ports/auth/auth.port.js";
+import type { Auth } from "#/infrastructure/config/auth.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DBClient>;
@@ -198,7 +199,9 @@ export const BULLMQ_FLOW_PRODUCER = Symbol(
   "bullmqFlowProducer",
 ) as InjectionToken<FlowProducer>;
 
-export const AUTH = Symbol("auth") as InjectionToken<AuthPort>;
+export const AUTH = Symbol("auth") as InjectionToken<AuthPort>; // used in services and application
+
+export const BETTER_AUTH = Symbol("betterAuth") as InjectionToken<Auth>; // used in infra utils and testing
 
 // services
 export const OUTBOX_PROCESSOR_SERVICE = Symbol(
