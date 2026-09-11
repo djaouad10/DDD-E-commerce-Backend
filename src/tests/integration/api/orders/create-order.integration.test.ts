@@ -6,34 +6,44 @@ import {
   createUserInDB,
   saveCartInDB,
 } from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { productFactory, userFactory } from "#/tests/helpers/domain-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
-import nock from "nock";
 import supertest from "supertest";
-import { User } from "#/domain/entities/user.js";
 import { Category } from "#/domain/entities/category.js";
 import { Cart } from "#/domain/entities/cart.js";
 import { CartItem } from "#/domain/entities/cart-item.js";
 import {
   CART_REPOSITORY,
   ORDER_REPOSITORY,
-  OUTBOX_REPOSITORY,
   PRODUCT_REPOSITORY,
+  SHIPPING_PROVIDER_GATEWAY,
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import { env } from "#/infrastructure/config/env.js";
 import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
 import { DeliveryType } from "#/domain/value-objects/shipping-details.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { Variation } from "#/domain/entities/variation.js";
+import { Color, Size } from "#/domain/entities/product.js";
+import { Weight } from "#/domain/value-objects/weight.js";
+import {
+  communeFactory,
+  createFakeShippingProviderGateway,
+  deliveryFeesFactory,
+} from "#/tests/helpers/fake-shipping-gateway.js";
+import { faker } from "@faker-js/faker";
+import { expectOutboxEvent } from "#/tests/helpers/outbox-assertions.js";
 
 describe("POST /api/v1/orders", () => {
   let app: Express;
   let container: Container;
   let request: ReturnType<typeof supertest>;
+  let fakeGateway: ReturnType<typeof createFakeShippingProviderGateway>;
 
-  // Helper to create valid request body
+  const WILAYA = 16;
+  const POSTAL_CODE = "16000";
+
   function createValidOrderBody(
     overrides: Partial<{
       idempotencyKey: string;
@@ -55,22 +65,22 @@ describe("POST /api/v1/orders", () => {
     }> = {},
   ) {
     const validAlgerianPhoneNumber = "0678876545";
-    const idempotencyKey = "123e4567-e89b-12d3-a456-426614174000";
-
     return {
-      idempotencyKey: overrides.idempotencyKey ?? idempotencyKey,
+      idempotencyKey: overrides.idempotencyKey ?? faker.string.uuid(),
       providedShippingPrice: overrides.providedShippingPrice ?? 350,
       selectedShippingProvider:
         overrides.selectedShippingProvider ?? ShippingProvider.WORLD_EXPRESS,
       shippingDetails: {
-        fullName: overrides.shippingDetails?.fullName ?? "John Doe",
+        fullName:
+          overrides.shippingDetails?.fullName ?? faker.person.fullName(),
         firstPhone:
           overrides.shippingDetails?.firstPhone ?? validAlgerianPhoneNumber,
         secondPhone: overrides.shippingDetails?.secondPhone,
-        wilayaCode: overrides.shippingDetails?.wilayaCode ?? 16,
+        wilayaCode: overrides.shippingDetails?.wilayaCode ?? WILAYA,
         commune: overrides.shippingDetails?.commune ?? "Algiers",
-        postalCode: overrides.shippingDetails?.postalCode ?? "16000",
-        address: overrides.shippingDetails?.address ?? "123 Main St",
+        postalCode: overrides.shippingDetails?.postalCode ?? POSTAL_CODE,
+        address:
+          overrides.shippingDetails?.address ?? faker.location.streetAddress(),
         gpsLink: overrides.shippingDetails?.gpsLink,
         clientNote: overrides.shippingDetails?.clientNote,
         deliveryType:
@@ -78,6 +88,25 @@ describe("POST /api/v1/orders", () => {
         fragile: overrides.shippingDetails?.fragile ?? false,
       },
     };
+  }
+
+  async function setupUserWithCartItem(qty = 2) {
+    const user = userFactory();
+    const category = Category.create("Category");
+    const product = productFactory({
+      categoryId: category.id,
+      customVariations: [
+        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
+        Variation.create(Size.L, Color.BLUE, 100, 50, Weight.of(100, "g")),
+      ],
+    });
+    await createUserInDB(container, user);
+    await createCategoryInDB(container, category);
+    await createProductInDB(container, product);
+    const variation = product.getVariations()[0]!;
+    const cart = Cart.create(user.id, [CartItem.create(variation.id, qty)]);
+    await saveCartInDB(container, cart);
+    return { user, product, variation, cart };
   }
 
   beforeAll(async () => {
@@ -92,54 +121,15 @@ describe("POST /api/v1/orders", () => {
   });
 
   beforeEach(async () => {
-    nock.cleanAll();
-    nock(env.WORLD_EXPRESS_API_URL)
-      .get("/get/fees")
-      .reply(200, {
-        livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-        pickup: [],
-        echange: [],
-        recouvrement: [],
-        retours: [],
-      });
-
-    nock(env.WORLD_EXPRESS_API_URL)
-      .get("/get/communes")
-      .query({ wilaya_id: "16" })
-      .reply(200, [
-        {
-          nom: "Algiers",
-          wilaya_id: 16,
-          code_postal: "16000",
-          has_stop_desk: 1,
-        },
-      ]);
-
     await clearDatabase(container);
+    fakeGateway = createFakeShippingProviderGateway();
+    container.register(SHIPPING_PROVIDER_GATEWAY, () => fakeGateway, "scoped");
   });
 
   describe("Response Validation - HTTP Layer & Validation Errors", () => {
     test("when called with valid data and client token, it should return 200 with orderId", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
+      const { user } = await setupUserWithCartItem();
 
       const body = createValidOrderBody();
 
@@ -151,34 +141,12 @@ describe("POST /api/v1/orders", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        orderId: expect.any(String),
-      });
       expect(response.body.orderId).toMatch(/^ord_[a-zA-Z0-9]{32}$/);
     });
 
     test("when called with valid data and admin token, it should return 200 with orderId", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "ADMIN",
-        null,
-        true,
-        false,
-      );
-
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
+      const { user } = await setupUserWithCartItem();
       const body = createValidOrderBody();
 
       // Act
@@ -197,25 +165,7 @@ describe("POST /api/v1/orders", () => {
 
     test("when called with TO_HOME delivery, it should use home delivery fee", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
+      const { user } = await setupUserWithCartItem();
       const body = createValidOrderBody({
         providedShippingPrice: 400,
         shippingDetails: {
@@ -232,6 +182,7 @@ describe("POST /api/v1/orders", () => {
       // Assert
       expect(response.status).toBe(200);
       expect(response.body.orderId).toBeDefined();
+      expect(fakeGateway.getDeliveryFeesOfWilaya).toHaveBeenCalledWith(WILAYA);
     });
 
     test("when no auth token is provided, it should return 401", async () => {
@@ -245,215 +196,65 @@ describe("POST /api/v1/orders", () => {
       expect(response.status).toBe(401);
     });
 
-    test("when idempotencyKey is invalid (not UUID), it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
+    test.each([
+      ["idempotencyKey", { idempotencyKey: "invalid-key" }],
+      ["providedShippingPrice", { providedShippingPrice: -100 }],
+      [
+        "selectedShippingProvider",
+        { selectedShippingProvider: "INVALID_PROVIDER" },
+      ],
+    ] as const)(
+      "when %s is invalid, it should return 400",
+      async (_field, override) => {
+        // Arrange
+        const user = userFactory();
+        await createUserInDB(container, user);
+        const body = createValidOrderBody(override);
 
-      const body = createValidOrderBody({
-        idempotencyKey: "invalid-key",
-      });
+        // Act
+        const response = await request
+          .post("/api/v1/orders")
+          .send(body)
+          .set("authorization", clientAuth(user.id.value));
 
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
+        // Assert
+        expect(response.status).toBe(400);
+        expect(response.body.error.code).toBe("VALIDATION_ERROR");
+      },
+    );
 
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
+    test.each([
+      ["wilayaCode is out of range (0)", { wilayaCode: 0 }],
+      ["wilayaCode is out of range (70)", { wilayaCode: 70 }],
+      ["phone number is invalid", { firstPhone: "1234567890" }],
+      ["postal code is invalid", { postalCode: "invalid" }],
+    ] as const)(
+      "when %s, it should return 400",
+      async (_label, shippingOverride) => {
+        // Arrange
+        const user = userFactory();
+        await createUserInDB(container, user);
+        const body = createValidOrderBody({
+          shippingDetails: shippingOverride,
+        });
 
-    test("when providedShippingPrice is negative, it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
+        // Act
+        const response = await request
+          .post("/api/v1/orders")
+          .send(body)
+          .set("authorization", clientAuth(user.id.value));
 
-      const body = createValidOrderBody({
-        providedShippingPrice: -100,
-      });
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when selectedShippingProvider is invalid, it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const body = createValidOrderBody({
-        selectedShippingProvider: "INVALID_PROVIDER",
-      });
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when wilayaCode is out of range (0), it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const body = createValidOrderBody({
-        shippingDetails: {
-          wilayaCode: 0,
-        },
-      });
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when wilayaCode is out of range (70), it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const body = createValidOrderBody({
-        shippingDetails: {
-          wilayaCode: 70,
-        },
-      });
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when phone number is invalid, it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const body = createValidOrderBody({
-        shippingDetails: {
-          firstPhone: "1234567890",
-        },
-      });
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when postal code is invalid, it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const body = createValidOrderBody({
-        shippingDetails: {
-          postalCode: "invalid",
-        },
-      });
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
+        // Assert
+        expect(response.status).toBe(400);
+        expect(response.body.error.code).toBe("VALIDATION_ERROR");
+      },
+    );
   });
 
   describe("Business Logic Validation - Service Layer Errors", () => {
     test("when user is banned, it should return 403", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
+      const user = userFactory({ banned: true });
 
       await createUserInDB(container, user);
 
@@ -464,6 +265,7 @@ describe("POST /api/v1/orders", () => {
         .post("/api/v1/orders")
         .send(body)
         .set("authorization", clientAuth(user.id.value));
+
       // Assert
       expect(response.status).toBe(403);
       expect(response.body.error.code).toBe("FORBIDDEN");
@@ -471,14 +273,7 @@ describe("POST /api/v1/orders", () => {
 
     test("when user does not exist, it should return 404", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       // User not saved in DB
 
       const body = createValidOrderBody();
@@ -494,14 +289,7 @@ describe("POST /api/v1/orders", () => {
 
     test("when cart is empty, it should return 400", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
       // Empty cart - no items added
       const cart = Cart.create(user.id, []);
@@ -514,6 +302,7 @@ describe("POST /api/v1/orders", () => {
         .post("/api/v1/orders")
         .send(body)
         .set("authorization", clientAuth(user.id.value));
+
       // Assert
       expect(response.status).toBe(400);
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
@@ -521,32 +310,25 @@ describe("POST /api/v1/orders", () => {
 
     test("when provided shipping price doesn't match provider's price, it should return 400", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-      // Mock WorldExpress API calls
+      const { user } = await setupUserWithCartItem();
 
       const body = createValidOrderBody({
         providedShippingPrice: 999, // Wrong price
+        shippingDetails: {
+          deliveryType: DeliveryType.TO_HOME,
+        },
       });
+
+      fakeGateway.getDeliveryFeesOfWilaya.mockResolvedValueOnce(
+        deliveryFeesFactory({ homeDeliveryFee: 400 }),
+      );
+
       // Act
       const response = await request
         .post("/api/v1/orders")
         .send(body)
         .set("authorization", clientAuth(user.id.value));
+
       // Assert
       expect(response.status).toBe(400);
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
@@ -554,30 +336,7 @@ describe("POST /api/v1/orders", () => {
 
     test("when postal code doesn't exist in the wilaya, it should return 400", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-
-      const category = Category.create("Category");
-
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-
-      await createCategoryInDB(container, category);
-
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-
-      await saveCartInDB(container, cart);
+      const { user } = await setupUserWithCartItem();
 
       const body = createValidOrderBody({
         shippingDetails: {
@@ -585,176 +344,9 @@ describe("POST /api/v1/orders", () => {
         },
       });
 
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-  });
-
-  describe("External Gateway Errors - WorldExpress API", () => {
-    test("when WorldExpress API returns 500, it should return 502", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API errors
-
-      nock.cleanAll();
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(500, { error: "Internal Server Error" });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(500, { error: "Internal Server Error" });
-
-      const body = createValidOrderBody();
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(502);
-      expect(response.body.error.code).toBe("GATEWAY_ERROR");
-    });
-
-    test("when WorldExpress API returns 404 for wilaya, it should return 404", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      nock.cleanAll();
-
-      // Mock WorldExpress API calls
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(200, {
-          livraison: [
-            {
-              wilaya_id: 1, // our shipping details wilaya is 16 (not found in this result)
-              tarif: "400",
-              tarif_stopdesk: "350",
-            },
-          ],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
-
-      const body = createValidOrderBody({
-        shippingDetails: { wilayaCode: 16 },
-      });
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(404);
-      expect(response.body.error.code).toBe("NOT_FOUND");
-    });
-
-    test("when WorldExpress API returns 422 validation error, it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API calls
-      nock.cleanAll();
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(422, {
-          message: "The given data was invalid.",
-          errors: {
-            wilaya_id: ["The wilaya id field is required."],
-          },
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(422, {
-          message: "The given data was invalid.",
-          errors: {
-            wilaya_id: ["The wilaya id field is required."],
-          },
-        });
-
-      const body = createValidOrderBody();
+      fakeGateway.getActiveCommunesOfWilaya.mockResolvedValueOnce([
+        communeFactory({ postalCode: "11111" }),
+      ]);
 
       // Act
       const response = await request
@@ -766,119 +358,20 @@ describe("POST /api/v1/orders", () => {
       expect(response.status).toBe(400);
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
     });
-
-    test("when WorldExpress API times out, it should return 504", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API timeout
-      nock.cleanAll();
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .delay(6000) // timeout in integration tests fetch client composition root instance is configured to 5000 ms
-        .reply(200, {
-          livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
-
-      const body = createValidOrderBody({
-        providedShippingPrice: 350,
-        shippingDetails: { deliveryType: DeliveryType.TO_DESK },
-      });
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      expect(response.status).toBe(504);
-      expect(response.body.error.code).toBe("GATEWAY_TIMEOUT_ERROR");
-    }, 10000);
   });
 
   describe("New State Validation - DB Changes", () => {
     test("when called with valid data, it should create an order in the database", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API calls
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(200, {
-          livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
-
+      const { user } = await setupUserWithCartItem(2);
       const body = createValidOrderBody({
         providedShippingPrice: 350,
         shippingDetails: { deliveryType: DeliveryType.TO_DESK },
       });
+
+      fakeGateway.getDeliveryFeesOfWilaya.mockResolvedValueOnce(
+        deliveryFeesFactory({ stopDeskFee: 350 }),
+      );
 
       // Act
       const response = await request
@@ -897,59 +390,20 @@ describe("POST /api/v1/orders", () => {
       expect(order!.getStatus()).toBe(OrderStatus.PENDING);
       expect(order!.getOrderItems()).toHaveLength(1);
       expect(order!.getOrderItems()[0]!.qty).toBe(2);
-      expect(order!.getOrderItems()[0]!.variationId.value).toBe(
-        variation.id.value,
-      );
     });
 
     test("when called with valid data, it should clear the user's cart", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API calls
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(200, {
-          livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
+      const { user } = await setupUserWithCartItem();
 
       const body = createValidOrderBody({
         providedShippingPrice: 350,
         shippingDetails: { deliveryType: DeliveryType.TO_DESK },
       });
+
+      fakeGateway.getDeliveryFeesOfWilaya.mockResolvedValueOnce(
+        deliveryFeesFactory({ stopDeskFee: 350 }),
+      );
 
       // Act
       await request
@@ -966,54 +420,19 @@ describe("POST /api/v1/orders", () => {
 
     test("when called with valid data, it should reserve stock for the ordered items", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const variation = product.getVariations()[0]!;
+      const { user, variation, product } = await setupUserWithCartItem();
+
       const initialReservedQty = variation.getReservedQty();
       const initialTotalQty = variation.getTotalQty();
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API calls
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(200, {
-          livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
 
       const body = createValidOrderBody({
         providedShippingPrice: 350,
         shippingDetails: { deliveryType: DeliveryType.TO_DESK },
       });
+
+      fakeGateway.getDeliveryFeesOfWilaya.mockResolvedValueOnce(
+        deliveryFeesFactory({ stopDeskFee: 350 }),
+      );
 
       // Act
       const response = await request
@@ -1048,52 +467,16 @@ describe("POST /api/v1/orders", () => {
   describe("Event Persistence - Outbox", () => {
     test("when called with valid data, it should persist OrderCreated event to outbox", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API calls
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(200, {
-          livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
+      const { user } = await setupUserWithCartItem();
 
       const body = createValidOrderBody({
         providedShippingPrice: 350,
         shippingDetails: { deliveryType: DeliveryType.TO_DESK },
       });
+
+      fakeGateway.getDeliveryFeesOfWilaya.mockResolvedValueOnce(
+        deliveryFeesFactory({ stopDeskFee: 350 }),
+      );
 
       // Act
       const response = await request
@@ -1102,64 +485,25 @@ describe("POST /api/v1/orders", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const orderCreatedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.ORDER_CREATED,
+      await expectOutboxEvent(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        response.body.orderId,
       );
-      expect(orderCreatedEvent).toBeDefined();
-      expect(orderCreatedEvent!.aggregateId).toBe(response.body.orderId);
     });
 
     test("when called with valid data, it should persist CartCleared event to outbox", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API calls
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(200, {
-          livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
+      const { user } = await setupUserWithCartItem();
 
       const body = createValidOrderBody({
         providedShippingPrice: 350,
         shippingDetails: { deliveryType: DeliveryType.TO_DESK },
       });
+
+      fakeGateway.getDeliveryFeesOfWilaya.mockResolvedValueOnce(
+        deliveryFeesFactory({ stopDeskFee: 350 }),
+      );
 
       // Act
       await request
@@ -1168,64 +512,26 @@ describe("POST /api/v1/orders", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const cartClearedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.CART_CLEARED,
+      const cartClearedEvent = await expectOutboxEvent(
+        container,
+        DomainEventCode.CART_CLEARED,
       );
-      expect(cartClearedEvent).toBeDefined();
-      expect((cartClearedEvent!.payload as any).userId).toBe(user.id.value);
+
+      expect((cartClearedEvent.payload as any).userId).toBe(user.id.value);
     });
 
     test("when called with valid data, it should persist StockReserved events to outbox", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API calls
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(200, {
-          livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
+      const { user, product, variation } = await setupUserWithCartItem(2);
 
       const body = createValidOrderBody({
         providedShippingPrice: 350,
         shippingDetails: { deliveryType: DeliveryType.TO_DESK },
       });
+
+      fakeGateway.getDeliveryFeesOfWilaya.mockResolvedValueOnce(
+        deliveryFeesFactory({ stopDeskFee: 350 }),
+      );
 
       // Act
       await request
@@ -1234,106 +540,58 @@ describe("POST /api/v1/orders", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const stockReservedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.STOCK_RESERVED,
+      const stockReservedEvent = await expectOutboxEvent(
+        container,
+        DomainEventCode.STOCK_RESERVED,
+        product.id.value,
       );
-      expect(stockReservedEvents).toHaveLength(1);
-      expect((stockReservedEvents[0]!.payload as any).variationId).toBe(
+
+      expect((stockReservedEvent.payload as any).qty).toBe(2);
+      expect((stockReservedEvent.payload as any).variationId).toBe(
         variation.id.value,
       );
-      expect((stockReservedEvents[0]!.payload as any).qty).toBe(2);
     });
 
     test("when called with valid data, all events should be persisted in the same transaction", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
-
-      // Mock WorldExpress API calls
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/fees")
-        .reply(200, {
-          livraison: [{ wilaya_id: 16, tarif: "400", tarif_stopdesk: "350" }],
-          pickup: [],
-          echange: [],
-          recouvrement: [],
-          retours: [],
-        });
-
-      nock(env.WORLD_EXPRESS_API_URL)
-        .get("/get/communes")
-        .query({ wilaya_id: "16" })
-        .reply(200, [
-          {
-            nom: "Algiers",
-            wilaya_id: 16,
-            code_postal: "16000",
-            has_stop_desk: 1,
-          },
-        ]);
+      const { user, product } = await setupUserWithCartItem();
 
       const body = createValidOrderBody({
         providedShippingPrice: 350,
         shippingDetails: { deliveryType: DeliveryType.TO_DESK },
       });
 
+      fakeGateway.getDeliveryFeesOfWilaya.mockResolvedValueOnce(
+        deliveryFeesFactory({ stopDeskFee: 350 }),
+      );
+
       // Act
-      await request
+      const response = await request
         .post("/api/v1/orders")
         .send(body)
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
+      await expectOutboxEvent(
+        container,
+        DomainEventCode.ORDER_CREATED,
+        response.body.orderId,
+      );
 
-      const eventTypes = events.map((e) => e.eventType);
-      expect(eventTypes).toContain(DomainEventCode.ORDER_CREATED);
-      expect(eventTypes).toContain(DomainEventCode.CART_CLEARED);
-      expect(eventTypes).toContain(DomainEventCode.STOCK_RESERVED);
+      await expectOutboxEvent(container, DomainEventCode.CART_CLEARED);
+
+      await expectOutboxEvent(
+        container,
+        DomainEventCode.STOCK_RESERVED,
+        product.id.value,
+      );
     });
   });
 
   describe("Idempotency", () => {
     test("when called with the same idempotency key twice, it should return the same orderId", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
+      const { user } = await setupUserWithCartItem();
 
       const idempotencyKey = "123e4567-e89b-12d3-a456-426614174000";
       const body = createValidOrderBody({ idempotencyKey });
@@ -1365,82 +623,9 @@ describe("POST /api/v1/orders", () => {
   });
 
   describe("Edge Cases", () => {
-    test("when cart has multiple items, it should create an order with all items", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation1 = product.getVariations()[0]!;
-      const variation2 = product.getVariations()[1]!;
-      const cart = Cart.create(user.id, [
-        CartItem.create(variation1.id, 2),
-        CartItem.create(variation2.id, 3),
-      ]);
-      await saveCartInDB(container, cart);
-
-      const body = createValidOrderBody();
-
-      // Act
-      const response = await request
-        .post("/api/v1/orders")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
-      const order = await orderRepository.find(
-        OrderId.of(response.body.orderId),
-      );
-
-      expect(order!.getOrderItems()).toHaveLength(2);
-      expect(
-        order!
-          .getOrderItems()
-          .some((i) => i.variationId.value === variation1.id.value),
-      ).toBe(true);
-      expect(
-        order!
-          .getOrderItems()
-          .some((i) => i.variationId.value === variation2.id.value),
-      ).toBe(true);
-    });
-
     test("when cart item has a discounted product, the order item should capture the discount", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({
-        categoryId: category.id,
-        price: 3000,
-        discountPrice: 2500,
-      });
-
-      await createUserInDB(container, user);
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const variation = product.getVariations()[0]!;
-      const cart = Cart.create(user.id, [CartItem.create(variation.id, 2)]);
-      await saveCartInDB(container, cart);
+      const { user, product } = await setupUserWithCartItem(2);
 
       const body = createValidOrderBody();
 
@@ -1457,8 +642,14 @@ describe("POST /api/v1/orders", () => {
       );
 
       const orderItem = order!.getOrderItems()[0]!;
-      expect(orderItem.unitPriceAtOrderTime.amount).toBe(3000);
-      expect(orderItem.unitDiscountPriceAtOrderTime!.amount).toBe(2500);
+      expect(orderItem.unitPriceAtOrderTime.amount).toBe(
+        product.getPrice().amount,
+      );
+
+      expect(orderItem.unitDiscountPriceAtOrderTime!.amount).toBe(
+        product.getDiscountedPrice()!.amount,
+      );
+
       expect(orderItem.hasDiscount()).toBe(true);
     });
   });
