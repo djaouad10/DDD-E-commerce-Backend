@@ -9,11 +9,10 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import { User } from "#/domain/entities/user.js";
-
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
 
 describe("GET /api/v1/orders/client", () => {
   let app: Express;
@@ -39,14 +38,7 @@ describe("GET /api/v1/orders/client", () => {
   describe("Response Validation", () => {
     test("when client requests own orders, it should return 200 with paginated orders", async () => {
       // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
 
       await createUserInDB(container, user);
 
@@ -81,14 +73,7 @@ describe("GET /api/v1/orders/client", () => {
 
     test("when client has no orders, it should return empty array", async () => {
       // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -104,14 +89,7 @@ describe("GET /api/v1/orders/client", () => {
 
     test("when client uses limit, it should return paginated results", async () => {
       // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
 
       await createUserInDB(container, user);
 
@@ -132,14 +110,7 @@ describe("GET /api/v1/orders/client", () => {
 
     test("when client uses cursor, it should return next page", async () => {
       // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
 
       await createUserInDB(container, user);
 
@@ -173,27 +144,14 @@ describe("GET /api/v1/orders/client", () => {
 
     test("when client filters by status, it should return only matching orders", async () => {
       // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-
+      const user = userFactory();
       await createUserInDB(container, user);
 
       await setupOrderInDB(container, { owner: user });
       const confirmedOrder = await setupOrderInDB(container, { owner: user });
 
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-
-      const confirmedOrderInDB = await orderRepo.find(confirmedOrder.id);
-
-      confirmedOrderInDB!.confirm();
-
-      await saveOrderInDB(container, confirmedOrderInDB!);
+      confirmedOrder.confirm();
+      await saveOrderInDB(container, confirmedOrder);
 
       // Act
       const response = await request
@@ -209,15 +167,7 @@ describe("GET /api/v1/orders/client", () => {
 
     test("when admin requests orders by clientId, it should return 200 with client's orders", async () => {
       // Arrange
-      const client = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-
+      const client = userFactory();
       await createUserInDB(container, client);
 
       await setupOrderInDB(container, { owner: client });
@@ -247,45 +197,18 @@ describe("GET /api/v1/orders/client", () => {
       expect(response.body.nextCursor).toBeUndefined();
     });
 
-    test("when limit is invalid, it should return 400", async () => {
+    test.each([
+      ["limit", { limit: 0 }],
+      ["status", { status: "INVALID_STATUS" }],
+    ])("when %s is invalid, it should return 400", async (_field, override) => {
       // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
       const response = await request
         .get("/api/v1/orders/client")
-        .query({ limit: 0 })
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when status is invalid, it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      // Act
-      const response = await request
-        .get("/api/v1/orders/client")
-        .query({ status: "INVALID_STATUS" })
+        .query(override)
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
@@ -305,14 +228,7 @@ describe("GET /api/v1/orders/client", () => {
   describe("New State Validation", () => {
     test("when client requests orders, DB state should not change", async () => {
       // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, { owner: user });
