@@ -16,6 +16,7 @@ import { User } from "#/domain/entities/user.js";
 import { Cart } from "#/domain/entities/cart.js";
 import { CartItem } from "#/domain/entities/cart-item.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
+import { clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
   let app: Express;
@@ -59,7 +60,7 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
       // Act
       const response = await request
         .get(`/api/v1/products/${product.id.value}/variations/with-cart-flag`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -99,7 +100,7 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
       // Act
       const response = await request
         .get(`/api/v1/products/${product.id.value}/variations/with-cart-flag`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -133,7 +134,7 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
         .get(
           `/api/v1/products/${ProductId.generate().value}/variations/with-cart-flag`,
         )
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -160,7 +161,7 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
       // Act — user not seeded
       const response = await request
         .get(`/api/v1/products/${product.id.value}/variations/with-cart-flag`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -190,7 +191,7 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
       // Act
       const response = await request
         .get(`/api/v1/products/${product.id.value}/variations/with-cart-flag`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);

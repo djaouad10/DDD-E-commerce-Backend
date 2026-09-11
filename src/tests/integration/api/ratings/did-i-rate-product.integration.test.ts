@@ -15,6 +15,7 @@ import { Category } from "#/domain/entities/category.js";
 import { User } from "#/domain/entities/user.js";
 import { Rating } from "#/domain/entities/rating.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/ratings/did-i-rate/:productId", () => {
   let app: Express;
@@ -61,7 +62,7 @@ describe("GET /api/v1/ratings/did-i-rate/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/did-i-rate/${product.id.value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -88,7 +89,7 @@ describe("GET /api/v1/ratings/did-i-rate/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/did-i-rate/${product.id.value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -114,7 +115,7 @@ describe("GET /api/v1/ratings/did-i-rate/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/did-i-rate/${product.id.value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -136,7 +137,7 @@ describe("GET /api/v1/ratings/did-i-rate/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/did-i-rate/${ProductId.generate().value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -154,7 +155,7 @@ describe("GET /api/v1/ratings/did-i-rate/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/did-i-rate/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(403);

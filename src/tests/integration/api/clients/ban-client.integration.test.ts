@@ -12,6 +12,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { UserBanned } from "#/domain/events/user/user-banned.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/clients/:id/status/ban", () => {
   let app: Express;
@@ -54,7 +55,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam activity",
           banExpiresInSeconds: 86400, // 24 hours
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -79,7 +80,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           reason: "Permanent ban",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -104,7 +105,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           banExpiresInSeconds: 3600,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -119,7 +120,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -134,7 +135,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -160,7 +161,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam",
           banExpiresInSeconds: -100,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -186,7 +187,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -237,7 +238,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam activity",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
       const updatedUser = await userRepository.find(user.id);
@@ -268,7 +269,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam activity",
           banExpiresInSeconds,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -300,7 +301,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           reason: "Permanent ban",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -332,7 +333,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: banReason,
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -368,7 +369,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: banReason,
           banExpiresInSeconds,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -408,7 +409,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           reason: banReason,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -444,7 +445,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -480,7 +481,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam activity",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -513,7 +514,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "First ban reason",
           banExpiresInSeconds: 3600,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Act - Second ban attempt
       const response = await request
@@ -522,7 +523,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Second ban reason",
           banExpiresInSeconds: 7200,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -548,7 +549,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Admin misconduct",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);

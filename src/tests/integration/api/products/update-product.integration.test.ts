@@ -17,6 +17,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { ProductUpdated } from "#/domain/events/product/product-updated.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/products/:id", () => {
   let app: Express;
@@ -51,7 +52,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ name: "Updated Name" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -69,7 +70,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ description: "Updated description" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -87,7 +88,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ brand: "NewBrand" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -105,7 +106,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ material: "Silk" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -123,7 +124,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ price: 5000 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -141,7 +142,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ discountPrice: 1000 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -161,7 +162,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ categoryId: newCategory.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -179,7 +180,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ name: "New Name", brand: "NewBrand", price: 5000 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -197,7 +198,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ price: 5000, discountPrice: 4000 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -215,7 +216,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({})
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -226,7 +227,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch("/api/v1/products/invalid-id")
         .send({ name: "Updated" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -238,7 +239,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${ProductId.generate().value}`)
         .send({ name: "Updated" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -256,7 +257,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ price: -100 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -274,7 +275,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ price: 0 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -296,7 +297,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ discountPrice: 2500 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -318,7 +319,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ price: 1000 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -336,7 +337,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ price: 1000, discountPrice: 1500 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -353,7 +354,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ discountPrice: -100 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -387,7 +388,7 @@ describe("PATCH /api/v1/products/:id", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ name: "Updated" })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -408,7 +409,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ name: newName })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -434,7 +435,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ description: newDescription })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -455,7 +456,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ description: null })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -478,7 +479,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ brand: newBrand })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -501,7 +502,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ material: newMaterial })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -528,7 +529,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ price: newPrice })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -556,7 +557,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ discountPrice: newDiscountPrice })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -584,7 +585,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ discountPrice: null })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -607,7 +608,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ categoryId: newCategory.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -628,7 +629,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ categoryId: null })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -659,7 +660,7 @@ describe("PATCH /api/v1/products/:id", () => {
           price: 5000,
           description: "Multi description",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -688,7 +689,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ price: 5000, discountPrice: 4000 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -710,7 +711,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ name: "Event Test" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -737,7 +738,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ name: "Name", brand: "Brand" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -765,7 +766,7 @@ describe("PATCH /api/v1/products/:id", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}`)
         .send({ name: product.getName() })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);

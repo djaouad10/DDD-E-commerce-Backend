@@ -16,6 +16,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("DELETE /api/v1/products/:id/images/:key", () => {
   let app: Express;
@@ -54,7 +55,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
         .delete(
           `/api/v1/products/${product.id.value}/images/${nonMainImage.getKey()}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -67,7 +68,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
         .delete(
           `/api/v1/products/${ProductId.generate().value}/images/some-key`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -85,7 +86,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
       // Act
       const response = await request
         .delete(`/api/v1/products/${product.id.value}/images/nonexistent-key`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -107,7 +108,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
         .delete(
           `/api/v1/products/${product.id.value}/images/${mainImage.getKey()}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -132,7 +133,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
         .delete(
           `/api/v1/products/${product.id.value}/images/${imageKeyToRemove}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -159,7 +160,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
         .delete(
           `/api/v1/products/${product.id.value}/images/${imageKeyToRemove}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -191,7 +192,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
         .delete(
           `/api/v1/products/${product.id.value}/images/${nonMainImage.getKey()}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);

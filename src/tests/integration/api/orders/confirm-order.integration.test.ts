@@ -20,6 +20,7 @@ import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { OrderStatus } from "#/domain/entities/order.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/orders/:id/confirm", () => {
   let app: Express;
@@ -62,7 +63,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -73,7 +74,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${OrderId.generate().value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -124,7 +125,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(403);
@@ -134,7 +135,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch("/api/v1/orders/invalid-id/confirm")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -168,7 +169,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -201,7 +202,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -235,7 +236,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -270,7 +271,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -305,7 +306,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -337,7 +338,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -372,7 +373,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -400,7 +401,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
@@ -435,7 +436,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -471,7 +472,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -503,7 +504,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -540,7 +541,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -589,7 +590,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -634,7 +635,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -673,11 +674,11 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order1.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       await request
         .patch(`/api/v1/orders/${order2.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -715,7 +716,7 @@ describe("PATCH /api/v1/orders/:id/confirm", () => {
 
       await request
         .patch(`/api/v1/orders/${order.id.value}/confirm`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);

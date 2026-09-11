@@ -11,6 +11,7 @@ import nock from "nock";
 import supertest from "supertest";
 import { Category } from "#/domain/entities/category.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/products/:id/update-data", () => {
   let app: Express;
@@ -48,7 +49,7 @@ describe("GET /api/v1/products/:id/update-data", () => {
       // Act
       const response = await request
         .get(`/api/v1/products/${product.id.value}/update-data`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -134,7 +135,7 @@ describe("GET /api/v1/products/:id/update-data", () => {
       // Act
       const response = await request
         .get(`/api/v1/products/${ProductId.generate().value}/update-data`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -152,7 +153,7 @@ describe("GET /api/v1/products/:id/update-data", () => {
       // Act
       const response = await request
         .get(`/api/v1/products/${product.id.value}/update-data`)
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);

@@ -16,6 +16,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/products/:id/images/main", () => {
   let app: Express;
@@ -56,7 +57,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       const response = await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
         .send(newMainImage)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -72,7 +73,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
           name: "new-main-name",
           publicUrl: "https://example.com/new-main.jpg",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -99,7 +100,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
         .send(newMainImage)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -133,7 +134,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
         .send(newMainImage)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -163,7 +164,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
         .send(newMainImage)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -197,7 +198,7 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
         .send(newMainImage)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);

@@ -17,6 +17,7 @@ import { productFactory } from "#/tests/helpers/domain-helpers.js";
 import { Cart } from "#/domain/entities/cart.js";
 import { CartItem } from "#/domain/entities/cart-item.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
+import { clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/cart", () => {
   let app: Express;
@@ -56,7 +57,7 @@ describe("GET /api/v1/cart", () => {
       // Act
       const response = await request
         .get("/api/v1/cart")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -94,7 +95,7 @@ describe("GET /api/v1/cart", () => {
       // Act
       const response = await request
         .get("/api/v1/cart")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -126,10 +127,7 @@ describe("GET /api/v1/cart", () => {
       // Act
       const response = await request
         .get("/api/v1/cart")
-        .set(
-          "authorization",
-          `Bearer test-client-token ${UserId.generate().value}`,
-        );
+        .set("authorization", clientAuth(UserId.generate().value));
 
       // Assert
       expect(response.status).toBe(404);

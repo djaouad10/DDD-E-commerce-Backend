@@ -18,6 +18,7 @@ import { CartItem } from "#/domain/entities/cart-item.js";
 import { CartItemId } from "#/domain/value-objects/cart-item-id.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { CART_REPOSITORY } from "#/composition/utils/tokens.js";
+import { clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/cart/items/:id", () => {
   let app: Express;
@@ -69,7 +70,7 @@ describe("PATCH /api/v1/cart/items/:id", () => {
       const response = await request
         .patch(`/api/v1/cart/items/${itemId}`)
         .send({ newQty: 5 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -92,7 +93,7 @@ describe("PATCH /api/v1/cart/items/:id", () => {
       const response = await request
         .patch("/api/v1/cart/items/some-id")
         .send({ newQty: 0 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -115,7 +116,7 @@ describe("PATCH /api/v1/cart/items/:id", () => {
       const response = await request
         .patch("/api/v1/cart/items/some-id")
         .send({ newQty: -1 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -139,7 +140,7 @@ describe("PATCH /api/v1/cart/items/:id", () => {
       const response = await request
         .patch(`/api/v1/cart/items/${itemId.value}`)
         .send({ newQty: 5 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -152,10 +153,7 @@ describe("PATCH /api/v1/cart/items/:id", () => {
       const response = await request
         .patch("/api/v1/cart/items/some-id")
         .send({ newQty: 5 })
-        .set(
-          "authorization",
-          `Bearer test-client-token ${UserId.generate().value}`,
-        );
+        .set("authorization", clientAuth(UserId.generate().value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -193,7 +191,7 @@ describe("PATCH /api/v1/cart/items/:id", () => {
       await request
         .patch(`/api/v1/cart/items/${itemId.value}`)
         .send({ newQty })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const cartRepository = container.resolveSingleton(CART_REPOSITORY);

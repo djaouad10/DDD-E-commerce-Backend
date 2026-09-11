@@ -22,6 +22,7 @@ import type { ProductVariationAdded } from "#/domain/events/product/product-vari
 import type { VariationCreated } from "#/domain/events/product/variation-created.js";
 import { Variation } from "#/domain/entities/variation.js";
 import { Weight } from "#/domain/value-objects/weight.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("POST /api/v1/products/:id/variations", () => {
   let app: Express;
@@ -69,7 +70,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -103,7 +104,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${ProductId.generate().value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -123,7 +124,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post("/api/v1/products/invalid-id/variations")
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -149,7 +150,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -175,7 +176,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -201,7 +202,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -232,7 +233,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -258,7 +259,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -284,7 +285,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -311,7 +312,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(409);
@@ -337,7 +338,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -394,7 +395,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -441,7 +442,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.body).toEqual({
@@ -485,7 +486,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.body.isInStock).toBe(true);
@@ -516,7 +517,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -545,7 +546,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -578,7 +579,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -616,7 +617,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -659,7 +660,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -703,7 +704,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -755,12 +756,12 @@ describe("POST /api/v1/products/:id/variations", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData1)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData2)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -803,7 +804,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -835,7 +836,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -868,7 +869,7 @@ describe("POST /api/v1/products/:id/variations", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/variations`)
         .send(variationData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(409);

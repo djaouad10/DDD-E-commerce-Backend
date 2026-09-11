@@ -11,6 +11,7 @@ import nock from "nock";
 import supertest from "supertest";
 import { User } from "#/domain/entities/user.js";
 import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/orders/tracking/:tracking", () => {
   let app: Express;
@@ -57,7 +58,7 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       // Act
       const response = await request
         .get("/api/v1/orders/tracking/TRACK123456")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -163,7 +164,7 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       // Act
       const response = await request
         .get("/api/v1/orders/tracking/TRACK789012")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -203,7 +204,7 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       // Act
       const response = await request
         .get("/api/v1/orders/tracking/TRACK999999")
-        .set("authorization", `Bearer test-client-token ${intruder.id.value}`);
+        .set("authorization", clientAuth(intruder.id.value));
 
       // Assert
       expect(response.status).toBe(403);
@@ -224,7 +225,7 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       // Act
       const response = await request
         .get("/api/v1/orders/tracking/NONEXISTENT")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -266,7 +267,7 @@ describe("GET /api/v1/orders/tracking/:tracking", () => {
       // Act
       await request
         .get("/api/v1/orders/tracking/TRACK111111")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);

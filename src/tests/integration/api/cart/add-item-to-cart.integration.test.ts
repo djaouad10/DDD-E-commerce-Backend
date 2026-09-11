@@ -20,6 +20,7 @@ import {
   OUTBOX_REPOSITORY,
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
+import { clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("POST /api/v1/cart/items", () => {
   let app: Express;
@@ -66,7 +67,7 @@ describe("POST /api/v1/cart/items", () => {
       const response = await request
         .post("/api/v1/cart/items")
         .send({ variationId, qty: 3 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -107,7 +108,7 @@ describe("POST /api/v1/cart/items", () => {
       const response = await request
         .post("/api/v1/cart/items")
         .send({ variationId: newVariationId, qty: 2 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -135,7 +136,7 @@ describe("POST /api/v1/cart/items", () => {
       const response = await request
         .post("/api/v1/cart/items")
         .send({ variationId: "some-id", qty: 0 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -158,7 +159,7 @@ describe("POST /api/v1/cart/items", () => {
       const response = await request
         .post("/api/v1/cart/items")
         .send({ variationId: "some-id", qty: -1 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -193,7 +194,7 @@ describe("POST /api/v1/cart/items", () => {
       const response = await request
         .post("/api/v1/cart/items")
         .send({ variationId, qty: 2 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -215,7 +216,7 @@ describe("POST /api/v1/cart/items", () => {
       const response = await request
         .post("/api/v1/cart/items")
         .send({ variationId: "some-id", qty: 1 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -248,7 +249,7 @@ describe("POST /api/v1/cart/items", () => {
       await request
         .post("/api/v1/cart/items")
         .send({ variationId, qty })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const cartRepository = container.resolveSingleton(CART_REPOSITORY);
@@ -284,7 +285,7 @@ describe("POST /api/v1/cart/items", () => {
       await request
         .post("/api/v1/cart/items")
         .send({ variationId, qty })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -332,7 +333,7 @@ describe("POST /api/v1/cart/items", () => {
       await request
         .post("/api/v1/cart/items")
         .send({ variationId: newVariationId, qty: newQty })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const cartRepository = container.resolveSingleton(CART_REPOSITORY);

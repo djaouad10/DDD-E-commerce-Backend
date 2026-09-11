@@ -12,6 +12,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { UserUnBanned } from "#/domain/events/user/user-unbanned.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/clients/:id/status/unban", () => {
   let app: Express;
@@ -50,7 +51,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       const response = await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -61,7 +62,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       const response = await request
         .patch(`/api/v1/clients/${UserId.generate().value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -72,7 +73,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       const response = await request
         .patch("/api/v1/clients/invalid-id/status/unban")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -94,7 +95,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       const response = await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -116,7 +117,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       const response = await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -160,7 +161,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -185,7 +186,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -211,7 +212,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -237,7 +238,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -266,7 +267,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -297,7 +298,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -324,7 +325,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -353,12 +354,12 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // First unban (should succeed even though user is not banned)
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Act - Second unban attempt
       const response = await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -385,7 +386,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       const response = await request
         .patch(`/api/v1/clients/${adminUser.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -416,7 +417,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       // Act
       await request
         .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const updatedUser = await userRepository.find(user.id);

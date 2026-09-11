@@ -6,6 +6,7 @@ import supertest from "supertest";
 import type { Express } from "express";
 import { User } from "#/domain/entities/user.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/clients/profile", () => {
   let app: Express;
@@ -44,7 +45,7 @@ describe("GET /api/v1/clients/profile", () => {
       // Act
       const response = await request
         .get("/api/v1/clients/profile")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -75,7 +76,7 @@ describe("GET /api/v1/clients/profile", () => {
       const response = await request
         .get("/api/v1/clients/profile")
         .query({ id: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -96,10 +97,7 @@ describe("GET /api/v1/clients/profile", () => {
       // Act
       const response = await request
         .get("/api/v1/clients/profile")
-        .set(
-          "authorization",
-          `Bearer test-client-token ${UserId.generate().value}`,
-        );
+        .set("authorization", clientAuth(UserId.generate().value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -111,7 +109,7 @@ describe("GET /api/v1/clients/profile", () => {
       const response = await request
         .get("/api/v1/clients/profile")
         .query({ id: UserId.generate().value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);

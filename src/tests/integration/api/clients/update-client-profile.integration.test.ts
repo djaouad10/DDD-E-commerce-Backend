@@ -10,6 +10,7 @@ import {
   OUTBOX_REPOSITORY,
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/clients/profile", () => {
   let app: Express;
@@ -51,7 +52,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -76,7 +77,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -104,7 +105,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -127,7 +128,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send({})
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -152,7 +153,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -180,7 +181,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -206,7 +207,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${adminUser.id.value}`);
+        .set("authorization", clientAuth(adminUser.id.value));
 
       // Assert
       expect(response.status).toBe(403);
@@ -231,7 +232,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -256,7 +257,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       // The zod schema validates this, so it returns 400
@@ -285,7 +286,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -314,7 +315,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -344,7 +345,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -376,7 +377,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -405,7 +406,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -436,7 +437,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -470,7 +471,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -507,7 +508,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -543,7 +544,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -573,7 +574,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -611,7 +612,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const events = await outboxRepository.getPendingEvents(100);
@@ -646,7 +647,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const events = await outboxRepository.getPendingEvents(100);
@@ -680,7 +681,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const events = await outboxRepository.getPendingEvents(100);
@@ -712,7 +713,7 @@ describe("PATCH /api/v1/clients/profile", () => {
       const response = await request
         .patch("/api/v1/clients/profile")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -754,12 +755,12 @@ describe("PATCH /api/v1/clients/profile", () => {
       await request
         .patch("/api/v1/clients/profile")
         .send({ name: "John Updated" })
-        .set("authorization", `Bearer test-client-token ${user1.id.value}`);
+        .set("authorization", clientAuth(user1.id.value));
 
       await request
         .patch("/api/v1/clients/profile")
         .send({ name: "Jane Updated" })
-        .set("authorization", `Bearer test-client-token ${user2.id.value}`);
+        .set("authorization", clientAuth(user2.id.value));
 
       // Assert
       const events = await outboxRepository.getPendingEvents(100);

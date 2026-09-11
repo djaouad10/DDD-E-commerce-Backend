@@ -17,6 +17,7 @@ import { Cart } from "#/domain/entities/cart.js";
 import { CartItem } from "#/domain/entities/cart-item.js";
 import { CART_REPOSITORY } from "#/composition/utils/tokens.js";
 import { CartItemId } from "#/domain/value-objects/cart-item-id.js";
+import { clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("DELETE /api/v1/cart/items/:id", () => {
   let app: Express;
@@ -67,7 +68,7 @@ describe("DELETE /api/v1/cart/items/:id", () => {
       // Act
       const response = await request
         .delete(`/api/v1/cart/items/${itemId}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -99,7 +100,7 @@ describe("DELETE /api/v1/cart/items/:id", () => {
       // Act
       const response = await request
         .delete(`/api/v1/cart/items/${CartItemId.generate().value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -120,7 +121,7 @@ describe("DELETE /api/v1/cart/items/:id", () => {
       // Act — user not seeded in DB
       const response = await request
         .delete("/api/v1/cart/items/some-id")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -158,7 +159,7 @@ describe("DELETE /api/v1/cart/items/:id", () => {
       // Act
       await request
         .delete(`/api/v1/cart/items/${itemIdToRemove}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const cartRepository = container.resolveSingleton(CART_REPOSITORY);
@@ -196,7 +197,7 @@ describe("DELETE /api/v1/cart/items/:id", () => {
       // Act
       await request
         .delete(`/api/v1/cart/items/${itemId}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const cartRepository = container.resolveSingleton(CART_REPOSITORY);

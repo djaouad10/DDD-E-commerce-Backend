@@ -18,6 +18,7 @@ import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import type { FileUploaded } from "#/domain/events/file/file-uploaded.js";
 import type { ProductImageAdded } from "#/domain/events/product/product-image-added.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("POST /api/v1/products/:id/images", () => {
   let app: Express;
@@ -59,7 +60,7 @@ describe("POST /api/v1/products/:id/images", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -78,7 +79,7 @@ describe("POST /api/v1/products/:id/images", () => {
       const response = await request
         .post(`/api/v1/products/${ProductId.generate().value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -97,7 +98,7 @@ describe("POST /api/v1/products/:id/images", () => {
       const response = await request
         .post("/api/v1/products/invalid-id/images")
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -121,7 +122,7 @@ describe("POST /api/v1/products/:id/images", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -145,7 +146,7 @@ describe("POST /api/v1/products/:id/images", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -170,7 +171,7 @@ describe("POST /api/v1/products/:id/images", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -195,7 +196,7 @@ describe("POST /api/v1/products/:id/images", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -246,7 +247,7 @@ describe("POST /api/v1/products/:id/images", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -282,7 +283,7 @@ describe("POST /api/v1/products/:id/images", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -322,7 +323,7 @@ describe("POST /api/v1/products/:id/images", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -361,7 +362,7 @@ describe("POST /api/v1/products/:id/images", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -405,7 +406,7 @@ describe("POST /api/v1/products/:id/images", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -442,7 +443,7 @@ describe("POST /api/v1/products/:id/images", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -488,12 +489,12 @@ describe("POST /api/v1/products/:id/images", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData1)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData2)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -546,7 +547,7 @@ describe("POST /api/v1/products/:id/images", () => {
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(imageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Act - Add second image with same key
       const response = await request
@@ -555,7 +556,7 @@ describe("POST /api/v1/products/:id/images", () => {
           ...imageData,
           name: "image-copy.jpg",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(409);
@@ -580,7 +581,7 @@ describe("POST /api/v1/products/:id/images", () => {
         await request
           .post(`/api/v1/products/${product.id.value}/images`)
           .send(imageData)
-          .set("authorization", "Bearer test-admin-token");
+          .set("authorization", adminAuth());
       }
 
       // Act - Add one more
@@ -593,7 +594,7 @@ describe("POST /api/v1/products/:id/images", () => {
       const response = await request
         .post(`/api/v1/products/${product.id.value}/images`)
         .send(newImageData)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);

@@ -21,6 +21,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { RatingSubmitted } from "#/domain/events/rating/rating-submitted.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("POST /api/v1/ratings/product/:productId", () => {
   let app: Express;
@@ -64,7 +65,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 4, comment: "Great product!" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -91,7 +92,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 5, comment: null })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -118,7 +119,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 0, comment: "Terrible" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -145,7 +146,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 5, comment: "Perfect" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -174,7 +175,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 4, comment: "Better" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(409);
@@ -196,7 +197,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${ProductId.generate().value}`)
         .send({ rating: 4, comment: "Good" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -223,7 +224,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 4, comment: "Good" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -250,7 +251,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 6, comment: "Too good" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -277,7 +278,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: -1, comment: "Bad" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -304,7 +305,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ comment: "Missing rating" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -331,7 +332,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 4 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -374,7 +375,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       const response = await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 4, comment: "Good" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -405,7 +406,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: ratingValue, comment })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const ratingRepository = container.resolveSingleton(RATING_REPOSITORY);
@@ -442,7 +443,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: ratingValue, comment })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -489,7 +490,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 3, comment: null })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const ratingRepository = container.resolveSingleton(RATING_REPOSITORY);
@@ -519,7 +520,7 @@ describe("POST /api/v1/ratings/product/:productId", () => {
       await request
         .post(`/api/v1/ratings/product/${product.id.value}`)
         .send({ rating: 4, comment: "Nice" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);

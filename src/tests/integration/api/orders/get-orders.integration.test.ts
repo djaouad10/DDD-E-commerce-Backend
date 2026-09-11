@@ -11,6 +11,7 @@ import nock from "nock";
 import supertest from "supertest";
 import { User } from "#/domain/entities/user.js";
 import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/orders", () => {
   let app: Express;
@@ -51,7 +52,7 @@ describe("GET /api/v1/orders", () => {
       // Act
       const response = await request
         .get("/api/v1/orders")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -79,7 +80,7 @@ describe("GET /api/v1/orders", () => {
       // Act
       const response = await request
         .get("/api/v1/orders")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -106,7 +107,7 @@ describe("GET /api/v1/orders", () => {
       const response = await request
         .get("/api/v1/orders")
         .query({ limit: 1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -132,7 +133,7 @@ describe("GET /api/v1/orders", () => {
       const firstPage = await request
         .get("/api/v1/orders")
         .query({ limit: 1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const cursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -147,7 +148,7 @@ describe("GET /api/v1/orders", () => {
             orderId: cursor.orderId,
           },
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -181,7 +182,7 @@ describe("GET /api/v1/orders", () => {
       const response = await request
         .get("/api/v1/orders")
         .query({ status: "CONFIRMED" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -194,7 +195,7 @@ describe("GET /api/v1/orders", () => {
       const response = await request
         .get("/api/v1/orders")
         .query({ limit: 0 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -206,7 +207,7 @@ describe("GET /api/v1/orders", () => {
       const response = await request
         .get("/api/v1/orders")
         .query({ status: "INVALID_STATUS" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -228,7 +229,7 @@ describe("GET /api/v1/orders", () => {
       // Act
       const response = await request
         .get("/api/v1/orders")
-        .set("authorization", `Bearer test-client-token ${client.id.value}`);
+        .set("authorization", clientAuth(client.id.value));
 
       // Assert
       expect(response.status).toBe(403);
@@ -259,9 +260,7 @@ describe("GET /api/v1/orders", () => {
       const order = await setupOrderInDB(container, { owner: client });
 
       // Act
-      await request
-        .get("/api/v1/orders")
-        .set("authorization", "Bearer test-admin-token");
+      await request.get("/api/v1/orders").set("authorization", adminAuth());
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);

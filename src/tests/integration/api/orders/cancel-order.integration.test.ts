@@ -32,6 +32,7 @@ import { OrderItem } from "#/domain/entities/order-item.js";
 import { Money } from "#/domain/value-objects/money.js";
 import { Weight } from "#/domain/value-objects/weight.js";
 import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/orders/:id/cancel", () => {
   let app: Express;
@@ -83,7 +84,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -118,7 +119,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -140,7 +141,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${OrderId.generate().value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -176,7 +177,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${intruder.id.value}`);
+        .set("authorization", clientAuth(intruder.id.value));
 
       // Assert
       expect(response.status).toBe(403);
@@ -225,7 +226,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch("/api/v1/orders/invalid-id/cancel")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -259,7 +260,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -291,7 +292,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -324,7 +325,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -358,7 +359,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -393,7 +394,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -428,7 +429,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -463,7 +464,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -491,7 +492,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
@@ -552,7 +553,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert - Stock should be released
       const updatedProduct = await productRepository.find(product.id);
@@ -620,7 +621,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const updatedProduct = await productRepository.find(product.id);
@@ -655,7 +656,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -691,7 +692,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -724,7 +725,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -780,7 +781,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -848,7 +849,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -911,7 +912,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -965,7 +966,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -1022,7 +1023,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act
       await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert - Events
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -1069,7 +1070,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
       // Act - Admin cancels without userId parameter
       const response = await request
         .patch(`/api/v1/orders/${order.id.value}/cancel`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);

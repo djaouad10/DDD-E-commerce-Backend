@@ -26,6 +26,7 @@ import { env } from "#/infrastructure/config/env.js";
 import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
 import { DeliveryType } from "#/domain/value-objects/shipping-details.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("POST /api/v1/orders", () => {
   let app: Express;
@@ -146,7 +147,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -184,7 +185,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-admin-token ${user.id.value}`);
+        .set("authorization", adminAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -226,7 +227,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -264,7 +265,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -291,7 +292,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -318,7 +319,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -347,7 +348,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -376,7 +377,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -405,7 +406,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -434,7 +435,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -462,7 +463,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
       // Assert
       expect(response.status).toBe(403);
       expect(response.body.error.code).toBe("FORBIDDEN");
@@ -485,7 +486,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
       // Assert
       expect(response.status).toBe(404);
       expect(response.body.error.code).toBe("NOT_FOUND");
@@ -512,7 +513,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
       // Assert
       expect(response.status).toBe(400);
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
@@ -545,7 +546,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
       // Assert
       expect(response.status).toBe(400);
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
@@ -588,7 +589,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
       // Assert
       expect(response.status).toBe(400);
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
@@ -636,7 +637,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(502);
@@ -703,7 +704,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -759,7 +760,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -822,7 +823,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       expect(response.status).toBe(504);
       expect(response.body.error.code).toBe("GATEWAY_TIMEOUT_ERROR");
@@ -883,7 +884,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
@@ -954,7 +955,7 @@ describe("POST /api/v1/orders", () => {
       await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const cartRepository = container.resolveSingleton(CART_REPOSITORY);
@@ -1018,7 +1019,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert - Re-fetch product to see updated reserved quantity
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -1098,7 +1099,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -1164,7 +1165,7 @@ describe("POST /api/v1/orders", () => {
       await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -1230,7 +1231,7 @@ describe("POST /api/v1/orders", () => {
       await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -1299,7 +1300,7 @@ describe("POST /api/v1/orders", () => {
       await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -1341,13 +1342,13 @@ describe("POST /api/v1/orders", () => {
       const firstResponse = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Act - Second request with same idempotency key
       const secondResponse = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(firstResponse.status).toBe(200);
@@ -1395,7 +1396,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
@@ -1447,7 +1448,7 @@ describe("POST /api/v1/orders", () => {
       const response = await request
         .post("/api/v1/orders")
         .send(body)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);

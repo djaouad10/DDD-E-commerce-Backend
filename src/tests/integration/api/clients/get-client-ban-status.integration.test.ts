@@ -6,6 +6,7 @@ import supertest from "supertest";
 import type { Express } from "express";
 import { User } from "#/domain/entities/user.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/clients/ban-status/:id", () => {
   let app: Express;
@@ -44,7 +45,7 @@ describe("GET /api/v1/clients/ban-status/:id", () => {
       // Act
       const response = await request
         .get(`/api/v1/clients/ban-status/${user.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -66,7 +67,7 @@ describe("GET /api/v1/clients/ban-status/:id", () => {
       // Act
       const response = await request
         .get(`/api/v1/clients/ban-status/${user.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -77,7 +78,7 @@ describe("GET /api/v1/clients/ban-status/:id", () => {
       // Act
       const response = await request
         .get(`/api/v1/clients/ban-status/${UserId.generate().value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);

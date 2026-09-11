@@ -21,6 +21,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { CartCleared } from "#/domain/events/cart/cart-cleared.js";
+import { clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("DELETE /api/v1/cart/clear", () => {
   let app: Express;
@@ -70,7 +71,7 @@ describe("DELETE /api/v1/cart/clear", () => {
       // Act
       const response = await request
         .delete("/api/v1/cart/clear")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -95,7 +96,7 @@ describe("DELETE /api/v1/cart/clear", () => {
       // Act
       const response = await request
         .delete("/api/v1/cart/clear")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -116,7 +117,7 @@ describe("DELETE /api/v1/cart/clear", () => {
       // Act — user not seeded in DB
       const response = await request
         .delete("/api/v1/cart/clear")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -151,7 +152,7 @@ describe("DELETE /api/v1/cart/clear", () => {
       // Act
       await request
         .delete("/api/v1/cart/clear")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const cartRepository = container.resolveSingleton(CART_REPOSITORY);
@@ -185,7 +186,7 @@ describe("DELETE /api/v1/cart/clear", () => {
       // Act
       await request
         .delete("/api/v1/cart/clear")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -218,7 +219,7 @@ describe("DELETE /api/v1/cart/clear", () => {
       // Act
       await request
         .delete("/api/v1/cart/clear")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);

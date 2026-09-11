@@ -24,6 +24,7 @@ import { ProductId } from "#/domain/value-objects/product-id.js";
 import { VariationId } from "#/domain/value-objects/variation-id.js";
 import type { VariationStockUpdated } from "#/domain/events/product/variation-stock-updated.js";
 import type { VariationWeightUpdated } from "#/domain/events/product/variation-weight-updated.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
   let app: Express;
@@ -64,7 +65,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 150,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -88,7 +89,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newWeightInGrams: 250,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -113,7 +114,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
           newTotalQty: 200,
           newWeightInGrams: 300,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -132,7 +133,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 150,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -156,7 +157,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 150,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -173,7 +174,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 150,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -194,7 +195,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 150,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -218,7 +219,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: -10,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -242,7 +243,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newWeightInGrams: 0,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -266,7 +267,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newWeightInGrams: -50,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -303,7 +304,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 20,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -327,7 +328,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 150,
         })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -376,7 +377,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -408,7 +409,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -449,7 +450,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 0,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -485,7 +486,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newWeightInGrams,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -521,7 +522,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
           newTotalQty,
           newWeightInGrams,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -557,7 +558,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -595,7 +596,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newWeightInGrams,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -633,7 +634,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
           newTotalQty,
           newWeightInGrams,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -671,7 +672,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newWeightInGrams: 250,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -705,7 +706,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 150,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -742,7 +743,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: currentTotalQty,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -774,7 +775,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newWeightInGrams: currentWeight,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -817,7 +818,7 @@ describe("PATCH /api/v1/products/:productId/variations/:variationId", () => {
         .send({
           newTotalQty: 30,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);

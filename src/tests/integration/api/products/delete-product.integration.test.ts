@@ -24,6 +24,7 @@ import { ProductId } from "#/domain/value-objects/product-id.js";
 import { User } from "#/domain/entities/user.js";
 import { OrderItem } from "#/domain/entities/order-item.js";
 import { Money } from "#/domain/value-objects/money.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("DELETE /api/v1/products/:id", () => {
   let app: Express;
@@ -58,7 +59,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       const response = await request
         .delete(`/api/v1/products/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -69,7 +70,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       const response = await request
         .delete(`/api/v1/products/${ProductId.generate().value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -80,7 +81,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       const response = await request
         .delete("/api/v1/products/invalid-id")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -127,7 +128,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       const response = await request
         .delete(`/api/v1/products/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(409);
@@ -145,7 +146,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       const response = await request
         .delete(`/api/v1/products/${product.id.value}`)
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -181,7 +182,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       await request
         .delete(`/api/v1/products/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -201,7 +202,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       await request
         .delete(`/api/v1/products/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -253,7 +254,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       await request
         .delete(`/api/v1/products/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token")
+        .set("authorization", adminAuth())
         .expect(409);
 
       // Assert - Product should still exist
@@ -277,7 +278,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       await request
         .delete(`/api/v1/products/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -326,7 +327,7 @@ describe("DELETE /api/v1/products/:id", () => {
       // Act
       await request
         .delete(`/api/v1/products/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token")
+        .set("authorization", adminAuth())
         .expect(409);
 
       // Assert

@@ -14,6 +14,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { Size, Color } from "#/domain/entities/product.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("POST /api/v1/products", () => {
   let app: Express;
@@ -75,7 +76,7 @@ describe("POST /api/v1/products", () => {
       const response = await request
         .post("/api/v1/products")
         .send(body)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -163,7 +164,7 @@ describe("POST /api/v1/products", () => {
       const response = await request
         .post("/api/v1/products")
         .send(body)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -197,7 +198,7 @@ describe("POST /api/v1/products", () => {
             },
           ],
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -230,7 +231,7 @@ describe("POST /api/v1/products", () => {
             },
           ],
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -256,7 +257,7 @@ describe("POST /api/v1/products", () => {
           },
           variations: [],
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -289,7 +290,7 @@ describe("POST /api/v1/products", () => {
             },
           ],
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -322,7 +323,7 @@ describe("POST /api/v1/products", () => {
             },
           ],
         })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -391,7 +392,7 @@ describe("POST /api/v1/products", () => {
       const response = await request
         .post("/api/v1/products")
         .send(body)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -439,7 +440,7 @@ describe("POST /api/v1/products", () => {
       await request
         .post("/api/v1/products")
         .send(body)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);

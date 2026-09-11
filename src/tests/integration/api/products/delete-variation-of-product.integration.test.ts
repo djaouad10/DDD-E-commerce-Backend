@@ -29,6 +29,7 @@ import { User } from "#/domain/entities/user.js";
 import { OrderItem } from "#/domain/entities/order-item.js";
 import { Money } from "#/domain/value-objects/money.js";
 import type { ProductVariationRemoved } from "#/domain/events/product/product-variation-removed.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
   let app: Express;
@@ -66,7 +67,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -82,7 +83,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${ProductId.generate().value}/variations/${variationId.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -103,7 +104,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${nonExistentVariationId.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -117,7 +118,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
       // Act
       const response = await request
         .delete(`/api/v1/products/invalid-id/variations/${variationId.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -135,7 +136,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
       // Act
       const response = await request
         .delete(`/api/v1/products/${product.id.value}/variations/invalid-id`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -184,7 +185,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(409);
@@ -214,7 +215,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${singleVariation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -235,7 +236,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -276,7 +277,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -308,7 +309,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variationToRemove.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -343,7 +344,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -378,7 +379,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${singleVariation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token")
+        .set("authorization", adminAuth())
         .expect(400);
 
       // Assert - Product should still have the variation
@@ -423,7 +424,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -453,7 +454,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -485,14 +486,14 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation1.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Act - Remove second variation
       await request
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation2.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -552,7 +553,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token")
+        .set("authorization", adminAuth())
         .expect(409);
 
       // Assert
@@ -588,7 +589,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${singleVariation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token")
+        .set("authorization", adminAuth())
         .expect(400);
 
       // Assert
@@ -615,7 +616,7 @@ describe("DELETE /api/v1/products/:productId/variations/:variationId", () => {
         .delete(
           `/api/v1/products/${product.id.value}/variations/${variation.id.value}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);

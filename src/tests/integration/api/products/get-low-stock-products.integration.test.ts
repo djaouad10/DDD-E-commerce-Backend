@@ -14,6 +14,7 @@ import { Variation } from "#/domain/entities/variation.js";
 import { Size, Color } from "#/domain/entities/product.js";
 import { Weight } from "#/domain/value-objects/weight.js";
 import type { ProductCursor } from "#/application/read-models/product.queries.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/products/low-stock", () => {
   let app: Express;
@@ -66,7 +67,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 10, minStock: 10 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -115,7 +116,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 10, minStock: 10 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -144,7 +145,7 @@ describe("GET /api/v1/products/low-stock", () => {
       // Act — no query params, uses defaults (limit=10, minStock=0)
       const response = await request
         .get("/api/v1/products/low-stock")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -174,7 +175,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const firstPage = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 1, minStock: 10 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const cursor: ProductCursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -190,7 +191,7 @@ describe("GET /api/v1/products/low-stock", () => {
             productId: cursor.productId,
           },
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -202,7 +203,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 0, minStock: 10 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -214,7 +215,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 10, minStock: -1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -226,7 +227,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 10, minStock: 10 })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);

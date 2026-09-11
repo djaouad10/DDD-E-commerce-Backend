@@ -6,6 +6,7 @@ import supertest from "supertest";
 import type { Express } from "express";
 import { User } from "#/domain/entities/user.js";
 import type { UserCursor } from "#/application/read-models/user.queries.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/clients", () => {
   let app: Express;
@@ -66,7 +67,7 @@ describe("GET /api/v1/clients", () => {
       const response = await request
         .get("/api/v1/clients")
         .query({ limit: 1, role: "CLIENT" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert — client2 is more recent, so appears first with desc order
       expect(response.status).toBe(200);
@@ -101,7 +102,7 @@ describe("GET /api/v1/clients", () => {
       const response = await request
         .get("/api/v1/clients")
         .query({ limit: 10, role: "ADMIN" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -137,7 +138,7 @@ describe("GET /api/v1/clients", () => {
       const firstPage = await request
         .get("/api/v1/clients")
         .query({ limit: 1, role: "CLIENT" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const cursor: UserCursor = firstPage.body.nextCursor;
 
@@ -152,7 +153,7 @@ describe("GET /api/v1/clients", () => {
             userId: cursor.userId,
           },
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -164,7 +165,7 @@ describe("GET /api/v1/clients", () => {
       const response = await request
         .get("/api/v1/clients")
         .query({ limit: 0, role: "CLIENT" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -176,7 +177,7 @@ describe("GET /api/v1/clients", () => {
       const response = await request
         .get("/api/v1/clients")
         .query({ limit: 10, role: "INVALID_ROLE" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);

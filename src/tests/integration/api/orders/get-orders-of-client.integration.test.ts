@@ -13,6 +13,7 @@ import { User } from "#/domain/entities/user.js";
 
 import { UserId } from "#/domain/value-objects/user-id.js";
 import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/orders/client", () => {
   let app: Express;
@@ -54,7 +55,7 @@ describe("GET /api/v1/orders/client", () => {
       // Act
       const response = await request
         .get("/api/v1/orders/client")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -93,7 +94,7 @@ describe("GET /api/v1/orders/client", () => {
       // Act
       const response = await request
         .get("/api/v1/orders/client")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -121,7 +122,7 @@ describe("GET /api/v1/orders/client", () => {
       const response = await request
         .get("/api/v1/orders/client")
         .query({ limit: 1 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -148,7 +149,7 @@ describe("GET /api/v1/orders/client", () => {
       const firstPage = await request
         .get("/api/v1/orders/client")
         .query({ limit: 1 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       const cursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -163,7 +164,7 @@ describe("GET /api/v1/orders/client", () => {
             orderId: cursor.orderId,
           },
         })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -198,7 +199,7 @@ describe("GET /api/v1/orders/client", () => {
       const response = await request
         .get("/api/v1/orders/client")
         .query({ status: "CONFIRMED" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -225,7 +226,7 @@ describe("GET /api/v1/orders/client", () => {
       const response = await request
         .get("/api/v1/orders/client")
         .query({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -238,7 +239,7 @@ describe("GET /api/v1/orders/client", () => {
       const response = await request
         .get("/api/v1/orders/client")
         .query({ clientId: UserId.generate().value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -262,7 +263,7 @@ describe("GET /api/v1/orders/client", () => {
       const response = await request
         .get("/api/v1/orders/client")
         .query({ limit: 0 })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -285,7 +286,7 @@ describe("GET /api/v1/orders/client", () => {
       const response = await request
         .get("/api/v1/orders/client")
         .query({ status: "INVALID_STATUS" })
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -319,7 +320,7 @@ describe("GET /api/v1/orders/client", () => {
       // Act
       await request
         .get("/api/v1/orders/client")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
