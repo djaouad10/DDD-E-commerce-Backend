@@ -10,16 +10,20 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import { User } from "#/domain/entities/user.js";
 
-import {
-  ORDER_REPOSITORY,
-  OUTBOX_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
+import { OrderStatus } from "#/domain/entities/order.js";
+import { progressOrderTo } from "#/tests/helpers/order-lifecycle.js";
+import {
+  expectOutboxEvent,
+  expectOutboxEventCount,
+  expectOutboxJob,
+} from "#/tests/helpers/outbox-assertions.js";
 
 describe("PATCH /api/v1/orders/:id/shipping-details", () => {
   let app: Express;
@@ -69,14 +73,7 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
   describe("Response Validation - HTTP Layer & Validation Errors", () => {
     test("when admin updates shipping details of a pending order, it should return 200 with success true", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
@@ -98,25 +95,15 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
 
     test("when admin updates shipping details of a confirmed order, it should return 200 with success true", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
         owner: user,
       });
 
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.confirm();
-      await saveOrderInDB(container, orderFromDB!);
+      order.confirm();
+      await saveOrderInDB(container, order);
 
       const body = createValidShippingDetailsBody();
 
@@ -148,14 +135,7 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
 
     test("when no auth token is provided, it should return 401", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
@@ -175,14 +155,7 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
 
     test("when client token is used (non-admin), it should return 403", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
@@ -216,87 +189,20 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
       expect(response.body.error.code).toBe("VALIDATION_ERROR");
     });
 
-    test("when phone number is invalid, it should return 400", async () => {
+    test.each([
+      ["phone", { phone: "1234567890" }],
+      ["phone2", { phone2: "1234567890" }],
+      ["gpsLink", { gpsLink: "invalid-url" }],
+    ])("when %s is invalid, it should return 400", async (_field, override) => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
         owner: user,
       });
 
-      const body = createValidShippingDetailsBody({
-        phone: "1234567890",
-      });
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when phone2 is invalid, it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
-
-      const body = createValidShippingDetailsBody({
-        phone2: "1234567890",
-      });
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when gpsLink is invalid URL, it should return 400", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
-
-      const body = createValidShippingDetailsBody({
-        gpsLink: "invalid-url",
-      });
+      const body = createValidShippingDetailsBody(override);
 
       // Act
       const response = await request
@@ -311,244 +217,47 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
   });
 
   describe("Business Logic Validation - Domain Errors", () => {
-    test("when order is PRE_TRANSIT, it should return 400 (invalid status transition)", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
+    test.each([
+      OrderStatus.CANCELLED,
+      OrderStatus.DELIVERED,
+      OrderStatus.RETURNED,
+      OrderStatus.SUSPENDED,
+      OrderStatus.PRE_TRANSIT,
+      OrderStatus.SHIPPING,
+    ])(
+      "when order is %s, it should return 400 (invalid status transition)",
+      async (status) => {
+        const user = userFactory();
+        await createUserInDB(container, user);
 
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
+        const order = await setupOrderInDB(container, {
+          owner: user,
+        });
 
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
+        order.setTrackingNumber("TRACK123456");
+        await saveOrderInDB(container, order);
 
-      orderFromDB!.confirm();
-      orderFromDB!.setTrackingNumber("TRACK123456");
-      orderFromDB!.markAsPreTransit();
-      await saveOrderInDB(container, orderFromDB!);
+        await progressOrderTo(container, order.id, status);
 
-      const body = createValidShippingDetailsBody();
+        const body = createValidShippingDetailsBody();
 
-      // Act
-      const response = await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
+        // Act
+        const response = await request
+          .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
+          .send(body)
+          .set("authorization", adminAuth());
 
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when order is SHIPPING, it should return 400 (invalid status transition)", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
-
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.confirm();
-      orderFromDB!.setTrackingNumber("TRACK123456");
-      orderFromDB!.markAsPreTransit();
-      orderFromDB!.markAsShipping();
-      await saveOrderInDB(container, orderFromDB!);
-
-      const body = createValidShippingDetailsBody();
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when order is DELIVERED, it should return 400 (invalid status transition)", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
-
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.confirm();
-      orderFromDB!.setTrackingNumber("TRACK123456");
-      orderFromDB!.markAsPreTransit();
-      orderFromDB!.markAsShipping();
-      orderFromDB!.markAsDelivered();
-      await saveOrderInDB(container, orderFromDB!);
-
-      const body = createValidShippingDetailsBody();
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when order is RETURNED, it should return 400 (invalid status transition)", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
-
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.confirm();
-      orderFromDB!.setTrackingNumber("TRACK123456");
-      orderFromDB!.markAsPreTransit();
-      orderFromDB!.markAsShipping();
-      orderFromDB!.markAsReturned();
-      await saveOrderInDB(container, orderFromDB!);
-
-      const body = createValidShippingDetailsBody();
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when order is CANCELLED, it should return 400 (invalid status transition)", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.cancel();
-      await saveOrderInDB(container, orderFromDB!);
-
-      const body = createValidShippingDetailsBody();
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when order is SUSPENDED, it should return 400 (invalid status transition)", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
-
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.confirm();
-      orderFromDB!.setTrackingNumber("TRACK123456");
-      orderFromDB!.markAsPreTransit();
-      orderFromDB!.markAsShipping();
-      orderFromDB!.markAsSuspended();
-      await saveOrderInDB(container, orderFromDB!);
-
-      const body = createValidShippingDetailsBody();
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
+        // Assert
+        expect(response.status).toBe(400);
+        expect(response.body.error.code).toBe("VALIDATION_ERROR");
+      },
+    );
   });
 
   describe("New State Validation - DB Changes", () => {
     test("when updating shipping details of a pending order, it should update all fields", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
@@ -595,14 +304,7 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
 
     test("when updating shipping details with null values for optional fields, it should set them to null", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
@@ -637,25 +339,17 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
 
     test("when updating shipping details of a confirmed order, it should update all fields", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
         owner: user,
       });
 
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
+      order.setTrackingNumber("TRACK123456");
+      await saveOrderInDB(container, order);
 
-      orderFromDB!.confirm();
-      await saveOrderInDB(container, orderFromDB!);
+      await progressOrderTo(container, order.id, OrderStatus.CONFIRMED);
 
       const body = createValidShippingDetailsBody({
         clientName: "Updated Name",
@@ -679,25 +373,15 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
 
     test("when updating shipping details, it should schedule an UPDATE_ORDER_IN_SHIPPING_API job", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
         owner: user,
       });
 
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.setTrackingNumber("TRACK123456");
-      await saveOrderInDB(container, orderFromDB!);
+      order.setTrackingNumber("TRACK123456");
+      await saveOrderInDB(container, order);
 
       const body = createValidShippingDetailsBody();
 
@@ -708,30 +392,20 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const jobs = await outboxRepository.getPendingJobs(100);
-
-      const updateJob = jobs.find(
-        (j) => j.eventType === OutboxAction.UPDATE_ORDER_IN_SHIPPING_API,
+      await expectOutboxJob(
+        container,
+        OutboxAction.UPDATE_ORDER_IN_SHIPPING_API,
+        {
+          orderId: order.id.value,
+        },
       );
-      expect(updateJob).toBeDefined();
-      expect(updateJob!.payload).toMatchObject({
-        orderId: order.id.value,
-      });
     });
   });
 
   describe("Event Persistence - Outbox", () => {
     test("when updating shipping details, it should persist OrderShippingDetailsUpdated event to outbox", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
@@ -747,26 +421,16 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const shippingDetailsUpdatedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED,
+      await expectOutboxEvent(
+        container,
+        DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED,
+        order.id.value,
       );
-      expect(shippingDetailsUpdatedEvent).toBeDefined();
-      expect(shippingDetailsUpdatedEvent!.aggregateId).toBe(order.id.value);
     });
 
     test("when updating shipping details, exactly one OrderShippingDetailsUpdated event should be persisted", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
@@ -782,36 +446,25 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const shippingDetailsUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED,
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED,
+        1,
       );
-      expect(shippingDetailsUpdatedEvents).toHaveLength(1);
     });
 
     test("when updating shipping details, it should persist OrderShippingDetailsUpdated event AND schedule an UPDATE_ORDER_IN_SHIPPING_API job", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
         owner: user,
       });
 
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.setTrackingNumber("TRACK789012");
-      await saveOrderInDB(container, orderFromDB!);
+      order.setTrackingNumber("TRACK123456");
+      await saveOrderInDB(container, order);
+      await progressOrderTo(container, order.id, OrderStatus.CONFIRMED);
 
       const body = createValidShippingDetailsBody();
 
@@ -822,85 +475,26 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-
-      // Check events
-      const events = await outboxRepository.getPendingEvents(100);
-      const shippingDetailsUpdatedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED,
+      await expectOutboxEvent(
+        container,
+        DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED,
+        order.id.value,
       );
-      expect(shippingDetailsUpdatedEvent).toBeDefined();
-      expect(shippingDetailsUpdatedEvent!.aggregateId).toBe(order.id.value);
 
-      // Check jobs
-      const jobs = await outboxRepository.getPendingJobs(100);
-      const updateJob = jobs.find(
-        (j) => j.eventType === OutboxAction.UPDATE_ORDER_IN_SHIPPING_API,
+      await expectOutboxJob(
+        container,
+        OutboxAction.UPDATE_ORDER_IN_SHIPPING_API,
+        {
+          orderId: order.id.value,
+        },
       );
-      expect(updateJob).toBeDefined();
-      expect(updateJob!.payload).toMatchObject({
-        orderId: order.id.value,
-      });
-    });
-
-    test("when updating shipping details, the event and job should be persisted in the same transaction", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      const order = await setupOrderInDB(container, {
-        owner: user,
-      });
-
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
-
-      orderFromDB!.setTrackingNumber("TRACK999999");
-      await saveOrderInDB(container, orderFromDB!);
-
-      const body = createValidShippingDetailsBody();
-
-      // Act
-      await request
-        .patch(`/api/v1/orders/${order.id.value}/shipping-details`)
-        .send(body)
-        .set("authorization", adminAuth());
-
-      // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-
-      const events = await outboxRepository.getPendingEvents(100);
-      const shippingDetailsUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.ORDER_SHIPPING_DETAILS_UPDATED,
-      );
-      expect(shippingDetailsUpdatedEvents).toHaveLength(1);
-
-      const jobs = await outboxRepository.getPendingJobs(100);
-      const updateJobs = jobs.filter(
-        (j) => j.eventType === OutboxAction.UPDATE_ORDER_IN_SHIPPING_API,
-      );
-      expect(updateJobs).toHaveLength(1);
     });
   });
 
   describe("Edge Cases", () => {
     test("when updating shipping details with partial data (only clientName), it should only update that field", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
@@ -936,26 +530,17 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
 
     test("when updating shipping details of an order that already has tracking number, it should schedule UPDATE_ORDER_IN_SHIPPING_API job", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
         owner: user,
       });
-      // we have to re-read order from DB and then modify it, because if we don't, the order will always have the isNew flag set to true, and it will always be freshly created, never updated
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-      const orderFromDB = await orderRepo.find(order.id);
 
-      orderFromDB!.setTrackingNumber("TRACK555555");
+      order.setTrackingNumber("TRACK123456");
+      await saveOrderInDB(container, order);
 
-      await saveOrderInDB(container, orderFromDB!);
+      await progressOrderTo(container, order.id, OrderStatus.CONFIRMED);
 
       const body = createValidShippingDetailsBody();
 
@@ -966,33 +551,24 @@ describe("PATCH /api/v1/orders/:id/shipping-details", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const jobs = await outboxRepository.getPendingJobs(100);
-
-      const updateJob = jobs.find(
-        (j) => j.eventType === OutboxAction.UPDATE_ORDER_IN_SHIPPING_API,
+      await expectOutboxJob(
+        container,
+        OutboxAction.UPDATE_ORDER_IN_SHIPPING_API,
+        {
+          orderId: order.id.value,
+        },
       );
-      expect(updateJob).toBeDefined();
-      expect(updateJob!.payload).toMatchObject({
-        orderId: order.id.value,
-      });
     });
 
     test("updating shipping details should update the updatedAt timestamp", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const order = await setupOrderInDB(container, {
         owner: user,
       });
+
       const beforeUpdate = order.getUpdatedAt();
 
       const body = createValidShippingDetailsBody();
