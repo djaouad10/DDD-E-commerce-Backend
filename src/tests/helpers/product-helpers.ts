@@ -4,17 +4,20 @@ import { Category } from "#/domain/entities/category.js";
 import type { Variation } from "#/domain/entities/variation.js";
 import { createCategoryInDB, createProductInDB } from "./db-helpers.js";
 import { productFactory } from "./domain-helpers.js";
+import type { File } from "#/domain/entities/file.js";
 
 export async function setupProductAndCategory(
   container: Container,
   overrides?: Partial<{
     variations: Variation[];
+    images: File[];
   }>,
 ) {
   const category = Category.create("Category");
   const product = productFactory({
     categoryId: category.id,
     ...(overrides?.variations && { customVariations: overrides.variations }),
+    ...(overrides?.images && { customImages: overrides.images }),
   });
 
   await createCategoryInDB(container, category);
