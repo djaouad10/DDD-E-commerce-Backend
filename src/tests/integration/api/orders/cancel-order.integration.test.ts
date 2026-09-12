@@ -1,37 +1,24 @@
 import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
-  createCategoryInDB,
-  createProductInDB,
   createUserInDB,
-  saveOrderInDB,
   setupOrderInDB,
 } from "#/tests/helpers/db-helpers.js";
-import {
-  orderFactory,
-  productFactory,
-  userFactory,
-} from "#/tests/helpers/domain-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import { Category } from "#/domain/entities/category.js";
-import {
-  ORDER_REPOSITORY,
-  PRODUCT_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { OrderStatus, ShippingProvider } from "#/domain/entities/order.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
-import { OrderItem } from "#/domain/entities/order-item.js";
-import { Money } from "#/domain/value-objects/money.js";
-import { Weight } from "#/domain/value-objects/weight.js";
 import { OutboxAction } from "#/application/ports/persistence/outbox.repository.port.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
-import { Variation } from "#/domain/entities/variation.js";
-import { Color, Size } from "#/domain/entities/product.js";
-import { progressOrderTo } from "#/tests/helpers/order-lifecycle.js";
+import {
+  progressOrderTo,
+  setupOrderWithReservedStock,
+} from "#/tests/helpers/order-helpers.js";
 import {
   expectNoOutboxEvent,
   expectNoOutboxJob,
@@ -60,66 +47,6 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
     nock.cleanAll();
     await clearDatabase(container);
   });
-
-  async function setupOrderWithReservedStock(qty: number, qty2?: number) {
-    const user = userFactory();
-    const category = Category.create("Category");
-    const product = productFactory({
-      categoryId: category.id,
-      customVariations: [
-        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
-        Variation.create(Size.L, Color.BLUE, 100, 50, Weight.of(100, "g")),
-      ],
-    });
-    const [v1, v2] = product.getVariations();
-
-    await createUserInDB(container, user);
-    await createCategoryInDB(container, category);
-    await createProductInDB(container, product);
-
-    const items = [
-      OrderItem.create(
-        v1!.id,
-        qty,
-        Money.of(3000, "DZD"),
-        Weight.of(100, "g"),
-        null,
-      ),
-      ...(qty2
-        ? [
-            OrderItem.create(
-              v2!.id,
-              qty2,
-              Money.of(2000, "DZD"),
-              Weight.of(100, "g"),
-              null,
-            ),
-          ]
-        : []),
-    ];
-    const order = orderFactory({ orderItems: items, userId: user.id });
-    await saveOrderInDB(container, order);
-
-    const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
-    const sameProduct = await productRepository.find(product.id);
-    sameProduct!.reserveStock(v1!.id, qty);
-    if (qty2) sameProduct!.reserveStock(v2!.id, qty2);
-    await createProductInDB(container, sameProduct!);
-
-    const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);
-    // we must fetch the freshest version of the order & product, so any future DB save will work isntead of throwing an error because of stale version
-    const latestOrder = await orderRepository.find(order.id);
-    const latestProduct = await productRepository.find(product.id);
-
-    return {
-      user,
-      order: latestOrder!,
-      product: latestProduct!,
-      variation1: v1!,
-      variation2: v2,
-      productRepository,
-    };
-  }
 
   describe("Response Validation - HTTP Layer & Validation Errors", () => {
     test("when client cancels their own pending order, it should return 200 with success true", async () => {
@@ -332,7 +259,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
     test("when cancelling an order, it should release the reserved stock", async () => {
       // Arrange
       const { order, product, user, productRepository, variation1 } =
-        await setupOrderWithReservedStock(2);
+        await setupOrderWithReservedStock(container, 2);
 
       const [productBeforeCancel] = await productRepository.findByVariationIds([
         variation1.id,
@@ -363,7 +290,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
         productRepository,
         variation1,
         variation2,
-      } = await setupOrderWithReservedStock(2, 3);
+      } = await setupOrderWithReservedStock(container, 2, 3);
 
       const [productBeforeCancel] = await productRepository.findByVariationIds([
         variation1.id,
@@ -393,7 +320,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
 
     test("when cancelling an order with tracking number, it should schedule a DELETE_ORDER_IN_SHIPPING_API job", async () => {
       // Arrange
-      const { order, user } = await setupOrderWithReservedStock(2);
+      const { order, user } = await setupOrderWithReservedStock(container, 2);
 
       await progressOrderTo(container, order.id, OrderStatus.CONFIRMED, {
         trackingNumber: "TRACK123456",
@@ -417,7 +344,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
 
     test("when cancelling an order without tracking number, it should NOT schedule a DELETE_ORDER_IN_SHIPPING_API job", async () => {
       // Arrange
-      const { order, user } = await setupOrderWithReservedStock(2);
+      const { order, user } = await setupOrderWithReservedStock(container, 2);
 
       await progressOrderTo(container, order.id, OrderStatus.CONFIRMED);
 
@@ -437,7 +364,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
   describe("Event Persistence - Outbox", () => {
     test("when cancelling a pending order, it should persist OrderCancelled event to outbox", async () => {
       // Arrange
-      const { order, user } = await setupOrderWithReservedStock(2);
+      const { order, user } = await setupOrderWithReservedStock(container, 2);
 
       // Act
       await request
@@ -455,7 +382,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
     test("when cancelling an order, it should persist StockReleased events to outbox", async () => {
       // Arrange
       const { order, user, variation1, product } =
-        await setupOrderWithReservedStock(2);
+        await setupOrderWithReservedStock(container, 2);
 
       // Act
       await request
@@ -482,7 +409,11 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
 
     test("when cancelling an order with multiple items, it should persist multiple StockReleased events", async () => {
       // Arrange
-      const { order, user } = await setupOrderWithReservedStock(2, 3);
+      const { order, user } = await setupOrderWithReservedStock(
+        container,
+        2,
+        3,
+      );
 
       // Act
       await request
@@ -499,7 +430,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
 
     test("when order is already cancelled, no new events should be persisted", async () => {
       // Arrange
-      const { order, user } = await setupOrderWithReservedStock(2);
+      const { order, user } = await setupOrderWithReservedStock(container, 2);
       await progressOrderTo(container, order.id, OrderStatus.CANCELLED);
 
       // Act
@@ -513,7 +444,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
 
     test("when cancelling an order, all events should be persisted in the same transaction", async () => {
       // Arrange
-      const { order, user } = await setupOrderWithReservedStock(2);
+      const { order, user } = await setupOrderWithReservedStock(container, 2);
 
       // Act
       await request
@@ -537,7 +468,10 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
   describe("Edge Cases", () => {
     test("when cancelling an order that has a tracking number, it should schedule a DELETE_ORDER_IN_SHIPPING_API job AND persist events", async () => {
       // Arrange
-      const { order, user, product } = await setupOrderWithReservedStock(2);
+      const { order, user, product } = await setupOrderWithReservedStock(
+        container,
+        2,
+      );
       await progressOrderTo(container, order.id, OrderStatus.CONFIRMED, {
         trackingNumber: "TRACK789012",
       });
@@ -572,7 +506,7 @@ describe("PATCH /api/v1/orders/:id/cancel", () => {
 
     test("when admin cancels an order, it should not check userId ownership", async () => {
       // Arrange
-      const { order } = await setupOrderWithReservedStock(2);
+      const { order } = await setupOrderWithReservedStock(container, 2);
 
       // Act - Admin cancels without userId parameter
       const response = await request
