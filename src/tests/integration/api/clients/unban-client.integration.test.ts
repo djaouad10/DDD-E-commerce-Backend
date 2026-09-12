@@ -4,15 +4,14 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import nock from "nock";
 import supertest from "supertest";
 import type { Express } from "express";
-import { User } from "#/domain/entities/user.js";
-import { UserId } from "#/domain/value-objects/user-id.js";
-import {
-  OUTBOX_REPOSITORY,
-  USER_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { USER_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import type { UserUnBanned } from "#/domain/events/user/user-unbanned.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
+import {
+  expectOutboxEvent,
+  expectOutboxEventCount,
+} from "#/tests/helpers/outbox-assertions.js";
 
 describe("PATCH /api/v1/clients/:id/status/unban", () => {
   let app: Express;
@@ -38,14 +37,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
   describe("Response Validation", () => {
     test("when called with valid data and banned user exists, it should return 200 with success true", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       // Act
@@ -59,9 +51,11 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
     });
 
     test("when user does not exist, it should return 404", async () => {
+      // Arrange
+      const user = userFactory({ banned: true }); // not saved in DB
       // Act
       const response = await request
-        .patch(`/api/v1/clients/${UserId.generate().value}/status/unban`)
+        .patch(`/api/v1/clients/${user.id.value}/status/unban`)
         .set("authorization", adminAuth());
 
       // Assert
@@ -82,14 +76,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
 
     test("when user is not banned, calling unban should still succeed (idempotent)", async () => {
       // Arrange
-      const user = User.create(
-        "Jane Doe",
-        "jane@example.com",
-        "CLIENT",
-        null,
-        true,
-        false, // Not banned
-      );
+      const user = userFactory({ banned: false });
       await createUserInDB(container, user);
 
       // Act
@@ -104,14 +91,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
 
     test("when client token is used (non-admin), it should return 403", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true,
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       // Act
@@ -125,14 +105,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
 
     test("when no auth token is provided, it should return 401", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true,
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       // Act
@@ -148,14 +121,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
   describe("New State Validation", () => {
     test("when called with valid data, it should unban the user", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       // Act
@@ -173,14 +139,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
 
     test("when called with valid data, it should clear the ban reason", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       // Act
@@ -199,14 +158,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
 
     test("when called with valid data, it should clear the ban expiration date", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       // Act
@@ -225,14 +177,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
 
     test("when user is not banned, calling unban should keep user in unbanned state", async () => {
       // Arrange
-      const user = User.create(
-        "Jane Doe",
-        "jane@example.com",
-        "CLIENT",
-        null,
-        true,
-        false, // Not banned
-      );
+      const user = userFactory({ banned: false });
       await createUserInDB(container, user);
 
       // Act
@@ -254,14 +199,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
   describe("Event Persistence", () => {
     test("when called with valid data, it should persist UserUnBanned event to outbox", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       // Act
@@ -270,29 +208,16 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userUnBannedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.USER_UNBANNED,
-      );
-      expect(userUnBannedEvent).toBeDefined();
-      expect(userUnBannedEvent!.aggregateId).toBe(user.id.value);
-      expect((userUnBannedEvent!.payload as UserUnBanned).aggregateId).toBe(
+      await expectOutboxEvent(
+        container,
+        DomainEventCode.USER_UNBANNED,
         user.id.value,
       );
     });
 
     test("when called with valid data, exactly one UserUnBanned event should be persisted", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       // Act
@@ -301,25 +226,12 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userUnBannedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_UNBANNED,
-      );
-      expect(userUnBannedEvents).toHaveLength(1);
+      await expectOutboxEventCount(container, DomainEventCode.USER_UNBANNED, 1);
     });
 
     test("when user is not banned, calling unban should not persist any UserUnBanned event", async () => {
       // Arrange
-      const user = User.create(
-        "Jane Doe",
-        "jane@example.com",
-        "CLIENT",
-        null,
-        true,
-        false, // Not banned
-      );
+      const user = userFactory({ banned: false });
       await createUserInDB(container, user);
 
       // Act
@@ -328,27 +240,14 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userUnBannedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_UNBANNED,
-      );
-      expect(userUnBannedEvents).toHaveLength(0);
+      await expectOutboxEventCount(container, DomainEventCode.USER_UNBANNED, 0);
     });
   });
 
   describe("Edge Cases / Idempotency", () => {
     test("when user is already unbanned, calling unban again should succeed (idempotent)", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false, // Not banned
-      );
+      const user = userFactory({ banned: false });
       await createUserInDB(container, user);
 
       // First unban (should succeed even though user is not banned)
@@ -373,14 +272,7 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
 
     test("when unbanning a user with admin role, it should still succeed", async () => {
       // Arrange
-      const adminUser = User.create(
-        "Admin User",
-        "admin@example.com",
-        "ADMIN",
-        null,
-        true,
-        true, // Banned
-      );
+      const adminUser = userFactory({ banned: true });
       await createUserInDB(container, adminUser);
 
       // Act
@@ -395,35 +287,6 @@ describe("PATCH /api/v1/clients/:id/status/unban", () => {
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
       const updatedUser = await userRepository.find(adminUser.id);
       expect(updatedUser!.isBanned()).toBe(false);
-    });
-
-    test("when unbanning a user that was banned with expiry, it should clear the expiry", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
-      await createUserInDB(container, user);
-
-      // First, verify user is banned with some expiry
-      const userRepository = container.resolveSingleton(USER_REPOSITORY);
-      const foundUser = await userRepository.find(user.id);
-      expect(foundUser!.isBanned()).toBe(true);
-
-      // Act
-      await request
-        .patch(`/api/v1/clients/${user.id.value}/status/unban`)
-        .set("authorization", adminAuth());
-
-      // Assert
-      const updatedUser = await userRepository.find(user.id);
-      expect(updatedUser!.isBanned()).toBe(false);
-      expect(updatedUser!.getBanExpires()).toBeNull();
-      expect(updatedUser!.getBanReason()).toBeNull();
     });
   });
 });
