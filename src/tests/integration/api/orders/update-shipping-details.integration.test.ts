@@ -18,7 +18,7 @@ import { OutboxAction } from "#/application/ports/persistence/outbox.repository.
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 import { userFactory } from "#/tests/helpers/domain-helpers.js";
 import { OrderStatus } from "#/domain/entities/order.js";
-import { progressOrderTo } from "#/tests/helpers/order-lifecycle.js";
+import { progressOrderTo } from "#/tests/helpers/order-helpers.js";
 import {
   expectOutboxEvent,
   expectOutboxEventCount,
