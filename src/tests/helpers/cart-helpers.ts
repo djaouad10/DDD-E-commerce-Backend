@@ -24,6 +24,7 @@ export async function setupProductAndUserInDB(container: Container): Promise<{
   product: Product;
   variation1: Variation;
   variation2: Variation;
+  category: Category;
 }> {
   const user = userFactory();
   const category = Category.create("Category");
@@ -53,7 +54,7 @@ export async function setupProductAndUserInDB(container: Container): Promise<{
     throw new Error("Product not found");
   }
 
-  return { user, product, variation1, variation2 };
+  return { user, product, variation1, variation2, category };
 }
 
 export async function addExistingVariationToCart(
