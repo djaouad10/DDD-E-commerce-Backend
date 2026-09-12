@@ -1,22 +1,16 @@
 import type { Container } from "#/composition/utils/container.js";
-import { Category } from "#/domain/entities/category.js";
-import {
-  clearDatabase,
-  createCategoryInDB,
-  createProductInDB,
-  createUserInDB,
-  saveCartInDB,
-} from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { clearDatabase, createUserInDB } from "#/tests/helpers/db-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import { User } from "#/domain/entities/user.js";
-import { Cart } from "#/domain/entities/cart.js";
-import { CartItem } from "#/domain/entities/cart-item.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { clientAuth } from "#/tests/helpers/auth-helpers.js";
+import {
+  addExistingVariationToCart,
+  setupProductAndUserInDB,
+} from "#/tests/helpers/cart-helpers.js";
 
 describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
   let app: Express;
@@ -42,20 +36,7 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
   describe("Response Validation", () => {
     test("when product has variations and user has no cart items, it should return 200 with cartItemId undefined for all", async () => {
       // Arrange
-      const user = User.create(
-        "name",
-        "email@gmail.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { user, product } = await setupProductAndUserInDB(container);
 
       // Act
       const response = await request
@@ -64,7 +45,7 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(3);
+      expect(response.body).toHaveLength(2);
       response.body.forEach((variation: any) => {
         expect(variation.cartItemId).toBeNull();
       });
@@ -72,30 +53,14 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
 
     test("when product has variations and user has some in cart, it should return 200 with cartItemId set for matching items", async () => {
       // Arrange
-      const user = User.create(
-        "name",
-        "email@gmail.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
+      const { user, product, variation1, variation2 } =
+        await setupProductAndUserInDB(container);
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
-
-      const variationInCart = product.getVariations()[0]!;
-      const variationNotInCart = product.getVariations()[1]!;
-
-      const cart = Cart.create(user.id, [
-        CartItem.create(variationInCart.id, 2),
-      ]);
-      await saveCartInDB(container, cart);
-
-      const cartItemId = cart.getItems()[0]!.id.value;
+      const item1 = await addExistingVariationToCart(container, {
+        userId: user.id,
+        variationId: variation1.id,
+        qty: 1,
+      });
 
       // Act
       const response = await request
@@ -104,29 +69,22 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(3);
+      expect(response.body).toHaveLength(2);
 
       const inCartVariation = response.body.find(
-        (v: any) => v.id === variationInCart.id.value,
+        (v: any) => v.id === variation1.id.value,
       );
       const notInCartVariation = response.body.find(
-        (v: any) => v.id === variationNotInCart.id.value,
+        (v: any) => v.id === variation2.id.value,
       );
 
-      expect(inCartVariation.cartItemId).toBe(cartItemId);
+      expect(inCartVariation.cartItemId).toBe(item1.id.value);
       expect(notInCartVariation.cartItemId).toBeNull();
     });
 
     test("when product does not exist, it should return 404", async () => {
       // Arrange
-      const user = User.create(
-        "name",
-        "email@gmail.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -143,25 +101,15 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
 
     test("when user does not exist, it should return 404", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
+      const { product, user: _user1 } =
+        await setupProductAndUserInDB(container);
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const user = User.create(
-        "name",
-        "email@gmail.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user2 = userFactory();
 
       // Act — user not seeded
       const response = await request
         .get(`/api/v1/products/${product.id.value}/variations/with-cart-flag`)
-        .set("authorization", clientAuth(user.id.value));
+        .set("authorization", clientAuth(user2.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -172,21 +120,14 @@ describe("GET /api/v1/products/:id/variations/with-cart-flag", () => {
   describe("Data Correctness", () => {
     test("it should return variation data with correct shape", async () => {
       // Arrange
-      const user = User.create(
-        "name",
-        "email@gmail.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const category = Category.create("Category");
+      const { user, product, variation1 } =
+        await setupProductAndUserInDB(container);
 
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      await addExistingVariationToCart(container, {
+        userId: user.id,
+        variationId: variation1.id,
+        qty: 1,
+      });
 
       // Act
       const response = await request
