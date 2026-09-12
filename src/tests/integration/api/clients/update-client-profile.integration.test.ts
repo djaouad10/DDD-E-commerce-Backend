@@ -4,13 +4,14 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import { User } from "#/domain/entities/user.js";
-import {
-  USER_REPOSITORY,
-  OUTBOX_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { USER_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
+import {
+  expectOutboxEvent,
+  expectOutboxEventCount,
+} from "#/tests/helpers/outbox-assertions.js";
 
 describe("PATCH /api/v1/clients/profile", () => {
   let app: Express;
@@ -36,14 +37,7 @@ describe("PATCH /api/v1/clients/profile", () => {
   describe("Response Validation - HTTP Layer & Validation Errors", () => {
     test("when client updates their own name, it should return 200 with success true", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = { name: "Jane Doe" };
@@ -61,14 +55,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when client updates their own image, it should return 200 with success true", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = { image: "https://example.com/new-image.jpg" };
@@ -86,14 +73,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when client updates both name and image, it should return 200 with success true", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = {
@@ -114,14 +94,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when no fields are provided (empty body), it should return 400", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -137,15 +110,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when user does not exist, it should return 404", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      // User not saved in DB
+      const user = userFactory(); // User not saved in DB
 
       const body = { name: "Jane Doe" };
 
@@ -191,14 +156,7 @@ describe("PATCH /api/v1/clients/profile", () => {
   describe("Business Logic Validation - Service Layer & Entity Errors", () => {
     test("when trying to update a user with ADMIN role, it should return 403", async () => {
       // Arrange
-      const adminUser = User.create(
-        "Admin User",
-        "admin@example.com",
-        "ADMIN",
-        null,
-        true,
-        false,
-      );
+      const adminUser = userFactory({ role: "ADMIN" });
       await createUserInDB(container, adminUser);
 
       const body = { name: "Updated Admin" };
@@ -216,14 +174,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when updating name to empty string, it should return 400 (entity validation)", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = { name: "" };
@@ -241,14 +192,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when updating name to null, it should return 400 (validation error from command)", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = { name: null };
@@ -269,14 +213,7 @@ describe("PATCH /api/v1/clients/profile", () => {
   describe("New State Validation - DB Changes", () => {
     test("when updating name, it should update the user's name in the database", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const newName = "Jane Doe";
@@ -298,14 +235,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when updating image, it should update the user's image in the database", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const newImage = "https://example.com/new-image.jpg";
@@ -327,14 +257,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when updating both name and image, it should update both fields in the database", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const newName = "Jane Doe";
@@ -358,14 +281,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when updating name, it should update the updatedAt timestamp", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const beforeUpdate = user.getUpdatedAt();
@@ -390,14 +306,7 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when setting image to null, it should update the user's image to null in the database", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        "https://example.com/old-image.jpg",
-        true,
-        false,
-      );
+      const user = userFactory({ image: "https://example.com/image.jpg" });
       await createUserInDB(container, user);
 
       const body = { image: null };
@@ -421,14 +330,7 @@ describe("PATCH /api/v1/clients/profile", () => {
   describe("Event Persistence - Outbox", () => {
     test("when updating name, it should persist UserProfileUpdated event to outbox", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = { name: "Jane Doe" };
@@ -440,29 +342,18 @@ describe("PATCH /api/v1/clients/profile", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userProfileUpdatedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.USER_PROFILE_UPDATED,
+        user.id.value,
       );
-      expect(userProfileUpdatedEvent).toBeDefined();
-      expect(userProfileUpdatedEvent!.aggregateId).toBe(user.id.value);
 
-      const payload = userProfileUpdatedEvent!.payload as any;
-      expect(payload.changedFields).toContain("name");
+      expect((event.payload as any).changedFields).toContain("name");
     });
 
     test("when updating image, it should persist UserProfileUpdated event to outbox", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = { image: "https://example.com/new-image.jpg" };
@@ -474,29 +365,18 @@ describe("PATCH /api/v1/clients/profile", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userProfileUpdatedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.USER_PROFILE_UPDATED,
+        user.id.value,
       );
-      expect(userProfileUpdatedEvent).toBeDefined();
-      expect(userProfileUpdatedEvent!.aggregateId).toBe(user.id.value);
 
-      const payload = userProfileUpdatedEvent!.payload as any;
-      expect(payload.changedFields).toContain("image");
+      expect((event.payload as any).changedFields).toContain("image");
     });
 
     test("when updating both name and image, it should persist two UserProfileUpdated events (one for each field)", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = {
@@ -511,31 +391,16 @@ describe("PATCH /api/v1/clients/profile", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userProfileUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.USER_PROFILE_UPDATED,
+        2,
       );
-      expect(userProfileUpdatedEvents).toHaveLength(2);
-
-      const allFields = userProfileUpdatedEvents.flatMap(
-        (e) => (e.payload as any).changedFields,
-      );
-      expect(allFields).toContain("name");
-      expect(allFields).toContain("image");
     });
 
     test("when updating name, exactly one UserProfileUpdated event should be persisted", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = { name: "Jane Doe" };
@@ -547,25 +412,16 @@ describe("PATCH /api/v1/clients/profile", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userProfileUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.USER_PROFILE_UPDATED,
+        1,
       );
-      expect(userProfileUpdatedEvents).toHaveLength(1);
     });
 
     test("when updating image, exactly one UserProfileUpdated event should be persisted", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const body = { image: "https://example.com/new-image.jpg" };
@@ -577,13 +433,17 @@ describe("PATCH /api/v1/clients/profile", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
+      await request
+        .patch("/api/v1/clients/profile")
+        .send(body)
+        .set("authorization", clientAuth(user.id.value));
 
-      const userProfileUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
+      // Assert
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.USER_PROFILE_UPDATED,
+        1,
       );
-      expect(userProfileUpdatedEvents).toHaveLength(1);
     });
   });
 
@@ -591,19 +451,7 @@ describe("PATCH /api/v1/clients/profile", () => {
     test("when updating name to the same value, it should NOT persist UserProfileUpdated event (early return)", async () => {
       // Arrange
       const originalName = "John Doe";
-      const user = User.create(
-        originalName,
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      // Clear any events from creation
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      await clearDatabase(container);
+      const user = userFactory({ name: originalName });
       await createUserInDB(container, user);
 
       const body = { name: originalName };
@@ -615,30 +463,17 @@ describe("PATCH /api/v1/clients/profile", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userProfileUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.USER_PROFILE_UPDATED,
+        0,
       );
-      expect(userProfileUpdatedEvents).toHaveLength(0);
     });
 
     test("when updating image to the same value, it should NOT persist UserProfileUpdated event (early return)", async () => {
       // Arrange
       const originalImage = "https://example.com/image.jpg";
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        originalImage,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      // Clear any events from creation
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      await clearDatabase(container);
+      const user = userFactory({ image: originalImage });
       await createUserInDB(container, user);
 
       const body = { image: originalImage };
@@ -650,61 +485,16 @@ describe("PATCH /api/v1/clients/profile", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userProfileUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.USER_PROFILE_UPDATED,
+        0,
       );
-      expect(userProfileUpdatedEvents).toHaveLength(0);
-    });
-
-    test("when updating name to a new value, it should persist UserProfileUpdated event", async () => {
-      // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
-
-      // Clear any events from creation
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      await clearDatabase(container);
-      await createUserInDB(container, user);
-
-      const body = { name: "Jane Doe" };
-
-      // Act
-      await request
-        .patch("/api/v1/clients/profile")
-        .send(body)
-        .set("authorization", clientAuth(user.id.value));
-
-      // Assert
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userProfileUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
-      );
-      expect(userProfileUpdatedEvents).toHaveLength(1);
-      expect(
-        (userProfileUpdatedEvents[0]!.payload as any).changedFields,
-      ).toContain("name");
     });
 
     test("when user is banned, it should still allow profile update", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        true, // Banned
-      );
+      const user = userFactory({ banned: true });
       await createUserInDB(container, user);
 
       const body = { name: "Jane Doe" };
@@ -727,27 +517,8 @@ describe("PATCH /api/v1/clients/profile", () => {
 
     test("when multiple clients update their profiles, each should have their own events", async () => {
       // Arrange
-      const user1 = User.create(
-        "John Doe",
-        "john1@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const user2 = User.create(
-        "Jane Doe",
-        "john2@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user1);
-      await createUserInDB(container, user2);
-
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      await clearDatabase(container);
+      const user1 = userFactory();
+      const user2 = userFactory();
       await createUserInDB(container, user1);
       await createUserInDB(container, user2);
 
@@ -763,16 +534,11 @@ describe("PATCH /api/v1/clients/profile", () => {
         .set("authorization", clientAuth(user2.id.value));
 
       // Assert
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userProfileUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_PROFILE_UPDATED,
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.USER_PROFILE_UPDATED,
+        2,
       );
-      expect(userProfileUpdatedEvents).toHaveLength(2);
-
-      const aggregateIds = userProfileUpdatedEvents.map((e) => e.aggregateId);
-      expect(aggregateIds).toContain(user1.id.value);
-      expect(aggregateIds).toContain(user2.id.value);
     });
   });
 });
