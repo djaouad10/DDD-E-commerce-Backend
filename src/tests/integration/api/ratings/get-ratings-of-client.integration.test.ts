@@ -15,6 +15,7 @@ import { Category } from "#/domain/entities/category.js";
 import { User } from "#/domain/entities/user.js";
 import { Rating } from "#/domain/entities/rating.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/ratings/client/:clientId", () => {
   let app: Express;
@@ -61,7 +62,7 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/client/${user.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -93,7 +94,7 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/client/${user.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -129,7 +130,7 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       const response = await request
         .get(`/api/v1/ratings/client/${user.id.value}`)
         .query({ limit: 1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -164,7 +165,7 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       const firstPage = await request
         .get(`/api/v1/ratings/client/${user.id.value}`)
         .query({ limit: 1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const cursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -179,7 +180,7 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
             productId: cursor.productId,
           },
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -190,7 +191,7 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/client/${UserId.generate().value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -214,7 +215,7 @@ describe("GET /api/v1/ratings/client/:clientId", () => {
       const response = await request
         .get(`/api/v1/ratings/client/${user.id.value}`)
         .query({ limit: 0 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);

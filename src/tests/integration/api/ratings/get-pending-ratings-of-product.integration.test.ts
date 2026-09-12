@@ -15,6 +15,7 @@ import { Category } from "#/domain/entities/category.js";
 import { User } from "#/domain/entities/user.js";
 import { Rating } from "#/domain/entities/rating.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/ratings/pending/:productId", () => {
   let app: Express;
@@ -61,7 +62,7 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/pending/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -101,7 +102,7 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/pending/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -143,7 +144,7 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       const response = await request
         .get(`/api/v1/ratings/pending/${product.id.value}`)
         .query({ limit: 1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -184,7 +185,7 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       const firstPage = await request
         .get(`/api/v1/ratings/pending/${product.id.value}`)
         .query({ limit: 1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const cursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -199,7 +200,7 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
             userId: cursor.userId,
           },
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -210,7 +211,7 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       // Act
       const response = await request
         .get(`/api/v1/ratings/pending/${ProductId.generate().value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -223,7 +224,7 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       const response = await request
         .get(`/api/v1/ratings/pending/${ProductId.generate().value}`)
         .query({ limit: 0 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -235,7 +236,7 @@ describe("GET /api/v1/ratings/pending/:productId", () => {
       const response = await request
         .get(`/api/v1/ratings/pending/${ProductId.generate().value}`)
         .query({ limit: 10 })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);

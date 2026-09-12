@@ -169,7 +169,7 @@ router.get("/low-stock", authMiddleware, adminMiddleware, async (req, res) => {
   const service = req.scope.resolve(GET_LOW_STOCK_PRODUCTS_SERVICE);
   const query = new GetLowStockProductsQuery(
     safeSearchParams.limit ?? 10,
-    safeSearchParams.minStock ?? 0,
+    safeSearchParams.minStock ?? 10,
     safeSearchParams.cursor,
   );
 

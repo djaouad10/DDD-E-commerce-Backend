@@ -4,14 +4,14 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import nock from "nock";
 import supertest from "supertest";
 import type { Express } from "express";
-import { User } from "#/domain/entities/user.js";
-import { UserId } from "#/domain/value-objects/user-id.js";
-import {
-  OUTBOX_REPOSITORY,
-  USER_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { USER_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import type { UserBanned } from "#/domain/events/user/user-banned.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
+import {
+  expectOutboxEvent,
+  expectOutboxEventCount,
+} from "#/tests/helpers/outbox-assertions.js";
 
 describe("PATCH /api/v1/clients/:id/status/ban", () => {
   let app: Express;
@@ -37,14 +37,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
   describe("Response Validation", () => {
     test("when called with valid data and user exists, it should return 200 with success true", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -54,7 +47,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam activity",
           banExpiresInSeconds: 86400, // 24 hours
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -63,14 +56,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when called without banExpiresInSeconds, it should return 200 with success true (permanent ban)", async () => {
       // Arrange
-      const user = User.create(
-        "Jane Doe",
-        "jane@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -79,7 +65,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           reason: "Permanent ban",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -88,14 +74,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when called without reason, it should return 200 with success true", async () => {
       // Arrange
-      const user = User.create(
-        "Bob Smith",
-        "bob@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -104,7 +83,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           banExpiresInSeconds: 3600,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -112,14 +91,17 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
     });
 
     test("when user does not exist, it should return 404", async () => {
+      // Arrange
+      const user = userFactory(); // User not saved in DB
+
       // Act
       const response = await request
-        .patch(`/api/v1/clients/${UserId.generate().value}/status/ban`)
+        .patch(`/api/v1/clients/${user.id.value}/status/ban`)
         .send({
           reason: "Spam",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -134,7 +116,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -143,14 +125,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when called with invalid banExpiresInSeconds (negative), it should return 400", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -160,7 +135,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam",
           banExpiresInSeconds: -100,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -169,14 +144,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when client token is used (non-admin), it should return 403", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -186,7 +154,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);
@@ -194,14 +162,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when no auth token is provided, it should return 401", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -220,14 +181,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
   describe("New State Validation", () => {
     test("when called with valid data, it should ban the user", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -237,7 +191,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam activity",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
       const updatedUser = await userRepository.find(user.id);
@@ -248,14 +202,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when called with banExpiresInSeconds, it should set the ban expiration date", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const banExpiresInSeconds = 86400; // 24 hours
@@ -268,7 +215,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam activity",
           banExpiresInSeconds,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -284,14 +231,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when called without banExpiresInSeconds, it should set a permanent ban (no expiry)", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -300,7 +240,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           reason: "Permanent ban",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -313,14 +253,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when called with valid data, it should store the ban reason", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const banReason = "Violation of terms of service";
@@ -332,7 +265,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: banReason,
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const userRepository = container.resolveSingleton(USER_REPOSITORY);
@@ -348,14 +281,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
   describe("Event Persistence", () => {
     test("when called with valid data, it should persist UserBanned event to outbox", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const banReason = "Spam activity";
@@ -368,36 +294,25 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: banReason,
           banExpiresInSeconds,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.USER_BANNED,
+        user.id.value,
+      );
 
-      const userBannedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.USER_BANNED,
-      );
-      expect(userBannedEvent).toBeDefined();
-      expect(userBannedEvent!.aggregateId).toBe(user.id.value);
-      expect((userBannedEvent!.payload as UserBanned).banReason).toBe(
+      expect(event.payload).toMatchObject({
+        aggregateId: user.id.value,
         banReason,
-      );
-      // Verify the banExpires is set correctly (not null)
-      expect(
-        (userBannedEvent!.payload as UserBanned).banExpires,
-      ).not.toBeNull();
+        banExpires: expect.any(String),
+      });
     });
 
     test("when called without banExpiresInSeconds, it should persist UserBanned event with null banExpires", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       const banReason = "Permanent ban";
@@ -408,34 +323,25 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           reason: banReason,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.USER_BANNED,
+        user.id.value,
+      );
 
-      const userBannedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.USER_BANNED,
-      );
-      expect(userBannedEvent).toBeDefined();
-      expect(userBannedEvent!.aggregateId).toBe(user.id.value);
-      expect((userBannedEvent!.payload as UserBanned).banReason).toBe(
+      expect(event.payload).toMatchObject({
+        aggregateId: user.id.value,
         banReason,
-      );
-      // For permanent ban, banExpires should be null
-      expect((userBannedEvent!.payload as UserBanned).banExpires).toBeNull();
+        banExpires: null,
+      });
     });
 
     test("when called without reason, it should persist UserBanned event with null reason", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -444,33 +350,25 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
         .send({
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userBannedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.USER_BANNED,
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.USER_BANNED,
+        user.id.value,
       );
-      expect(userBannedEvent).toBeDefined();
-      expect(userBannedEvent!.aggregateId).toBe(user.id.value);
-      expect((userBannedEvent!.payload as UserBanned).banReason).toBeNull();
-      expect(
-        (userBannedEvent!.payload as UserBanned).banExpires,
-      ).not.toBeNull();
+
+      expect(event.payload).toMatchObject({
+        aggregateId: user.id.value,
+        banReason: null,
+        banExpires: expect.any(String),
+      });
     });
 
     test("when called with valid data, exactly one UserBanned event should be persisted", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
@@ -480,30 +378,17 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Spam activity",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const userBannedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.USER_BANNED,
-      );
-      expect(userBannedEvents).toHaveLength(1);
+      await expectOutboxEventCount(container, DomainEventCode.USER_BANNED, 1);
     });
   });
 
   describe("Idempotency / Edge Cases", () => {
     test("when user is already banned, calling the endpoint again should still succeed (idempotent)", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // First ban
@@ -513,7 +398,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "First ban reason",
           banExpiresInSeconds: 3600,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Act - Second ban attempt
       const response = await request
@@ -522,7 +407,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Second ban reason",
           banExpiresInSeconds: 7200,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -531,14 +416,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
 
     test("when banning a user with admin role, it should still succeed", async () => {
       // Arrange
-      const adminUser = User.create(
-        "Admin User",
-        "admin@example.com",
-        "ADMIN",
-        null,
-        true,
-        false,
-      );
+      const adminUser = userFactory({ role: "ADMIN" });
       await createUserInDB(container, adminUser);
 
       // Act
@@ -548,7 +426,7 @@ describe("PATCH /api/v1/clients/:id/status/ban", () => {
           reason: "Admin misconduct",
           banExpiresInSeconds: 86400,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);

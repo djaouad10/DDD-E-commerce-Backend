@@ -20,6 +20,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { RatingRejected } from "#/domain/events/rating/rating-rejected.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("DELETE /api/v1/ratings/product/:productId", () => {
   let app: Express;
@@ -64,7 +65,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       // Act
       const response = await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(200);
@@ -93,7 +94,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       const response = await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: user.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -119,7 +120,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       // Act
       const response = await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(404);
@@ -146,7 +147,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       const response = await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: user.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -190,7 +191,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       // Act
       const response = await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -212,7 +213,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       // Act
       const response = await request
         .delete("/api/v1/ratings/product/invalid-id")
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       expect(response.status).toBe(400);
@@ -242,7 +243,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       // Act
       await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const ratingRepository = container.resolveSingleton(RATING_REPOSITORY);
@@ -271,7 +272,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       // Act
       await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -314,7 +315,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: user.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const ratingRepository = container.resolveSingleton(RATING_REPOSITORY);
@@ -344,7 +345,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: user.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -380,7 +381,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
       // Act
       await request
         .delete(`/api/v1/ratings/product/${product.id.value}`)
-        .set("authorization", `Bearer test-client-token ${user.id.value}`);
+        .set("authorization", clientAuth(user.id.value));
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);

@@ -9,8 +9,9 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import { User } from "#/domain/entities/user.js";
 import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
 
 describe("GET /api/v1/orders", () => {
   let app: Express;
@@ -36,14 +37,7 @@ describe("GET /api/v1/orders", () => {
   describe("Response Validation", () => {
     test("when admin requests all orders, it should return 200 with paginated orders", async () => {
       // Arrange
-      const client = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const client = userFactory();
       await createUserInDB(container, client);
 
       const order = await setupOrderInDB(container, { owner: client });
@@ -51,7 +45,7 @@ describe("GET /api/v1/orders", () => {
       // Act
       const response = await request
         .get("/api/v1/orders")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -79,7 +73,7 @@ describe("GET /api/v1/orders", () => {
       // Act
       const response = await request
         .get("/api/v1/orders")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -89,14 +83,7 @@ describe("GET /api/v1/orders", () => {
 
     test("when using limit, it should return paginated results", async () => {
       // Arrange
-      const client = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const client = userFactory();
       await createUserInDB(container, client);
 
       await setupOrderInDB(container, { owner: client });
@@ -106,7 +93,7 @@ describe("GET /api/v1/orders", () => {
       const response = await request
         .get("/api/v1/orders")
         .query({ limit: 1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -116,14 +103,7 @@ describe("GET /api/v1/orders", () => {
 
     test("when using cursor, it should return next page", async () => {
       // Arrange
-      const client = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const client = userFactory();
       await createUserInDB(container, client);
 
       await setupOrderInDB(container, { owner: client });
@@ -132,7 +112,7 @@ describe("GET /api/v1/orders", () => {
       const firstPage = await request
         .get("/api/v1/orders")
         .query({ limit: 1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const cursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -147,7 +127,7 @@ describe("GET /api/v1/orders", () => {
             orderId: cursor.orderId,
           },
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -156,32 +136,21 @@ describe("GET /api/v1/orders", () => {
 
     test("when filtering by status, it should return only matching orders", async () => {
       // Arrange
-      const client = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const client = userFactory();
       await createUserInDB(container, client);
 
       await setupOrderInDB(container, { owner: client });
-      const confirmedOrder = await setupOrderInDB(container, { owner: client });
+      const order = await setupOrderInDB(container, { owner: client });
 
-      const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
+      order.confirm();
 
-      const confirmedOrderInDB = await orderRepo.find(confirmedOrder.id);
-
-      confirmedOrderInDB!.confirm();
-
-      await saveOrderInDB(container, confirmedOrderInDB!);
+      await saveOrderInDB(container, order);
 
       // Act
       const response = await request
         .get("/api/v1/orders")
         .query({ status: "CONFIRMED" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -189,24 +158,15 @@ describe("GET /api/v1/orders", () => {
       expect(response.body.orders[0].status).toBe("CONFIRMED");
     });
 
-    test("when limit is invalid, it should return 400", async () => {
+    test.each([
+      ["limit", { limit: 0 }],
+      ["status", { status: "INVALID_STATUS" }],
+    ])("when %s is invalid, it should return 400", async (_field, override) => {
       // Act
       const response = await request
         .get("/api/v1/orders")
-        .query({ limit: 0 })
-        .set("authorization", "Bearer test-admin-token");
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when status is invalid, it should return 400", async () => {
-      // Act
-      const response = await request
-        .get("/api/v1/orders")
-        .query({ status: "INVALID_STATUS" })
-        .set("authorization", "Bearer test-admin-token");
+        .query(override)
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -215,20 +175,13 @@ describe("GET /api/v1/orders", () => {
 
     test("when client token is used, it should return 403", async () => {
       // Arrange
-      const client = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const client = userFactory();
       await createUserInDB(container, client);
 
       // Act
       const response = await request
         .get("/api/v1/orders")
-        .set("authorization", `Bearer test-client-token ${client.id.value}`);
+        .set("authorization", clientAuth(client.id.value));
 
       // Assert
       expect(response.status).toBe(403);
@@ -246,22 +199,13 @@ describe("GET /api/v1/orders", () => {
   describe("New State Validation", () => {
     test("when admin requests orders, DB state should not change", async () => {
       // Arrange
-      const client = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const client = userFactory();
       await createUserInDB(container, client);
 
       const order = await setupOrderInDB(container, { owner: client });
 
       // Act
-      await request
-        .get("/api/v1/orders")
-        .set("authorization", "Bearer test-admin-token");
+      await request.get("/api/v1/orders").set("authorization", adminAuth());
 
       // Assert
       const orderRepository = container.resolveSingleton(ORDER_REPOSITORY);

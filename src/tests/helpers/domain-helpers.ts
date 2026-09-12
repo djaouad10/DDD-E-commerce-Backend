@@ -11,6 +11,7 @@ import { OrderItem } from "#/domain/entities/order-item.js";
 import { VariationId } from "#/domain/value-objects/variation-id.js";
 import { ShippingProvider, Order } from "#/domain/entities/order.js";
 import { UserId } from "#/domain/value-objects/user-id.js";
+import { User } from "#/domain/entities/user.js";
 
 export function productFactory({
   categoryId,
@@ -118,3 +119,23 @@ export const orderFactory = ({
     ShippingProvider.WORLD_EXPRESS,
   );
 };
+
+export function userFactory(
+  overrides: Partial<{
+    name: string;
+    email: string;
+    role: "CLIENT" | "ADMIN";
+    image: string | null;
+    emailVerified: boolean;
+    banned: boolean;
+  }> = {},
+): User {
+  return User.create(
+    overrides.name ?? faker.person.fullName(),
+    overrides.email ?? faker.internet.email(),
+    overrides.role ?? "CLIENT",
+    overrides.image ?? null,
+    overrides.emailVerified ?? true,
+    overrides.banned ?? false,
+  );
+}

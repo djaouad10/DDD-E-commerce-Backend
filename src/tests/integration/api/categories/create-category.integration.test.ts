@@ -5,6 +5,7 @@ import nock from "nock";
 import supertest from "supertest";
 import type { Express } from "express";
 import { CATEGORY_REPOSITORY } from "#/composition/utils/tokens.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("POST /api/v1/categories", () => {
   let app: Express;
@@ -38,7 +39,7 @@ describe("POST /api/v1/categories", () => {
         .send({
           name: categoryName,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(201);
@@ -56,7 +57,7 @@ describe("POST /api/v1/categories", () => {
         .send({
           name: "",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -69,7 +70,7 @@ describe("POST /api/v1/categories", () => {
         .send({
           name: "ca",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -84,7 +85,7 @@ describe("POST /api/v1/categories", () => {
         .send({
           name: categoryName,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Act
       const response2 = await request
@@ -92,7 +93,7 @@ describe("POST /api/v1/categories", () => {
         .send({
           name: categoryName,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response2.status).toBe(409);
@@ -112,7 +113,7 @@ describe("POST /api/v1/categories", () => {
         .send({
           name: categoryName,
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const categoryInDB = (await categoryRepository.findMany())[0];

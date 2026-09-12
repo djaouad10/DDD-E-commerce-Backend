@@ -21,6 +21,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { RatingApproved } from "#/domain/events/rating/rating-approved.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/ratings/product/:productId", () => {
   let app: Express;
@@ -66,7 +67,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       const response = await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -96,7 +97,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       const response = await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -123,7 +124,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       const response = await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -146,7 +147,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       const response = await request
         .patch(`/api/v1/ratings/product/${ProductId.generate().value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -169,7 +170,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       const response = await request
         .patch("/api/v1/ratings/product/invalid-id")
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -187,7 +188,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       const response = await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({})
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -243,7 +244,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       const response = await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", `Bearer test-client-token ${client.id.value}`);
+        .set("authorization", clientAuth(client.id.value));
 
       // Assert
       expect(response.status).toBe(403);
@@ -273,7 +274,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const ratingRepository = container.resolveSingleton(RATING_REPOSITORY);
@@ -305,7 +306,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -350,7 +351,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
@@ -384,7 +385,7 @@ describe("PATCH /api/v1/ratings/product/:productId", () => {
       await request
         .patch(`/api/v1/ratings/product/${product.id.value}`)
         .send({ clientId: client.id.value })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
