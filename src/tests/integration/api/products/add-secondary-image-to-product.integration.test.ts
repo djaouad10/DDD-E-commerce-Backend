@@ -18,6 +18,7 @@ import {
   expectOutboxEvent,
   expectOutboxEventCount,
 } from "#/tests/helpers/outbox-assertions.js";
+import { setupProductAndCategory } from "#/tests/helpers/product-helpers.js";
 
 describe("POST /api/v1/products/:id/images", () => {
   let app: Express;
@@ -40,23 +41,6 @@ describe("POST /api/v1/products/:id/images", () => {
     await clearDatabase(container);
   });
 
-  async function setupProductAndCategory() {
-    const category = Category.create("Category");
-    const product = productFactory({ categoryId: category.id });
-
-    await createCategoryInDB(container, category);
-    await createProductInDB(container, product);
-
-    const productRepo = container.resolveSingleton(PRODUCT_REPOSITORY);
-    const latestProduct = await productRepo.find(product.id);
-
-    if (!latestProduct) {
-      throw new Error("Product not found");
-    }
-
-    return { category, product: latestProduct };
-  }
-
   const validBody = {
     key: "test-image-key",
     name: "test-image.jpg",
@@ -66,7 +50,7 @@ describe("POST /api/v1/products/:id/images", () => {
   describe("Response Validation", () => {
     test("when called with valid data and product exists, it should return 200 with success true", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -133,7 +117,7 @@ describe("POST /api/v1/products/:id/images", () => {
       ],
     ])("when called with  %s, it should return 400", async (_, imageData) => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -169,7 +153,7 @@ describe("POST /api/v1/products/:id/images", () => {
 
     test("when client token is used (non-admin), it should return 403", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -183,7 +167,7 @@ describe("POST /api/v1/products/:id/images", () => {
 
     test("when no auth token is provided, it should return 401", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -198,7 +182,7 @@ describe("POST /api/v1/products/:id/images", () => {
   describe("New State Validation", () => {
     test("when called with valid data, it should add the image to the product", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
       const initialImageCount = product.getImages().length;
 
       // Act
@@ -225,7 +209,7 @@ describe("POST /api/v1/products/:id/images", () => {
 
     test("when called with valid data, the new image should NOT be set as main", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -253,7 +237,7 @@ describe("POST /api/v1/products/:id/images", () => {
 
     test("when called with valid data, it should preserve existing images", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       const existingImageKeys = product.getImages().map((img) => img.getKey());
 
@@ -284,7 +268,7 @@ describe("POST /api/v1/products/:id/images", () => {
   describe("Event Persistence", () => {
     test("when called with valid data, it should persist FileUploaded event to outbox", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -308,7 +292,7 @@ describe("POST /api/v1/products/:id/images", () => {
 
     test("when called with valid data, it should persist ProductImageAdded event to outbox", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -332,7 +316,7 @@ describe("POST /api/v1/products/:id/images", () => {
 
     test("when called with valid data, it should persist both events to outbox", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -352,7 +336,7 @@ describe("POST /api/v1/products/:id/images", () => {
 
     test("when adding multiple images, each should have its own events", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
       // Act
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
@@ -374,7 +358,7 @@ describe("POST /api/v1/products/:id/images", () => {
   describe("Edge Cases", () => {
     test("when adding an image with a duplicate key, it should return 409", async () => {
       // Arrange
-      const { product } = await setupProductAndCategory();
+      const { product } = await setupProductAndCategory(container);
       // Act - Add first image
       await request
         .post(`/api/v1/products/${product.id.value}/images`)
