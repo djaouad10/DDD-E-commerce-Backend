@@ -1,22 +1,15 @@
 import type { Container } from "#/composition/utils/container.js";
-import { Category } from "#/domain/entities/category.js";
-import {
-  clearDatabase,
-  createCategoryInDB,
-  createProductInDB,
-} from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import {
-  PRODUCT_REPOSITORY,
-  OUTBOX_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { PRODUCT_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { adminAuth } from "#/tests/helpers/auth-helpers.js";
+import { setupProductAndCategory } from "#/tests/helpers/product-helpers.js";
+import { expectOutboxEvent } from "#/tests/helpers/outbox-assertions.js";
 
 describe("PATCH /api/v1/products/:id/images/main", () => {
   let app: Express;
@@ -39,24 +32,21 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
     await clearDatabase(container);
   });
 
+  const validBody = {
+    key: "new-main-key",
+    name: "new-main-name",
+    publicUrl: "https://example.com/new-main.jpg",
+  };
+
   describe("Response Validation", () => {
     test("when called with valid data, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
+      const { product } = await setupProductAndCategory(container);
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const newMainImage = {
-        key: "new-main-key",
-        name: "new-main-name",
-        publicUrl: "https://example.com/new-main.jpg",
-      };
       // Act
       const response = await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMainImage)
+        .send(validBody)
         .set("authorization", adminAuth());
 
       // Assert
@@ -84,22 +74,12 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
   describe("New State Validation", () => {
     test("when called with valid data, it should update the product main image", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const newMainImage = {
-        key: "new-main-key",
-        name: "new-main-name",
-        publicUrl: "https://example.com/new-main.jpg",
-      };
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMainImage)
+        .send(validBody)
         .set("authorization", adminAuth());
 
       // Assert
@@ -107,33 +87,23 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       const updatedProduct = await productRepository.find(product.id);
 
       expect(updatedProduct).not.toBeNull();
-      expect(updatedProduct!.getMainImage().getKey()).toBe(newMainImage.key);
-      expect(updatedProduct!.getMainImage().getName()).toBe(newMainImage.name);
+      expect(updatedProduct!.getMainImage().getKey()).toBe(validBody.key);
+      expect(updatedProduct!.getMainImage().getName()).toBe(validBody.name);
       expect(updatedProduct!.getMainImage().publicUrl).toBe(
-        newMainImage.publicUrl,
+        validBody.publicUrl,
       );
     });
 
     test("when called with valid data, it should remove the old main image from product images", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       const oldMainImageKey = product.getMainImage().getKey();
-
-      const newMainImage = {
-        key: "new-main-key",
-        name: "new-main-name",
-        publicUrl: "https://example.com/new-main.jpg",
-      };
 
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMainImage)
+        .send(validBody)
         .set("authorization", adminAuth());
 
       // Assert
@@ -143,27 +113,17 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
       expect(updatedProduct).not.toBeNull();
       const imageKeys = updatedProduct!.getImages().map((img) => img.getKey());
       expect(imageKeys).not.toContain(oldMainImageKey);
-      expect(imageKeys).toContain(newMainImage.key);
+      expect(imageKeys).toContain(validBody.key);
     });
 
     test("when called with valid data, only one image should be main", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      const newMainImage = {
-        key: "new-main-key",
-        name: "new-main-name",
-        publicUrl: "https://example.com/new-main.jpg",
-      };
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMainImage)
+        .send(validBody)
         .set("authorization", adminAuth());
 
       // Assert
@@ -175,42 +135,31 @@ describe("PATCH /api/v1/products/:id/images/main", () => {
         .getImages()
         .filter((img) => img.isMain());
       expect(mainImages).toHaveLength(1);
-      expect(mainImages[0]!.getKey()).toBe(newMainImage.key);
+      expect(mainImages[0]!.getKey()).toBe(validBody.key);
     });
 
     test("when called with valid data, it should persist ProductMainImageUpdated event to outbox", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       const oldMainImageKey = product.getMainImage().getKey();
-
-      const newMainImage = {
-        key: "new-main-key",
-        name: "new-main-name",
-        publicUrl: "https://example.com/new-main.jpg",
-      };
 
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}/images/main`)
-        .send(newMainImage)
+        .send(validBody)
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const mainImageUpdatedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.PRODUCT_MAIN_IMAGE_UPDATED,
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.PRODUCT_MAIN_IMAGE_UPDATED,
+        product.id.value,
       );
-      expect(mainImageUpdatedEvent).toBeDefined();
-      expect(mainImageUpdatedEvent!.aggregateId).toBe(product.id.value);
-      expect(mainImageUpdatedEvent!.payload).toMatchObject({
-        newMainImageKey: newMainImage.key,
+
+      expect(event.payload).toMatchObject({
+        aggregateId: product.id.value,
+        newMainImageKey: validBody.key,
         previousMainImageKey: oldMainImageKey,
       });
     });
