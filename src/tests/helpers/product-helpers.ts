@@ -11,9 +11,10 @@ export async function setupProductAndCategory(
   overrides?: Partial<{
     variations: Variation[];
     images: File[];
+    category: Category;
   }>,
 ) {
-  const category = Category.create("Category");
+  const category = overrides?.category || Category.create("Category");
   const product = productFactory({
     categoryId: category.id,
     ...(overrides?.variations && { customVariations: overrides.variations }),
