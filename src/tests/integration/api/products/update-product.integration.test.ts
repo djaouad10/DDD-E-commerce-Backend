@@ -2,22 +2,22 @@ import type { Container } from "#/composition/utils/container.js";
 import {
   clearDatabase,
   createCategoryInDB,
-  createProductInDB,
 } from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
 import { Category } from "#/domain/entities/category.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
-import {
-  PRODUCT_REPOSITORY,
-  OUTBOX_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { PRODUCT_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import type { ProductUpdated } from "#/domain/events/product/product-updated.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { setupProductAndCategory } from "#/tests/helpers/product-helpers.js";
+import {
+  expectNoOutboxEvent,
+  expectOutboxEvent,
+  expectOutboxEventCount,
+} from "#/tests/helpers/outbox-assertions.js";
 
 describe("PATCH /api/v1/products/:id", () => {
   let app: Express;
@@ -43,10 +43,7 @@ describe("PATCH /api/v1/products/:id", () => {
   describe("Response Validation", () => {
     test("when called with valid name, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -61,10 +58,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with valid description, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -79,10 +73,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with valid brand, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -97,10 +88,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with valid material, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -115,10 +103,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with valid price, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -133,10 +118,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with valid discountPrice, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -151,12 +133,12 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with valid categoryId, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
+      const { product } = await setupProductAndCategory(container, {
+        category: Category.create("Category"),
+      });
+
       const newCategory = Category.create("New Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
       await createCategoryInDB(container, newCategory);
-      await createProductInDB(container, product);
 
       // Act
       const response = await request
@@ -171,10 +153,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with multiple fields, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -189,10 +168,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with both price and discountPrice and price > discountPrice, it should return 200", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -205,28 +181,68 @@ describe("PATCH /api/v1/products/:id", () => {
       expect(response.body).toEqual({ success: true });
     });
 
-    test("when called with empty body, it should return 400", async () => {
+    test("when called with invalid product id format, it should return 400", async () => {
+      // Act
+      const response = await request
+        .patch("/api/v1/products/invalid-id")
+        .send({ name: "Updated" })
+        .set("authorization", adminAuth());
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    test.each([
+      ["empty body", {}],
+      ["negative price", { price: -100 }],
+      ["zero price", { price: 0 }],
+      ["negative discountPrice", { discountPrice: -100 }],
+      [
+        " called with both price and discountPrice where price <= discountPrice",
+        { price: 1000, discountPrice: 1000 },
+      ],
+    ])("when called with %s, it should return 400", async (_, body) => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
         .patch(`/api/v1/products/${product.id.value}`)
-        .send({})
+        .send(body)
         .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
     });
 
-    test("when called with invalid product id format, it should return 400", async () => {
+    test("when called with discountPrice >= existing price, it should return 400", async () => {
+      // Arrange
+      const { product } = await setupProductAndCategory(container, {
+        price: 2000,
+      });
+
       // Act
       const response = await request
-        .patch("/api/v1/products/invalid-id")
-        .send({ name: "Updated" })
+        .patch(`/api/v1/products/${product.id.value}`)
+        .send({ discountPrice: 2500 })
+        .set("authorization", adminAuth());
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    test("when called with price <= existing discountPrice, it should return 400", async () => {
+      // Arrange
+      const { product } = await setupProductAndCategory(container, {
+        discountPrice: 2000,
+      });
+
+      // Act
+      const response = await request
+        .patch(`/api/v1/products/${product.id.value}`)
+        .send({ price: 1000 })
         .set("authorization", adminAuth());
 
       // Assert
@@ -246,127 +262,9 @@ describe("PATCH /api/v1/products/:id", () => {
       expect(response.body.error.code).toBe("NOT_FOUND");
     });
 
-    test("when called with negative price, it should return 400", async () => {
-      // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/products/${product.id.value}`)
-        .send({ price: -100 })
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when called with zero price, it should return 400", async () => {
-      // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/products/${product.id.value}`)
-        .send({ price: 0 })
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when called with discountPrice >= existing price, it should return 400", async () => {
-      // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({
-        categoryId: category.id,
-        price: 2000,
-        discountPrice: 1500,
-      });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/products/${product.id.value}`)
-        .send({ discountPrice: 2500 })
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when called with price <= existing discountPrice, it should return 400", async () => {
-      // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({
-        categoryId: category.id,
-        price: 2000,
-        discountPrice: 1500,
-      });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/products/${product.id.value}`)
-        .send({ price: 1000 })
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when called with both price and discountPrice where price <= discountPrice, it should return 400", async () => {
-      // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/products/${product.id.value}`)
-        .send({ price: 1000, discountPrice: 1500 })
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-    });
-
-    test("when called with negative discountPrice, it should return 400", async () => {
-      // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      // Act
-      const response = await request
-        .patch(`/api/v1/products/${product.id.value}`)
-        .send({ discountPrice: -100 })
-        .set("authorization", adminAuth());
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
     test("when no auth token is provided, it should return 401", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -379,10 +277,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when client token is used, it should return 403", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       const response = await request
@@ -398,10 +293,7 @@ describe("PATCH /api/v1/products/:id", () => {
   describe("New State Validation", () => {
     test("when called with name, it should update name and slug in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       const newName = "Completely New Product Name";
 
@@ -424,10 +316,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with description, it should update description in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       const newDescription = "This is the new description";
 
@@ -447,10 +336,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with description null, it should set description to null", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -468,10 +354,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with brand, it should update brand in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       const newBrand = "PremiumBrand";
 
@@ -491,10 +374,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with material, it should update material in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       const newMaterial = "Leather";
 
@@ -514,14 +394,10 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with price, it should update price in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({
-        categoryId: category.id,
+      const { product } = await setupProductAndCategory(container, {
         price: 2000,
         discountPrice: 1500,
       });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
 
       const newPrice = 5000;
 
@@ -542,14 +418,10 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with discountPrice, it should update discountPrice in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({
-        categoryId: category.id,
+      const { product } = await setupProductAndCategory(container, {
         price: 2000,
         discountPrice: 1500,
       });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
 
       const newDiscountPrice = 1000;
 
@@ -572,14 +444,10 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with discountPrice null, it should remove discountPrice", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({
-        categoryId: category.id,
+      const { product } = await setupProductAndCategory(container, {
         price: 2000,
         discountPrice: 1500,
       });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
 
       // Act
       await request
@@ -597,12 +465,10 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with categoryId, it should update category in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
+      const { product } = await setupProductAndCategory(container);
+
       const newCategory = Category.create("New Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
       await createCategoryInDB(container, newCategory);
-      await createProductInDB(container, product);
 
       // Act
       await request
@@ -620,10 +486,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with categoryId null, it should set category to null", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -641,14 +504,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with multiple fields, it should update all fields in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({
-        categoryId: category.id,
-        price: 2000,
-        discountPrice: 1500,
-      });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -676,14 +532,10 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with both price and discountPrice, it should update both in DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({
-        categoryId: category.id,
+      const { product } = await setupProductAndCategory(container, {
         price: 2000,
         discountPrice: 1500,
       });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
 
       // Act
       await request
@@ -702,10 +554,7 @@ describe("PATCH /api/v1/products/:id", () => {
 
     test("when called with valid data, it should persist ProductUpdated event to outbox", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -714,53 +563,38 @@ describe("PATCH /api/v1/products/:id", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const productUpdatedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.PRODUCT_UPDATED,
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.PRODUCT_UPDATED,
+        product.id.value,
       );
-      expect(productUpdatedEvent).toBeDefined();
-      expect(productUpdatedEvent!.aggregateId).toBe(product.id.value);
-      expect(
-        (productUpdatedEvent!.payload as ProductUpdated).changedFields,
-      ).toEqual(expect.arrayContaining(["name"]));
+
+      expect((event.payload as any).changedFields).toEqual(
+        expect.arrayContaining(["name"]),
+      );
     });
 
     test("when called with multiple fields, it should persist multiple ProductUpdated events", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
         .patch(`/api/v1/products/${product.id.value}`)
-        .send({ name: "Name", brand: "Brand" })
+        .send({ name: "new name", brand: "new brand" })
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const productUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.PRODUCT_UPDATED,
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.PRODUCT_UPDATED,
+        2,
       );
-      expect(productUpdatedEvents).toHaveLength(2);
-
-      const allFields = productUpdatedEvents.flatMap(
-        (e) => (e.payload as ProductUpdated).changedFields,
-      );
-      expect(allFields).toEqual(expect.arrayContaining(["name", "brand"]));
     });
 
     test("when no fields change, no ProductUpdated event should be emitted", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container);
 
       // Act
       await request
@@ -769,13 +603,7 @@ describe("PATCH /api/v1/products/:id", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const productUpdatedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.PRODUCT_UPDATED,
-      );
-      expect(productUpdatedEvents).toHaveLength(0);
+      await expectNoOutboxEvent(container, DomainEventCode.PRODUCT_UPDATED);
     });
   });
 });

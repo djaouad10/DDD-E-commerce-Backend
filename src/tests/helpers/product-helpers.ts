@@ -12,6 +12,8 @@ export async function setupProductAndCategory(
     variations: Variation[];
     images: File[];
     category: Category;
+    price: number;
+    discountPrice: number;
   }>,
 ) {
   const category = overrides?.category || Category.create("Category");
@@ -19,6 +21,8 @@ export async function setupProductAndCategory(
     categoryId: category.id,
     ...(overrides?.variations && { customVariations: overrides.variations }),
     ...(overrides?.images && { customImages: overrides.images }),
+    ...(overrides?.price && { price: overrides.price }),
+    ...(overrides?.discountPrice && { discountPrice: overrides.discountPrice }),
   });
 
   await createCategoryInDB(container, category);
