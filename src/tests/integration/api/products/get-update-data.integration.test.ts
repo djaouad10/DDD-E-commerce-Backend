@@ -12,6 +12,7 @@ import supertest from "supertest";
 import { Category } from "#/domain/entities/category.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { setupProductAndCategory } from "#/tests/helpers/product-helpers.js";
 
 describe("GET /api/v1/products/:id/update-data", () => {
   let app: Express;
@@ -37,11 +38,9 @@ describe("GET /api/v1/products/:id/update-data", () => {
   describe("Response Validation", () => {
     test("when admin requests update data for existing product, it should return 200 with product, images and variations", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product, category } = await setupProductAndCategory(container, {
+        category: Category.create("Category1"),
+      });
 
       const mainImage = product.getMainImage();
       const variations = product.getVariations();
