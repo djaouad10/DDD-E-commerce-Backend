@@ -68,7 +68,11 @@ export async function addExistingVariationToCart(
 
   const cart = await cartRepo.findByUserId(params.userId);
 
-  cart.addItem(CartItem.create(params.variationId, params.qty));
+  const item = CartItem.create(params.variationId, params.qty);
+
+  cart.addItem(item);
 
   await saveCartInDB(container, cart);
+
+  return item;
 }
