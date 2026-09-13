@@ -1,26 +1,18 @@
 import type { Container } from "#/composition/utils/container.js";
-import {
-  clearDatabase,
-  createCategoryInDB,
-  createProductInDB,
-  createUserInDB,
-  createRatingInDB,
-} from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { clearDatabase, createRatingInDB } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import nock from "nock";
 import supertest from "supertest";
 import type { Express } from "express";
-import { Category } from "#/domain/entities/category.js";
-import { User } from "#/domain/entities/user.js";
 import { Rating } from "#/domain/entities/rating.js";
-import {
-  RATING_REPOSITORY,
-  OUTBOX_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { RATING_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import type { RatingRejected } from "#/domain/events/rating/rating-rejected.js";
 import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { setupProductAndUserInDB } from "#/tests/helpers/cart-helpers.js";
+import {
+  expectOutboxEvent,
+  expectOutboxEventCount,
+} from "#/tests/helpers/outbox-assertions.js";
 
 describe("DELETE /api/v1/ratings/product/:productId", () => {
   let app: Express;
@@ -46,20 +38,10 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
   describe("Response Validation", () => {
     test("when client deletes own rating, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const rating = Rating.create(user.id, product.id, 4, "Good");
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
       await createRatingInDB(container, rating);
 
       // Act
@@ -74,20 +56,10 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
 
     test("when admin deletes client's rating, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const rating = Rating.create(user.id, product.id, 4, "Good");
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
       await createRatingInDB(container, rating);
 
       // Act
@@ -103,19 +75,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
 
     test("when client deletes non-existent rating, it should return 404", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
 
       // Act
       const response = await request
@@ -129,19 +89,7 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
 
     test("when admin deletes non-existent rating, it should return 404", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
 
       // Act
       const response = await request
@@ -156,10 +104,11 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
 
     test("when no auth token is provided, it should return 401", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
+      await createRatingInDB(container, rating);
 
       // Act
       const response = await request.delete(
@@ -172,20 +121,10 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
 
     test("when admin does not provide clientId, it should return 400", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const rating = Rating.create(user.id, product.id, 4, "Good");
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
       await createRatingInDB(container, rating);
 
       // Act
@@ -200,15 +139,11 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
 
     test("when called with invalid product id format, it should return 400", async () => {
       // Arrange
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
+      await createRatingInDB(container, rating);
 
       // Act
       const response = await request
@@ -224,20 +159,10 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
   describe("New State Validation", () => {
     test("when client deletes own rating, it should remove rating from DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const rating = Rating.create(user.id, product.id, 4, "Good");
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
       await createRatingInDB(container, rating);
 
       // Act
@@ -253,20 +178,10 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
 
     test("when client deletes own rating, it should persist RatingRejected event to outbox", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const rating = Rating.create(user.id, product.id, 4, "Good");
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
       await createRatingInDB(container, rating);
 
       // Act
@@ -275,40 +190,25 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const ratingRejectedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.RATING_REJECTED,
-      );
-      expect(ratingRejectedEvent).toBeDefined();
-      expect(ratingRejectedEvent!.aggregateId).toBe(
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.RATING_REJECTED,
         `${user.id.value}_${product.id.value}`,
       );
-      expect((ratingRejectedEvent!.payload as RatingRejected).userId).toBe(
-        user.id.value,
-      );
-      expect((ratingRejectedEvent!.payload as RatingRejected).productId).toBe(
-        product.id.value,
-      );
+
+      expect(event.payload).toMatchObject({
+        aggregateId: `${user.id.value}_${product.id.value}`,
+        userId: user.id.value,
+        productId: product.id.value,
+      });
     });
 
     test("when admin deletes client's rating, it should remove rating from DB", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const rating = Rating.create(user.id, product.id, 4, "Good");
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
       await createRatingInDB(container, rating);
 
       // Act
@@ -325,20 +225,10 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
 
     test("when admin deletes client's rating, it should persist RatingRejected event to outbox", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const rating = Rating.create(user.id, product.id, 4, "Good");
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
       await createRatingInDB(container, rating);
 
       // Act
@@ -348,34 +238,25 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
         .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const ratingRejectedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.RATING_REJECTED,
-      );
-      expect(ratingRejectedEvent).toBeDefined();
-      expect(ratingRejectedEvent!.aggregateId).toBe(
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.RATING_REJECTED,
         `${user.id.value}_${product.id.value}`,
       );
+
+      expect(event.payload).toMatchObject({
+        aggregateId: `${user.id.value}_${product.id.value}`,
+        userId: user.id.value,
+        productId: product.id.value,
+      });
     });
 
     test("when called with valid data, exactly one RatingRejected event should be persisted", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-      const user = User.create(
-        "John",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
-      const rating = Rating.create(user.id, product.id, 4, "Good");
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-      await createUserInDB(container, user);
+      const { product, user } = await setupProductAndUserInDB(container);
+
+      const rating = Rating.create(user.id, product.id, 4, "Good product");
+
       await createRatingInDB(container, rating);
 
       // Act
@@ -384,13 +265,11 @@ describe("DELETE /api/v1/ratings/product/:productId", () => {
         .set("authorization", clientAuth(user.id.value));
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const ratingRejectedEvents = events.filter(
-        (e) => e.eventType === DomainEventCode.RATING_REJECTED,
+      await expectOutboxEventCount(
+        container,
+        DomainEventCode.RATING_REJECTED,
+        1,
       );
-      expect(ratingRejectedEvents).toHaveLength(1);
     });
   });
 });
