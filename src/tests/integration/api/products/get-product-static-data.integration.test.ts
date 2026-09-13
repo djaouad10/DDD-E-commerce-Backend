@@ -1,16 +1,11 @@
 import type { Container } from "#/composition/utils/container.js";
-import {
-  clearDatabase,
-  createCategoryInDB,
-  createProductInDB,
-} from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import { Category } from "#/domain/entities/category.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
+import { setupProductAndCategory } from "#/tests/helpers/product-helpers.js";
 
 describe("GET /api/v1/products/:id/static-data", () => {
   let app: Express;
@@ -36,11 +31,7 @@ describe("GET /api/v1/products/:id/static-data", () => {
   describe("Response Validation", () => {
     test("when product exists, it should return 200 with ProductStaticDataDTO", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product, category } = await setupProductAndCategory(container);
 
       // Act
       const response = await request.get(

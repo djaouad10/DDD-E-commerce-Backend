@@ -143,7 +143,13 @@ export async function setupOrderInDB(
     await orderRepository.save(order ?? defaultOrder, tx);
   });
 
-  return order ?? defaultOrder;
+  const latestOrder = await orderRepository.find(order?.id ?? defaultOrder.id);
+
+  if (!latestOrder) {
+    throw new Error("Order not found");
+  }
+
+  return latestOrder;
 }
 
 export async function createProductInDB(

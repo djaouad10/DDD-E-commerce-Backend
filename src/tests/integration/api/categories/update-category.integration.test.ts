@@ -9,6 +9,7 @@ import supertest from "supertest";
 import type { Express } from "express";
 import { CATEGORY_REPOSITORY } from "#/composition/utils/tokens.js";
 import { Category } from "#/domain/entities/category.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("PATCH /api/v1/categories", () => {
   let app: Express;
@@ -42,7 +43,7 @@ describe("PATCH /api/v1/categories", () => {
       const response = await request
         .patch(`/api/v1/categories/${category.id.value}`)
         .send({ name: newName })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -63,7 +64,7 @@ describe("PATCH /api/v1/categories", () => {
       const response = await request
         .patch(`/api/v1/categories/${category.id.value}`)
         .send({ name: "" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -79,7 +80,7 @@ describe("PATCH /api/v1/categories", () => {
       const response = await request
         .patch(`/api/v1/categories/${category.id.value}`)
         .send({ name: "ca" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -93,7 +94,7 @@ describe("PATCH /api/v1/categories", () => {
       const response = await request
         .patch(`/api/v1/categories/${category.id.value}`)
         .send({ name: "Updated Name" })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -114,7 +115,7 @@ describe("PATCH /api/v1/categories", () => {
       await request
         .patch(`/api/v1/categories/${category.id.value}`)
         .send({ name: newName })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const updatedCategory = await categoryRepository.find(category.id);
@@ -133,7 +134,7 @@ describe("PATCH /api/v1/categories", () => {
       const response = await request
         .patch(`/api/v1/categories/${category.id.value}`)
         .send({ name: originalName })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);

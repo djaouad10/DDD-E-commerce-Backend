@@ -11,6 +11,7 @@ import nock from "nock";
 import supertest from "supertest";
 import { Category } from "#/domain/entities/category.js";
 import type { ProductCursor } from "#/application/read-models/product.queries.js";
+import { setupProductAndCategory } from "#/tests/helpers/product-helpers.js";
 
 describe("GET /api/v1/products", () => {
   let app: Express;
@@ -36,13 +37,15 @@ describe("GET /api/v1/products", () => {
   describe("Response Validation", () => {
     test("when called with valid params, it should return 200 with paginated products list", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product1 = productFactory({ categoryId: category.id });
-      const product2 = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product1);
-      await createProductInDB(container, product2);
+      await setupProductAndCategory(container, {
+        category: Category.create("Category1"),
+      });
+      await setupProductAndCategory(container, {
+        category: Category.create("Category2"),
+      });
+      await setupProductAndCategory(container, {
+        category: Category.create("Category3"),
+      });
 
       // Act
       const response = await request
@@ -79,13 +82,16 @@ describe("GET /api/v1/products", () => {
       // Arrange
       const category1 = Category.create("Category 1");
       const category2 = Category.create("Category 2");
-      const product1 = productFactory({ categoryId: category1.id });
-      const product2 = productFactory({ categoryId: category2.id });
 
-      await createCategoryInDB(container, category1);
-      await createCategoryInDB(container, category2);
-      await createProductInDB(container, product1);
-      await createProductInDB(container, product2);
+      await setupProductAndCategory(container, {
+        category: category1,
+      });
+      await setupProductAndCategory(container, {
+        category: category1,
+      });
+      await setupProductAndCategory(container, {
+        category: category2,
+      });
 
       // Act
       const response = await request
@@ -94,8 +100,7 @@ describe("GET /api/v1/products", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(response.body.products).toHaveLength(1);
-      expect(response.body.products[0].id).toBe(product1.id.value);
+      expect(response.body.products).toHaveLength(2);
     });
 
     test("when filtering by price range, it should return only matching products", async () => {
@@ -142,13 +147,15 @@ describe("GET /api/v1/products", () => {
 
     test("when using cursor, it should return next page", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product1 = productFactory({ categoryId: category.id });
-      const product2 = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product1);
-      await createProductInDB(container, product2);
+      await setupProductAndCategory(container, {
+        category: Category.create("Category1"),
+      });
+      await setupProductAndCategory(container, {
+        category: Category.create("Category2"),
+      });
+      await setupProductAndCategory(container, {
+        category: Category.create("Category3"),
+      });
 
       const firstPage = await request
         .get("/api/v1/products")
@@ -170,44 +177,14 @@ describe("GET /api/v1/products", () => {
       expect(response.body.products).toHaveLength(1);
     });
 
-    test("when limit is invalid, it should return 400", async () => {
+    test.each([
+      ["limit is invalid", { limit: 0 }],
+      ["min_price is negative", { min_price: -100 }],
+      ["max_price is negative", { max_price: -100 }],
+      ["max_price is less than min_price", { min_price: 1000, max_price: 500 }],
+    ])("when %s, it should return 400", async (_, query) => {
       // Act
-      const response = await request
-        .get("/api/v1/products")
-        .query({ limit: 0 });
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when max_price is less than min_price, it should return 400", async () => {
-      // Act
-      const response = await request
-        .get("/api/v1/products")
-        .query({ limit: 10, min_price: 1000, max_price: 500 });
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when max_price is negative, it should return 400", async () => {
-      // Act
-      const response = await request
-        .get("/api/v1/products")
-        .query({ limit: 10, max_price: -100 });
-
-      // Assert
-      expect(response.status).toBe(400);
-      expect(response.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    test("when min_price is negative, it should return 400", async () => {
-      // Act
-      const response = await request
-        .get("/api/v1/products")
-        .query({ limit: 10, min_price: -100 });
+      const response = await request.get("/api/v1/products").query(query);
 
       // Assert
       expect(response.status).toBe(400);
@@ -230,11 +207,13 @@ describe("GET /api/v1/products", () => {
 
     test("when limit exceeds total products, nextCursor should be undefined", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
+      await setupProductAndCategory(container, {
+        category: Category.create("Category1"),
+      });
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      await setupProductAndCategory(container, {
+        category: Category.create("Category2"),
+      });
 
       // Act
       const response = await request
@@ -243,7 +222,7 @@ describe("GET /api/v1/products", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(response.body.products).toHaveLength(1);
+      expect(response.body.products).toHaveLength(2);
       expect(response.body.nextCursor).toBeUndefined();
     });
   });

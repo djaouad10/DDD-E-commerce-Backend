@@ -9,6 +9,7 @@ import supertest from "supertest";
 import type { Express } from "express";
 import { CATEGORY_REPOSITORY } from "#/composition/utils/tokens.js";
 import { Category } from "#/domain/entities/category.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("DELETE /api/v1/categories/:id", () => {
   let app: Express;
@@ -40,7 +41,7 @@ describe("DELETE /api/v1/categories/:id", () => {
       // Act
       const response = await request
         .delete(`/api/v1/categories/${category.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -59,7 +60,7 @@ describe("DELETE /api/v1/categories/:id", () => {
       // Act
       const response = await request
         .delete(`/api/v1/categories/${category.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -78,7 +79,7 @@ describe("DELETE /api/v1/categories/:id", () => {
       // Act
       await request
         .delete(`/api/v1/categories/${category.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const deletedCategory = await categoryRepository.find(category.id);

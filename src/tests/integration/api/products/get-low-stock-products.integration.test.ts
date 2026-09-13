@@ -1,10 +1,5 @@
 import type { Container } from "#/composition/utils/container.js";
-import {
-  clearDatabase,
-  createCategoryInDB,
-  createProductInDB,
-} from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
@@ -14,6 +9,8 @@ import { Variation } from "#/domain/entities/variation.js";
 import { Size, Color } from "#/domain/entities/product.js";
 import { Weight } from "#/domain/value-objects/weight.js";
 import type { ProductCursor } from "#/application/read-models/product.queries.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
+import { setupProductAndCategory } from "#/tests/helpers/product-helpers.js";
 
 describe("GET /api/v1/products/low-stock", () => {
   let app: Express;
@@ -36,37 +33,39 @@ describe("GET /api/v1/products/low-stock", () => {
     await clearDatabase(container);
   });
 
+  function variationFactory({
+    color,
+    size,
+    totalQty,
+  }: {
+    color: Color;
+    size: Size;
+    totalQty: number;
+  }): Variation {
+    return Variation.create(size, color, totalQty, 0, Weight.of(100, "g"));
+  }
+
   describe("Response Validation", () => {
     test("when products have low stock variations, it should return 200 with matching products", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const lowStockVariation = Variation.create(
-        Size.M,
-        Color.RED,
-        5,
-        0,
-        Weight.of(100, "g"),
-      );
-      const normalVariation = Variation.create(
-        Size.L,
-        Color.BLUE,
-        100,
-        50,
-        Weight.of(100, "g"),
-      );
-      const product = productFactory({
-        categoryId: category.id,
-        customVariations: [lowStockVariation, normalVariation],
+      const lowStockVariation = variationFactory({
+        color: Color.RED,
+        size: Size.M,
+        totalQty: 3,
       });
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product, category } = await setupProductAndCategory(container, {
+        variations: [
+          lowStockVariation,
+          variationFactory({ color: Color.BLUE, size: Size.L, totalQty: 100 }),
+        ],
+      });
 
       // Act
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 10, minStock: 10 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -105,17 +104,22 @@ describe("GET /api/v1/products/low-stock", () => {
 
     test("when no products have low stock, it should return empty array", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      await setupProductAndCategory(container, {
+        variations: [
+          variationFactory({ color: Color.BLUE, size: Size.L, totalQty: 100 }),
+          variationFactory({
+            color: Color.NAVY,
+            size: Size.M,
+            totalQty: 90,
+          }),
+        ],
+      });
 
       // Act
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 10, minStock: 10 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -125,56 +129,56 @@ describe("GET /api/v1/products/low-stock", () => {
 
     test("when using default params, it should return results", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const lowStockVariation = Variation.create(
-        Size.M,
-        Color.RED,
-        3,
-        0,
-        Weight.of(100, "g"),
-      );
-      const product = productFactory({
-        categoryId: category.id,
-        customVariations: [lowStockVariation],
+
+      await setupProductAndCategory(container, {
+        variations: [
+          variationFactory({ color: Color.BLUE, size: Size.L, totalQty: 100 }),
+          variationFactory({
+            color: Color.RED,
+            size: Size.M,
+            totalQty: 3,
+          }),
+        ],
       });
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
-
-      // Act — no query params, uses defaults (limit=10, minStock=0)
+      // Act — no query params, uses defaults (limit=10, minStock=10)
       const response = await request
         .get("/api/v1/products/low-stock")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
-      expect(response.body.products.length).toBeGreaterThanOrEqual(0);
+      expect(response.body.products.length).toBe(1);
     });
 
     test("when using cursor, it should return next page", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product1 = productFactory({
-        categoryId: category.id,
-        customVariations: [
-          Variation.create(Size.M, Color.RED, 5, 0, Weight.of(100, "g")),
+      await setupProductAndCategory(container, {
+        variations: [
+          variationFactory({
+            color: Color.RED,
+            size: Size.M,
+            totalQty: 3,
+          }),
         ],
-      });
-      const product2 = productFactory({
-        categoryId: category.id,
-        customVariations: [
-          Variation.create(Size.L, Color.BLUE, 3, 0, Weight.of(100, "g")),
-        ],
+        category: Category.create("Category 1"),
       });
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product1);
-      await createProductInDB(container, product2);
+      await setupProductAndCategory(container, {
+        variations: [
+          variationFactory({
+            color: Color.RED,
+            size: Size.M,
+            totalQty: 3,
+          }),
+        ],
+        category: Category.create("Category 2"), // to avoid duplicate category names in DB
+      });
 
       const firstPage = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 1, minStock: 10 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       const cursor: ProductCursor = firstPage.body.nextCursor;
       expect(cursor).toBeDefined();
@@ -190,7 +194,7 @@ describe("GET /api/v1/products/low-stock", () => {
             productId: cursor.productId,
           },
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -202,7 +206,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 0, minStock: 10 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -214,7 +218,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 10, minStock: -1 })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -226,7 +230,7 @@ describe("GET /api/v1/products/low-stock", () => {
       const response = await request
         .get("/api/v1/products/low-stock")
         .query({ limit: 10, minStock: 10 })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);

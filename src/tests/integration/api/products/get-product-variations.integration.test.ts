@@ -1,15 +1,7 @@
 import type { Container } from "#/composition/utils/container.js";
-import { Category } from "#/domain/entities/category.js";
-import { Color, Size } from "#/domain/entities/product.js";
-import { Variation } from "#/domain/entities/variation.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
-import { Weight } from "#/domain/value-objects/weight.js";
-import {
-  clearDatabase,
-  createCategoryInDB,
-  createProductInDB,
-} from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { setupProductAndUserInDB } from "#/tests/helpers/cart-helpers.js";
+import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
@@ -39,22 +31,9 @@ describe("GET /api/v1/products/:id/variations", () => {
   describe("Response Validation", () => {
     test("when product has variations, it should return 200 with array of VariationDTOs", async () => {
       // Arrange
-      const category = Category.create("Category");
+      const { product } = await setupProductAndUserInDB(container); // 2
 
-      const variations = [
-        Variation.create(Size.M, Color.RED, 100, 50, Weight.of(100, "g")),
-        Variation.create(Size.L, Color.BLUE, 100, 50, Weight.of(100, "g")),
-        Variation.create(Size.XL, Color.GREEN, 100, 50, Weight.of(100, "g")),
-        Variation.create(Size.XL, Color.BEIGE, 100, 50, Weight.of(100, "g")),
-      ];
-
-      const product = productFactory({
-        categoryId: category.id,
-        customVariations: variations,
-      });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      // variations
 
       // Act
       const response = await request.get(
@@ -63,7 +42,7 @@ describe("GET /api/v1/products/:id/variations", () => {
 
       // Assert
       expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(4);
+      expect(response.body).toHaveLength(2);
       expect(response.body).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -100,11 +79,7 @@ describe("GET /api/v1/products/:id/variations", () => {
   describe("Data Correctness", () => {
     test("it should return the correct variations for the requested product", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndUserInDB(container); // 2
 
       const expectedVariations = product.getVariations();
 

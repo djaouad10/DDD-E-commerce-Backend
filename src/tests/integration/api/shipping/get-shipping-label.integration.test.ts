@@ -5,6 +5,7 @@ import nock from "nock";
 import supertest from "supertest";
 import type { Express } from "express";
 import { env } from "#/infrastructure/config/env.js";
+import { adminAuth, clientAuth } from "#/tests/helpers/auth-helpers.js";
 
 describe("GET /api/v1/shipping/label/:tracking", () => {
   let app: Express;
@@ -46,7 +47,7 @@ describe("GET /api/v1/shipping/label/:tracking", () => {
         .query({
           provider: "WORLD_EXPRESS",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -71,7 +72,7 @@ describe("GET /api/v1/shipping/label/:tracking", () => {
         .query({
           provider: "WORLD_EXPRESS",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -91,7 +92,7 @@ describe("GET /api/v1/shipping/label/:tracking", () => {
         .query({
           provider: "WORLD_EXPRESS",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(502);
@@ -101,7 +102,7 @@ describe("GET /api/v1/shipping/label/:tracking", () => {
       // Act
       const response = await request
         .get("/api/v1/shipping/label/TRACK123456")
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -115,7 +116,7 @@ describe("GET /api/v1/shipping/label/:tracking", () => {
         .query({
           provider: "INVALID_PROVIDER",
         })
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -129,7 +130,7 @@ describe("GET /api/v1/shipping/label/:tracking", () => {
         .query({
           provider: "WORLD_EXPRESS",
         })
-        .set("authorization", "Bearer test-client-token");
+        .set("authorization", clientAuth());
 
       // Assert
       expect(response.status).toBe(403);

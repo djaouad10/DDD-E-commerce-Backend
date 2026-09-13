@@ -1,15 +1,11 @@
 import { Queue, QueueEvents } from "bullmq";
 import type { Container } from "#/composition/utils/container.js";
-import { User } from "#/domain/entities/user.js";
 import {
   SHIPPING_PROVIDER_GATEWAY,
   REDIS,
 } from "#/composition/utils/tokens.js";
 import {
   clearDatabase,
-  createUserInDB,
-  setupOrderInDB,
-  saveOrderInDB,
   findIdempotencyKeyInDB,
 } from "#/tests/helpers/db-helpers.js";
 import { createTestApp } from "#/tests/helpers/test-app.js";
@@ -22,6 +18,10 @@ import { ShippingProvider } from "#/domain/entities/order.js";
 import { ORDER_REPOSITORY } from "#/composition/utils/tokens.js";
 import { OrderId } from "#/domain/value-objects/order-id.js";
 import { createBullMqOutboxQueue } from "#/infrastructure/messaging/bullmq/queue/outbox.queue.js";
+import {
+  progressOrderTo,
+  setupOrderWithReservedStock,
+} from "#/tests/helpers/order-helpers.js";
 
 describe("OutboxHandlerWorker Integration", () => {
   let container: Container;
@@ -78,29 +78,23 @@ describe("OutboxHandlerWorker Integration", () => {
     await queue.obliterate({ force: true });
   });
 
-  async function createConfirmedOrder() {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
+  async function createConfirmedOrder(
+    overrides?: Partial<{ trackingNumber: string }>,
+  ) {
+    const { order, user } = await setupOrderWithReservedStock(container, 2);
+
+    const confirmedOrder = await progressOrderTo(
+      container,
+      order.id,
+      "CONFIRMED",
+      {
+        ...(overrides?.trackingNumber && {
+          trackingNumber: overrides.trackingNumber,
+        }),
+      },
     );
-    await createUserInDB(container, user);
 
-    const order = await setupOrderInDB(container, { owner: user });
-
-    const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-    const orderFromDB = await orderRepo.find(order.id);
-
-    orderFromDB!.confirm();
-    await setupOrderInDB(container, { owner: user, order: orderFromDB! });
-
-    // since the previous line updates the order version when saving, we have to re-read a fresh version so next update will not give a version conflict
-    const latestOrderFromDB = await orderRepo.find(order.id);
-
-    return { user, order: latestOrderFromDB! };
+    return { user, order: confirmedOrder };
   }
 
   describe("CREATE_ORDER_IN_SHIPPING_API", () => {
@@ -149,9 +143,10 @@ describe("OutboxHandlerWorker Integration", () => {
 
   describe("CREATE_SHIPMENT_IN_SHIPPING_API (activate shipment)", () => {
     test("should process the job end-to-end using the tracking number", async () => {
-      const { order } = await createConfirmedOrder();
-      order.setTrackingNumber("TRACK-ACTIVATE-1");
-      await saveOrderInDB(container, order);
+      const trackingNumber = "TRACK-ACTIVATE-1";
+      await createConfirmedOrder({
+        trackingNumber,
+      });
 
       shippingProviderGatewayMock.activateShipment.mockResolvedValue({
         success: true,
@@ -160,14 +155,14 @@ describe("OutboxHandlerWorker Integration", () => {
       const jobId = generateOutboxId();
       const job = await queue.add(
         OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API,
-        { trackingNumber: "TRACK-ACTIVATE-1" },
+        { trackingNumber },
         { jobId },
       );
 
       await job.waitUntilFinished(queueEvents);
 
       expect(shippingProviderGatewayMock.activateShipment).toHaveBeenCalledWith(
-        "TRACK-ACTIVATE-1",
+        trackingNumber,
       );
 
       const key = await findIdempotencyKeyInDB(container, jobId);
@@ -193,9 +188,10 @@ describe("OutboxHandlerWorker Integration", () => {
     });
 
     test("should fail the job when the gateway returns success: false", async () => {
-      const { order } = await createConfirmedOrder();
-      order.setTrackingNumber("TRACK-ACTIVATE-FAIL");
-      await saveOrderInDB(container, order);
+      const trackingNumber = "TRACK-ACTIVATE-FAIL";
+      await createConfirmedOrder({
+        trackingNumber,
+      });
 
       shippingProviderGatewayMock.activateShipment.mockResolvedValue({
         success: false,
@@ -204,7 +200,7 @@ describe("OutboxHandlerWorker Integration", () => {
       const jobId = generateOutboxId();
       const job = await queue.add(
         OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API,
-        { trackingNumber: "TRACK-ACTIVATE-FAIL" },
+        { trackingNumber },
         { jobId },
       );
 

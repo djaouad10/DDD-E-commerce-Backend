@@ -4,8 +4,8 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import nock from "nock";
 import supertest from "supertest";
 import type { Express } from "express";
-import { User } from "#/domain/entities/user.js";
-import { UserId } from "#/domain/value-objects/user-id.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
 
 describe("GET /api/v1/clients/ban-status/:id", () => {
   let app: Express;
@@ -31,20 +31,13 @@ describe("GET /api/v1/clients/ban-status/:id", () => {
   describe("Response Validation", () => {
     test("when client is not banned, it should return 200 with banned false", async () => {
       // Arrange
-      const user = User.create(
-        "John Doe",
-        "john@example.com",
-        "CLIENT",
-        null,
-        true,
-        false,
-      );
+      const user = userFactory();
       await createUserInDB(container, user);
 
       // Act
       const response = await request
         .get(`/api/v1/clients/ban-status/${user.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -53,20 +46,14 @@ describe("GET /api/v1/clients/ban-status/:id", () => {
 
     test("when client is banned, it should return 200 with banned true", async () => {
       // Arrange
-      const user = User.create(
-        "Jane Doe",
-        "jane@example.com",
-        "CLIENT",
-        null,
-        true,
-        true,
-      );
+      const user = userFactory({ banned: true });
+
       await createUserInDB(container, user);
 
       // Act
       const response = await request
         .get(`/api/v1/clients/ban-status/${user.id.value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -74,10 +61,13 @@ describe("GET /api/v1/clients/ban-status/:id", () => {
     });
 
     test("when user does not exist, it should return 404", async () => {
+      // Arrange
+      const user = userFactory(); // User not saved in DB
+
       // Act
       const response = await request
-        .get(`/api/v1/clients/ban-status/${UserId.generate().value}`)
-        .set("authorization", "Bearer test-admin-token");
+        .get(`/api/v1/clients/ban-status/${user.id.value}`)
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);

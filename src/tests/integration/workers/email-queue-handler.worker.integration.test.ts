@@ -1,23 +1,14 @@
 import { Queue, QueueEvents } from "bullmq";
 import type { Container } from "#/composition/utils/container.js";
-import { User } from "#/domain/entities/user.js";
-import { Category } from "#/domain/entities/category.js";
 import { Rating } from "#/domain/entities/rating.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import {
-  REDIS,
-  EMAIL_GATEWAY,
-  ORDER_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { REDIS, EMAIL_GATEWAY } from "#/composition/utils/tokens.js";
 import {
   clearDatabase,
   createUserInDB,
-  setupOrderInDB,
-  createCategoryInDB,
-  createProductInDB,
   createRatingInDB,
 } from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { userFactory } from "#/tests/helpers/domain-helpers.js";
 import { createTestApp } from "#/tests/helpers/test-app.js";
 import type { Redis } from "ioredis";
 import { EmailQueueHandlerWorker } from "#/infrastructure/messaging/bullmq/workers/email-queue-handler.worker.js";
@@ -33,6 +24,11 @@ import { RatingApproved } from "#/domain/events/rating/rating-approved.js";
 import { RatingRejected } from "#/domain/events/rating/rating-rejected.js";
 import { RatingSubmitted } from "#/domain/events/rating/rating-submitted.js";
 import { UserRegistered } from "#/domain/events/user/user-registered.js";
+import {
+  progressOrderTo,
+  setupOrderWithReservedStock,
+} from "#/tests/helpers/order-helpers.js";
+import { setupProductAndUserInDB } from "#/tests/helpers/cart-helpers.js";
 
 describe("EmailQueueHandlerWorker Integration", () => {
   let container: Container;
@@ -75,16 +71,7 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process ORDER_CREATED job end-to-end", async () => {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
-    );
-    await createUserInDB(container, user);
-    const order = await setupOrderInDB(container, { owner: user });
+    const { order, user } = await setupOrderWithReservedStock(container, 2);
 
     const event = new OrderCreated(
       order.id.value,
@@ -110,30 +97,21 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process ORDER_CONFIRMED job end-to-end", async () => {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
+    const { order, user } = await setupOrderWithReservedStock(container, 2);
+
+    const confirmedOrder = await progressOrderTo(
+      container,
+      order.id,
+      "CONFIRMED",
     );
-    await createUserInDB(container, user);
-    const order = await setupOrderInDB(container, { owner: user });
-
-    const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-    const orderFromDB = await orderRepo.find(order.id);
-
-    orderFromDB!.confirm();
-    await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
     const event = new OrderConfirmed(
-      orderFromDB!.id.value,
+      confirmedOrder!.id.value,
       user.id.value,
-      orderFromDB!.getOrderItems().length,
-      orderFromDB!.getTotalOrderPrice().amount,
-      orderFromDB!.getTotalOrderPrice().currency,
-      orderFromDB!.getSelectedShippingProvider(),
+      confirmedOrder!.getOrderItems().length,
+      confirmedOrder!.getTotalOrderPrice().amount,
+      confirmedOrder!.getTotalOrderPrice().currency,
+      confirmedOrder!.getSelectedShippingProvider(),
     );
 
     const job = await queue.add(DomainEventCode.ORDER_CONFIRMED, event, {
@@ -151,18 +129,15 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process ORDER_CANCELLED job end-to-end", async () => {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
-    );
-    await createUserInDB(container, user);
-    const order = await setupOrderInDB(container, { owner: user });
+    const { order, user } = await setupOrderWithReservedStock(container, 2);
 
-    const event = new OrderCancelled(order.id.value, user.id.value);
+    const cancelledOrder = await progressOrderTo(
+      container,
+      order.id,
+      "CANCELLED",
+    );
+
+    const event = new OrderCancelled(cancelledOrder.id.value, user.id.value);
 
     const job = await queue.add(DomainEventCode.ORDER_CANCELLED, event, {
       jobId: generateOutboxId(),
@@ -179,31 +154,19 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process ORDER_DELIVERED job end-to-end", async () => {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
+    const { order, user } = await setupOrderWithReservedStock(container, 2);
+
+    const deliveredOrder = await progressOrderTo(
+      container,
+      order.id,
+      "DELIVERED",
     );
-    await createUserInDB(container, user);
-    const order = await setupOrderInDB(container, { owner: user });
-
-    const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
-    const orderFromDB = await orderRepo.find(order.id);
-
-    orderFromDB!.confirm();
-    orderFromDB!.markAsPreTransit();
-    orderFromDB!.markAsShipping();
-    orderFromDB!.markAsDelivered();
-    await setupOrderInDB(container, { owner: user, order: orderFromDB! });
 
     const event = new OrderDelivered(
-      orderFromDB!.id.value,
+      deliveredOrder!.id.value,
       user.id.value,
       new Date(),
-      orderFromDB!.getSelectedShippingProvider(),
+      deliveredOrder!.getSelectedShippingProvider(),
     );
 
     const job = await queue.add(DomainEventCode.ORDER_DELIVERED, event, {
@@ -221,22 +184,19 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process ORDER_RETURNED job end-to-end", async () => {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
+    const { order, user } = await setupOrderWithReservedStock(container, 2);
+
+    const returnedOrder = await progressOrderTo(
+      container,
+      order.id,
+      "RETURNED",
     );
-    await createUserInDB(container, user);
-    const order = await setupOrderInDB(container, { owner: user });
 
     const event = new OrderReturned(
-      order.id.value,
+      returnedOrder.id.value,
       user.id.value,
       "Defective item",
-      order.getSelectedShippingProvider(),
+      returnedOrder.getSelectedShippingProvider(),
     );
 
     const job = await queue.add(DomainEventCode.ORDER_RETURNED, event, {
@@ -254,28 +214,17 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process RATING_APPROVED job end-to-end", async () => {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
-    );
-    await createUserInDB(container, user);
+    const { user, product } = await setupProductAndUserInDB(container);
 
-    const category = Category.create("Category");
-    const product = productFactory({ categoryId: category.id });
-    await createCategoryInDB(container, category);
-    await createProductInDB(container, product);
+    const rating = Rating.create(user.id, product.id, 4, "Nice product");
+    rating.approve();
 
-    const rating = Rating.create(user.id, product.id, 4, "Great product");
     await createRatingInDB(container, rating);
 
     const event = new RatingApproved(
-      `${user.id.value}_${product.id.value}`,
-      user.id.value,
-      product.id.value,
+      `${rating.userId.value}_${rating.productId.value}`,
+      rating.userId.value,
+      rating.productId.value,
       4,
     );
 
@@ -294,28 +243,17 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process RATING_REJECTED job end-to-end", async () => {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
-    );
-    await createUserInDB(container, user);
+    const { user, product } = await setupProductAndUserInDB(container);
 
-    const category = Category.create("Category");
-    const product = productFactory({ categoryId: category.id });
-    await createCategoryInDB(container, category);
-    await createProductInDB(container, product);
+    const rating = Rating.create(user.id, product.id, 4, "Nice product");
+    rating.reject();
 
-    const rating = Rating.create(user.id, product.id, 1, "Spam");
     await createRatingInDB(container, rating);
 
     const event = new RatingRejected(
-      `${user.id.value}_${product.id.value}`,
-      user.id.value,
-      product.id.value,
+      `${rating.userId.value}_${rating.productId.value}`,
+      rating.userId.value,
+      rating.productId.value,
     );
 
     const job = await queue.add(DomainEventCode.RATING_REJECTED, event, {
@@ -333,40 +271,23 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process RATING_SUBMITTED job end-to-end", async () => {
-    const admin = User.create(
-      "Admin",
-      "admin@example.com",
-      "ADMIN",
-      null,
-      true,
-      false,
-    );
+    const admin = userFactory({ role: "ADMIN" });
     await createUserInDB(container, admin);
 
-    const submitter = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
-    );
-    await createUserInDB(container, submitter);
-
-    const category = Category.create("Category");
-    const product = productFactory({ categoryId: category.id });
-    await createCategoryInDB(container, category);
-    await createProductInDB(container, product);
+    const { user: submitter, product } =
+      await setupProductAndUserInDB(container);
 
     const rating = Rating.create(submitter.id, product.id, 4, "Nice product");
+    rating.approve();
+
     await createRatingInDB(container, rating);
 
     const event = new RatingSubmitted(
-      `${submitter.id.value}_${product.id.value}`,
-      submitter.id.value,
-      product.id.value,
-      4,
-      "Nice product",
+      `${rating.userId.value}_${rating.productId.value}`,
+      rating.userId.value,
+      rating.productId.value,
+      rating.getRating(),
+      rating.getComment(),
     );
 
     const job = await queue.add(DomainEventCode.RATING_SUBMITTED, event, {
@@ -384,14 +305,7 @@ describe("EmailQueueHandlerWorker Integration", () => {
   });
 
   test("should process USER_REGISTERED job end-to-end", async () => {
-    const user = User.create(
-      "John",
-      "john@example.com",
-      "CLIENT",
-      null,
-      true,
-      false,
-    );
+    const user = userFactory();
     await createUserInDB(container, user);
 
     const event = new UserRegistered(

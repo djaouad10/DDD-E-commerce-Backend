@@ -1,21 +1,16 @@
 import type { Container } from "#/composition/utils/container.js";
-import { Category } from "#/domain/entities/category.js";
-import {
-  clearDatabase,
-  createCategoryInDB,
-  createProductInDB,
-} from "#/tests/helpers/db-helpers.js";
-import { productFactory } from "#/tests/helpers/domain-helpers.js";
+import { clearDatabase } from "#/tests/helpers/db-helpers.js";
 import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import type { Express } from "express";
 import nock from "nock";
 import supertest from "supertest";
-import {
-  PRODUCT_REPOSITORY,
-  OUTBOX_REPOSITORY,
-} from "#/composition/utils/tokens.js";
+import { PRODUCT_REPOSITORY } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
+import { adminAuth } from "#/tests/helpers/auth-helpers.js";
+import { setupProductAndCategory } from "#/tests/helpers/product-helpers.js";
+import { File } from "#/domain/entities/file.js";
+import { expectOutboxEvent } from "#/tests/helpers/outbox-assertions.js";
 
 describe("DELETE /api/v1/products/:id/images/:key", () => {
   let app: Express;
@@ -41,20 +36,23 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
   describe("Response Validation", () => {
     test("when called with valid non-main image, it should return 200 with success true", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
+      const { product } = await setupProductAndCategory(container, {
+        images: [
+          File.create("key1", "name1", "https://example.com/key1", true),
+          File.create("key2", "name2", "https://example.com/key2", false),
+        ],
+      });
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const secondaryImage = product.getImageByKey("key2");
 
-      const nonMainImage = product.getImages().find((img) => !img.isMain())!;
+      if (!secondaryImage) throw new Error("Non-main image not found");
 
       // Act
       const response = await request
         .delete(
-          `/api/v1/products/${product.id.value}/images/${nonMainImage.getKey()}`,
+          `/api/v1/products/${product.id.value}/images/${secondaryImage.getKey()}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(200);
@@ -67,7 +65,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
         .delete(
           `/api/v1/products/${ProductId.generate().value}/images/some-key`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -76,16 +74,17 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
 
     test("when image does not exist, it should return 404", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container, {
+        images: [
+          File.create("key1", "name1", "https://example.com/key1", true),
+          File.create("key2", "name2", "https://example.com/key2", false),
+        ],
+      });
 
       // Act
       const response = await request
         .delete(`/api/v1/products/${product.id.value}/images/nonexistent-key`)
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(404);
@@ -94,11 +93,12 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
 
     test("when trying to delete main image, it should return 400", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container, {
+        images: [
+          File.create("key1", "name1", "https://example.com/key1", true),
+          File.create("key2", "name2", "https://example.com/key2", false),
+        ],
+      });
 
       const mainImage = product.getMainImage();
 
@@ -107,7 +107,7 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
         .delete(
           `/api/v1/products/${product.id.value}/images/${mainImage.getKey()}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       expect(response.status).toBe(400);
@@ -118,21 +118,25 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
   describe("New State Validation", () => {
     test("when called with valid non-main image, it should remove the image from product", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
+      const { product } = await setupProductAndCategory(container, {
+        images: [
+          File.create("key1", "name1", "https://example.com/key1", true),
+          File.create("key2", "name2", "https://example.com/key2", false),
+        ],
+      });
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const secondaryImage = product.getImages().find((img) => !img.isMain());
 
-      const nonMainImage = product.getImages().find((img) => !img.isMain())!;
-      const imageKeyToRemove = nonMainImage.getKey();
+      if (!secondaryImage) throw new Error("Non-main image not found");
+
+      const imageKeyToRemove = secondaryImage.getKey();
 
       // Act
       await request
         .delete(
           `/api/v1/products/${product.id.value}/images/${imageKeyToRemove}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
@@ -145,53 +149,57 @@ describe("DELETE /api/v1/products/:id/images/:key", () => {
 
     test("when called with valid non-main image, it should persist ProductImageRemoved event to outbox", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
+      const { product } = await setupProductAndCategory(container, {
+        images: [
+          File.create("key1", "name1", "https://example.com/key1", true),
+          File.create("key2", "name2", "https://example.com/key2", false),
+        ],
+      });
 
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const secondaryImage = product.getImages().find((img) => !img.isMain());
 
-      const nonMainImage = product.getImages().find((img) => !img.isMain())!;
-      const imageKeyToRemove = nonMainImage.getKey();
+      if (!secondaryImage) throw new Error("Non-main image not found");
+
+      const imageKeyToRemove = secondaryImage.getKey();
 
       // Act
       await request
         .delete(
           `/api/v1/products/${product.id.value}/images/${imageKeyToRemove}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
-      const outboxRepository = container.resolveSingleton(OUTBOX_REPOSITORY);
-      const events = await outboxRepository.getPendingEvents(100);
-
-      const imageRemovedEvent = events.find(
-        (e) => e.eventType === DomainEventCode.PRODUCT_IMAGE_REMOVED,
+      const event = await expectOutboxEvent(
+        container,
+        DomainEventCode.PRODUCT_IMAGE_REMOVED,
+        product.id.value,
       );
-      expect(imageRemovedEvent).toBeDefined();
-      expect(imageRemovedEvent!.aggregateId).toBe(product.id.value);
-      expect(imageRemovedEvent!.payload).toMatchObject({
+
+      expect(event.payload).toMatchObject({
+        aggregateId: expect.any(String),
         imageKey: imageKeyToRemove,
       });
     });
 
     test("when removing image, main image should remain unchanged", async () => {
       // Arrange
-      const category = Category.create("Category");
-      const product = productFactory({ categoryId: category.id });
-
-      await createCategoryInDB(container, category);
-      await createProductInDB(container, product);
+      const { product } = await setupProductAndCategory(container, {
+        images: [
+          File.create("key1", "name1", "https://example.com/key1", true),
+          File.create("key2", "name2", "https://example.com/key2", false),
+        ],
+      });
 
       const mainImageKey = product.getMainImage().getKey();
-      const nonMainImage = product.getImages().find((img) => !img.isMain())!;
+      const secondaryImage = product.getImages().find((img) => !img.isMain())!;
 
       // Act
       await request
         .delete(
-          `/api/v1/products/${product.id.value}/images/${nonMainImage.getKey()}`,
+          `/api/v1/products/${product.id.value}/images/${secondaryImage.getKey()}`,
         )
-        .set("authorization", "Bearer test-admin-token");
+        .set("authorization", adminAuth());
 
       // Assert
       const productRepository = container.resolveSingleton(PRODUCT_REPOSITORY);
