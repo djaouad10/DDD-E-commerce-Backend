@@ -1,3 +1,5 @@
+import type { Token } from "#/composition/utils/container.js";
+
 type ErrorCodes =
   | "VALIDATION_ERROR"
   | "NOT_FOUND"
@@ -164,7 +166,7 @@ export class DependencyResolutionError extends Error {
   readonly statusCode = 500;
   readonly isOperational = false;
 
-  constructor(dependencyKey: symbol) {
-    super(`No registration for token: ${String(dependencyKey)}`);
+  constructor(token: Token<any>) {
+    super(`No registration for token: ${String(token)}`);
   }
 }
