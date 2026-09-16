@@ -166,6 +166,7 @@ export class DependencyResolutionError extends Error {
   readonly statusCode = 500;
   readonly isOperational = false;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(token: Token<any>) {
     super(`No registration for token: ${String(token)}`);
   }
