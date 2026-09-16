@@ -10,7 +10,7 @@ import type { UpdateOrderInShippingProviderService } from "#/application/service
 import type { InjectionToken, Scope } from "#/composition/utils/container.js";
 import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
-  CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+  ACTIVATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
   UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
 } from "#/composition/utils/tokens.js";
@@ -32,7 +32,7 @@ type OutboxActionToHandlerService = {
 
 type OutboxActionToToken = {
   [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: typeof CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE;
-  [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: typeof CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE;
+  [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: typeof ACTIVATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE;
   [OutboxAction.UPDATE_ORDER_IN_SHIPPING_API]: typeof UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE;
   [OutboxAction.DELETE_ORDER_IN_SHIPPING_API]: typeof DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE;
 };
@@ -108,7 +108,7 @@ const handlerRegistry: { [K in OutboxAction]: HandlerRegistryEntry<K> } = {
   },
 
   [OutboxAction.CREATE_SHIPMENT_IN_SHIPPING_API]: {
-    token: CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+    token: ACTIVATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
     async handlerMethod(handler, command, jobId) {
       return handler.execute(command, jobId);
     },

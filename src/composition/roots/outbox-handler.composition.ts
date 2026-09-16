@@ -11,7 +11,7 @@ import { Container } from "../utils/container.js";
 import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
-  CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+  ACTIVATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
   DB,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
   DRIZZLE_DB,
@@ -92,7 +92,7 @@ export function buildOutboxHandlerContainer(): Container {
   );
 
   container.register(
-    CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+    ACTIVATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
     (scope) =>
       new ActivateShipmentInShippingProviderService(
         scope.resolve(DB),
