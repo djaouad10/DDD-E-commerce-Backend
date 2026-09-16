@@ -118,7 +118,10 @@ import {
 } from "../../utils/tokens.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
-import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
+import {
+  UploadthingFileStoreGateway,
+  type UploadthingFileStoreGatewayConfig,
+} from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
 import { FakeAuthPort, fakeBetterAuth } from "#/tests/helpers/fake-auth.js";
@@ -358,9 +361,14 @@ export function buildIntegrationTestsContainer(): Container {
   const utApi = new UTApi({});
   container.registerInstance(UTAPI, utApi);
 
+  const uploadthingConfig: UploadthingFileStoreGatewayConfig = {
+    UPLOADTHING_APP_ID: env.UPLOADTHING_APP_ID,
+  };
+
   container.register(
     FILE_STORE_GATEWAY,
-    (scope) => new UploadthingFileStoreGateway(scope.resolve(UTAPI)),
+    (scope) =>
+      new UploadthingFileStoreGateway(scope.resolve(UTAPI), uploadthingConfig),
     "scoped",
   );
 

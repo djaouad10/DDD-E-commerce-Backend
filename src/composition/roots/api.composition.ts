@@ -11,7 +11,10 @@ import { PostgresOutboxRepository } from "#/infrastructure/databases/repositorie
 import { PostgresProductRepository } from "#/infrastructure/databases/repositories/postgres/postgres-product-repository.js";
 import { PostgresRatingRepository } from "#/infrastructure/databases/repositories/postgres/postgres-rating-repository.js";
 import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres/postgres-user-repository.js";
-import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
+import {
+  UploadthingFileStoreGateway,
+  type UploadthingFileStoreGatewayConfig,
+} from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
 import { Container } from "../utils/container.js";
 import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
@@ -253,9 +256,14 @@ export function buildApiContainer(): Container {
   const utApi = new UTApi({});
   container.registerInstance(UTAPI, utApi);
 
+  const uploadthingConfig: UploadthingFileStoreGatewayConfig = {
+    UPLOADTHING_APP_ID: env.UPLOADTHING_APP_ID,
+  };
+
   container.register(
     FILE_STORE_GATEWAY,
-    (scope) => new UploadthingFileStoreGateway(scope.resolve(UTAPI)),
+    (scope) =>
+      new UploadthingFileStoreGateway(scope.resolve(UTAPI), uploadthingConfig),
     "singleton",
   );
 
