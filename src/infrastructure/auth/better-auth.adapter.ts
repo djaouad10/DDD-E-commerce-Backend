@@ -4,18 +4,25 @@ import type {
   AuthSession,
 } from "#/application/ports/auth/auth.port.js";
 import type { UserRepository } from "#/domain/repositories/user.repository.js";
-import { initializeAuth, type Auth } from "../config/auth.js";
+import {
+  initializeAuth,
+  type Auth,
+  type BetterAuthConfig,
+} from "../config/auth.js";
 import type { DrizzleDBClient } from "../config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { handleBetterAuthErrors } from "#/infrastructure/auth/errors/handle-better-auth-errors.js";
 
 export class BetterAuthAdapter implements AuthPort {
   private logger = createLogger("BetterAuthAdapter");
-
   private auth: Auth;
 
-  constructor(db: DrizzleDBClient, userRepo: UserRepository) {
-    this.auth = initializeAuth(db, userRepo);
+  constructor(
+    db: DrizzleDBClient,
+    userRepo: UserRepository,
+    config: BetterAuthConfig,
+  ) {
+    this.auth = initializeAuth(db, userRepo, config);
   }
 
   async getSession(headers: AgnosticHeaders): Promise<AuthSession | null> {

@@ -1,7 +1,7 @@
 import type { UserRole } from "#/domain/entities/user.js";
 import { AsyncLocalStorage } from "async_hooks";
 
-export interface ContextStore {
+export type ContextStore = {
   requestId: string;
 
   userId?: string;
@@ -19,7 +19,7 @@ export interface ContextStore {
   jobId?: string;
 
   queueName?: string;
-}
+};
 
 const requestContext = new AsyncLocalStorage<ContextStore>();
 

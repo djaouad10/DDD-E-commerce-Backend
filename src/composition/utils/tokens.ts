@@ -224,7 +224,7 @@ export const UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
   "updateOrderInShippingProviderService",
 ) as InjectionToken<UpdateOrderInShippingProviderService>;
 
-export const CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
+export const ACTIVATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE = Symbol(
   "ActivateShipmentInShippingProviderService",
 ) as InjectionToken<ActivateShipmentInShippingProviderService>;
 
@@ -341,7 +341,7 @@ export const GET_ORDER_BY_TRACKING_NUMBER_SERVICE = Symbol(
 ) as InjectionToken<GetOrderByTrackingNumberService>;
 
 export const GET_ORDER_BY_ID_SERVICE = Symbol(
-  "GetOrderByIdService",
+  "getOrderByIdService",
 ) as InjectionToken<GetOrderByIdService>;
 
 export const GET_ORDERS_SERVICE = Symbol(

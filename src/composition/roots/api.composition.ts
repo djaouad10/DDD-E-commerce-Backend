@@ -11,7 +11,10 @@ import { PostgresOutboxRepository } from "#/infrastructure/databases/repositorie
 import { PostgresProductRepository } from "#/infrastructure/databases/repositories/postgres/postgres-product-repository.js";
 import { PostgresRatingRepository } from "#/infrastructure/databases/repositories/postgres/postgres-rating-repository.js";
 import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres/postgres-user-repository.js";
-import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
+import {
+  UploadthingFileStoreGateway,
+  type UploadthingFileStoreGatewayConfig,
+} from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
 import { Container } from "../utils/container.js";
 import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
@@ -145,7 +148,10 @@ import { ShipOrderService } from "#/application/services/api/ship-order.service.
 import { UpdateShippingDetailsService } from "#/application/services/api/update-shipping-details.service.js";
 import { UpdateClientProfileService } from "#/application/services/api/update-client-profile.service.js";
 import { BetterAuthAdapter } from "#/infrastructure/auth/better-auth.adapter.js";
-import { initializeAuth } from "#/infrastructure/config/auth.js";
+import {
+  initializeAuth,
+  type BetterAuthConfig,
+} from "#/infrastructure/config/auth.js";
 
 export function buildApiContainer(): Container {
   // API process shared container
@@ -250,9 +256,14 @@ export function buildApiContainer(): Container {
   const utApi = new UTApi({});
   container.registerInstance(UTAPI, utApi);
 
+  const uploadthingConfig: UploadthingFileStoreGatewayConfig = {
+    UPLOADTHING_APP_ID: env.UPLOADTHING_APP_ID,
+  };
+
   container.register(
     FILE_STORE_GATEWAY,
-    (scope) => new UploadthingFileStoreGateway(scope.resolve(UTAPI)),
+    (scope) =>
+      new UploadthingFileStoreGateway(scope.resolve(UTAPI), uploadthingConfig),
     "singleton",
   );
 
@@ -267,12 +278,20 @@ export function buildApiContainer(): Container {
     "singleton",
   );
 
+  const betteAuthConfig: BetterAuthConfig = {
+    GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
+    BETTER_AUTH_URL: env.BETTER_AUTH_URL,
+    GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET,
+    NODE_ENV: env.NODE_ENV,
+  };
+
   container.register(
     AUTH,
     (scope) =>
       new BetterAuthAdapter(
         scope.resolve(DRIZZLE_DB),
         scope.resolve(USER_REPOSITORY),
+        betteAuthConfig,
       ),
     "singleton",
   );
@@ -280,7 +299,11 @@ export function buildApiContainer(): Container {
   container.register(
     BETTER_AUTH,
     (scope) =>
-      initializeAuth(scope.resolve(DRIZZLE_DB), scope.resolve(USER_REPOSITORY)),
+      initializeAuth(
+        scope.resolve(DRIZZLE_DB),
+        scope.resolve(USER_REPOSITORY),
+        betteAuthConfig,
+      ),
     "singleton",
   );
 

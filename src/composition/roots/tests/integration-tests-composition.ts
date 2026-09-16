@@ -100,7 +100,7 @@ import {
   EMAIL_QUEUE_RATING_SUBMITTED_HANDLER_SERVICE,
   EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
   CREATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
-  CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+  ACTIVATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
   DELETE_ORDER_FROM_SHIPPING_PROVIDER_SERVICE,
   UPDATE_ORDER_IN_SHIPPING_PROVIDER_SERVICE,
   CLEAN_OUTBOX_SERVICE,
@@ -118,7 +118,10 @@ import {
 } from "../../utils/tokens.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
-import { UploadthingFileStoreGateway } from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
+import {
+  UploadthingFileStoreGateway,
+  type UploadthingFileStoreGatewayConfig,
+} from "#/infrastructure/gateways/uploadthing-file-store-gateway.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
 import { FakeAuthPort, fakeBetterAuth } from "#/tests/helpers/fake-auth.js";
@@ -181,7 +184,10 @@ import { EmailQueueRatingApprovedHandlerService } from "#/application/services/e
 import { EmailQueueRatingRejectedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-rejected-handler.service.js";
 import { EmailQueueRatingSubmittedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-submitted-handler.service.js";
 import { EmailQueueUserRegisteredHandlerService } from "#/application/services/email-queue-handlers/email-queue-user-registered-handler.service.js";
-import { BrevoEmailGateway } from "#/infrastructure/gateways/brevo-email-gateway.js";
+import {
+  BrevoEmailGateway,
+  type BrevoEmailGatewayConfig,
+} from "#/infrastructure/gateways/brevo-email-gateway.js";
 import { CreateOrderInShippingProviderService } from "#/application/services/outbox-handlers/create-order-in-shipping-provider.service.js";
 import { ActivateShipmentInShippingProviderService } from "#/application/services/outbox-handlers/activate-shipment-in-shipping-provider.service.js";
 import { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
@@ -204,6 +210,7 @@ export function buildIntegrationTestsContainer(): Container {
   const testDb = createDrizzleDB({
     connectionUrl: env.DATABASE_URL,
     maxPoolSize: 1,
+    debug: env.DEBUG_DB,
   });
 
   container.registerInstance(DB, testDb);
@@ -354,9 +361,14 @@ export function buildIntegrationTestsContainer(): Container {
   const utApi = new UTApi({});
   container.registerInstance(UTAPI, utApi);
 
+  const uploadthingConfig: UploadthingFileStoreGatewayConfig = {
+    UPLOADTHING_APP_ID: env.UPLOADTHING_APP_ID,
+  };
+
   container.register(
     FILE_STORE_GATEWAY,
-    (scope) => new UploadthingFileStoreGateway(scope.resolve(UTAPI)),
+    (scope) =>
+      new UploadthingFileStoreGateway(scope.resolve(UTAPI), uploadthingConfig),
     "scoped",
   );
 
@@ -371,13 +383,19 @@ export function buildIntegrationTestsContainer(): Container {
     "scoped",
   );
 
+  const brevoConfig: BrevoEmailGatewayConfig = {
+    API_KEY: env.BREVO_API_KEY,
+    EMAIL_SENDER_ADDRESS: env.EMAIL_SENDER_ADDRESS,
+    EMAIL_SENDER_NAME: env.EMAIL_SENDER_NAME,
+  };
+
   container.register(
     EMAIL_GATEWAY,
     (scope) =>
       new BrevoEmailGateway(
         scope.resolve(HTTP_CLIENT),
         env.BREVO_BASE_URL,
-        env.BREVO_API_KEY,
+        brevoConfig,
       ),
     "singleton",
   );
@@ -1037,7 +1055,7 @@ export function buildIntegrationTestsContainer(): Container {
   );
 
   container.register(
-    CREATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
+    ACTIVATE_SHIPMENT_IN_SHIPPING_PROVIDER_SERVICE,
     (scope) =>
       new ActivateShipmentInShippingProviderService(
         scope.resolve(DB),

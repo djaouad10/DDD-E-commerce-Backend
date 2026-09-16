@@ -3,12 +3,18 @@ import { GatewayError } from "#/shared/errors/errors.js";
 import { handleUploadThingErrors } from "#/infrastructure/gateways/errors/handle-uploadthing-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import { UTApi } from "uploadthing/server";
-import { env } from "../config/env.js";
+
+export type UploadthingFileStoreGatewayConfig = {
+  UPLOADTHING_APP_ID: string;
+};
 
 export class UploadthingFileStoreGateway implements FileStoreGateway {
   private logger = createLogger("UploadthingFileStoreGateway");
 
-  constructor(private utApi: UTApi) {}
+  constructor(
+    private utApi: UTApi,
+    private config: UploadthingFileStoreGatewayConfig,
+  ) {}
 
   async delete(key: string): Promise<void> {
     this.logger.debug(`delete called`, { key });
@@ -49,7 +55,7 @@ export class UploadthingFileStoreGateway implements FileStoreGateway {
   getPublicFileUrl(key: string): string {
     this.logger.debug(`getPublicUrl called`, { key });
 
-    const url = `https://${env.UPLOADTHING_APP_ID}.ufs.sh/f/${key}`;
+    const url = `https://${this.config.UPLOADTHING_APP_ID}.ufs.sh/f/${key}`;
 
     this.logger.debug(`getPublicUrl completed`, { key, url });
 

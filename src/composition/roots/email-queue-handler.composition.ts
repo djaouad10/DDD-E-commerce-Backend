@@ -14,7 +14,10 @@ import { PostgresOrderRepository } from "#/infrastructure/databases/repositories
 import { PostgresProductRepository } from "#/infrastructure/databases/repositories/postgres/postgres-product-repository.js";
 import { PostgresRatingRepository } from "#/infrastructure/databases/repositories/postgres/postgres-rating-repository.js";
 import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres/postgres-user-repository.js";
-import { BrevoEmailGateway } from "#/infrastructure/gateways/brevo-email-gateway.js";
+import {
+  BrevoEmailGateway,
+  type BrevoEmailGatewayConfig,
+} from "#/infrastructure/gateways/brevo-email-gateway.js";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
 import { Container } from "../utils/container.js";
 import { registerSharedInfrastructure } from "../utils/shared-registry.js";
@@ -87,13 +90,19 @@ export function buildEmailQueueHandlerContainer(): Container {
     "singleton",
   );
 
+  const brevoConfig: BrevoEmailGatewayConfig = {
+    API_KEY: env.BREVO_API_KEY,
+    EMAIL_SENDER_ADDRESS: env.EMAIL_SENDER_ADDRESS,
+    EMAIL_SENDER_NAME: env.EMAIL_SENDER_NAME,
+  };
+
   container.register(
     EMAIL_GATEWAY,
     (scope) =>
       new BrevoEmailGateway(
         scope.resolve(HTTP_CLIENT),
         env.BREVO_BASE_URL,
-        env.BREVO_API_KEY,
+        brevoConfig,
       ),
     "singleton",
   );

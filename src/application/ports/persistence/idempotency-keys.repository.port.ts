@@ -7,7 +7,12 @@ export type IdempotencyKeyEntry = {
   payload?: unknown;
 };
 
-export interface IdempotencyKeysRepository {
-  create(id: string, handlerName: string, tx: TransactionClient, payload?: unknown): Promise<void>;
+export type IdempotencyKeysRepository = {
+  create(
+    id: string,
+    handlerName: string,
+    tx: TransactionClient,
+    payload?: unknown,
+  ): Promise<void>;
   find(id: string, tx: TransactionClient): Promise<IdempotencyKeyEntry | null>;
-}
+};

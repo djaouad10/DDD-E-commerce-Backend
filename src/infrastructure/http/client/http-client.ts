@@ -6,11 +6,11 @@ export type HttpRequestConfig = {
   timeoutMs?: number;
 };
 
-export interface HttpResponse<T = unknown> {
+export type HttpResponse<T = unknown> = {
   statusCode: number;
   headers: Record<string, string>;
   body: T;
-}
+};
 
 export type BinaryHttpResponse = {
   statusCode: number;

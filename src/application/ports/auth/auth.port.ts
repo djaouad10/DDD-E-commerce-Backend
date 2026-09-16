@@ -16,6 +16,6 @@ export type AuthSession = {
   // could be extended to other fields in the future
 };
 
-export interface AuthPort {
+export type AuthPort = {
   getSession(headers: AgnosticHeaders): Promise<AuthSession | null>;
-}
+};

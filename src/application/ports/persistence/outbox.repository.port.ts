@@ -83,7 +83,7 @@ export type UpdateRowToFailedParams = {
   processedAt: Date;
 };
 
-export interface OutboxRepository {
+export type OutboxRepository = {
   // called by application services inside the same transaction as aggregate saves
   saveJob(
     params: {
@@ -115,4 +115,4 @@ export interface OutboxRepository {
     stuckBefore: Date,
     tx?: TransactionClient,
   ): Promise<(OutboxJobEntry | OutboxDomainEventEntry)[]>;
-}
+};

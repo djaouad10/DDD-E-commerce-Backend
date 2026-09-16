@@ -10,6 +10,7 @@ export function registerSharedInfrastructure(container: Container): void {
   const db = createDrizzleDB({
     connectionUrl: env.DATABASE_URL,
     maxPoolSize: 10,
+    debug: env.DEBUG_DB,
   }); // in case I decided to switch to another ORM/DB I can use the new factory with DB token and keep the drizzle factory to register with DRIZZLE_DB
   container.registerInstance(DB, db);
 

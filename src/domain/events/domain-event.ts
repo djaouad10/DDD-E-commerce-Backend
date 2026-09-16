@@ -57,8 +57,8 @@ export const DomainEventCode = {
 export type DomainEventCode =
   (typeof DomainEventCode)[keyof typeof DomainEventCode];
 
-export interface DomainEvent {
+export type DomainEvent = {
   readonly eventType: DomainEventCode;
   readonly occurredOn: Date;
   readonly aggregateId: string;
-}
+};
