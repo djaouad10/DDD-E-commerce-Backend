@@ -2,7 +2,7 @@
   "name": "ddd",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist/server.js",
+  "main": "./dist/entrypoints/api/index.js",
   "type": "module",
   "imports": {
     "#/*": {
