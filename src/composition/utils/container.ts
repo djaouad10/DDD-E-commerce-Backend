@@ -1,4 +1,5 @@
 import { DependencyResolutionError } from "#/shared/errors/errors.js";
+import { createLogger } from "#/shared/logging/logger.js";
 
 /**
  * a Constructor represents any class that can be instantiated "new".
@@ -62,8 +63,10 @@ export class Container {
    * Use this for your db and redisConnection for example.
    */
   registerInstance<T>(token: Token<T>, instance: T): this {
-
-    this.registry.set(token, { lifecycle: "singleton", factory: () => instance });
+    this.registry.set(token, {
+      lifecycle: "singleton",
+      factory: () => instance,
+    });
     this.singletonCache.set(token, instance);
 
     return this;
@@ -82,7 +85,6 @@ export class Container {
    * Checks singletonCache first. If not there, builds it using the factory.
    */
   resolveSingleton<T>(token: Token<T>): T {
-
     const reg = this.registry.get(token);
 
     if (!reg) throw new DependencyResolutionError(token);
@@ -105,15 +107,10 @@ export class Container {
   getRegistration<T>(token: Token<T>): Registration<T> | undefined {
     return this.registry.get(token);
   }
-
-  /**
-   * Normalize any token to a symbol key for Map storage.
-   * Symbol.for('name') always returns the SAME symbol for the same string.
-   */
-
 }
 
 export class Scope {
+  private logger = createLogger("Scope");
   private scopedCache = new Map<Token<any>, any>();
 
   constructor(private parent: Container) {}
@@ -122,7 +119,6 @@ export class Scope {
    * Resolve a dependency from this scope.
    */
   resolve<T>(token: Token<T>): T {
-
     const reg = this.parent.getRegistration(token);
 
     if (!reg) throw new DependencyResolutionError(token);
@@ -153,17 +149,29 @@ export class Scope {
    * Does NOT touch singletons.
    */
   async dispose(): Promise<void> {
-    for (const instance of this.scopedCache.values()) {
-      if (instance && typeof instance.dispose === "function") {
-        await instance.dispose();
+    const instances = [...this.scopedCache.values()];
+    this.scopedCache.clear(); // clear FIRST: even if everything explodes, the scope is dead
+
+    for (const instance of instances) {
+      if (isDisposable(instance)) {
+        try {
+          await instance.dispose();
+        } catch (err) {
+          this.logger.error("Error while disposing scope", err as Error);
+        }
       }
     }
-    this.scopedCache.clear();
   }
+}
 
-  /**
-   * Normalize any token to a symbol key for Map storage.
-   * Symbol.for('name') always returns the SAME symbol for the same string.
-   */
+export interface Disposable {
+  dispose(): Promise<void> | void;
+}
 
+function isDisposable(x: unknown): x is Disposable {
+  return (
+    typeof x === "object" &&
+    x !== null &&
+    typeof (x as Disposable).dispose === "function"
+  );
 }
