@@ -204,6 +204,7 @@ export function buildIntegrationTestsContainer(): Container {
   const testDb = createDrizzleDB({
     connectionUrl: env.DATABASE_URL,
     maxPoolSize: 1,
+    debug: env.DEBUG_DB,
   });
 
   container.registerInstance(DB, testDb);
