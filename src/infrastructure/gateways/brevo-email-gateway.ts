@@ -1,7 +1,12 @@
 import type { EmailGateway } from "#/domain/gateways/email.gateway.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { env } from "../config/env.js";
 import type { HttpClient } from "../http/client/http-client.js";
+
+export type BrevoEmailGatewayConfig = {
+  EMAIL_SENDER_NAME: string;
+  EMAIL_SENDER_ADDRESS: string;
+  API_KEY: string;
+};
 
 export class BrevoEmailGateway implements EmailGateway {
   private logger = createLogger("BrevoEmailGateway");
@@ -9,7 +14,7 @@ export class BrevoEmailGateway implements EmailGateway {
   constructor(
     private httpClient: HttpClient,
     private baseUrl: string,
-    private apiKey: string,
+    private config: BrevoEmailGatewayConfig,
   ) {}
 
   async sendEmail(to: string, subject: string, text: string): Promise<void> {
@@ -18,11 +23,11 @@ export class BrevoEmailGateway implements EmailGateway {
         this.httpClient.request({
           method: "POST",
           url: this.baseUrl,
-          headers: { "api-key": this.apiKey },
+          headers: { "api-key": this.config.API_KEY },
           body: {
             sender: {
-              name: env.EMAIL_SENDER_NAME,
-              email: env.EMAIL_SENDER_ADDRESS,
+              name: this.config.EMAIL_SENDER_NAME,
+              email: this.config.EMAIL_SENDER_ADDRESS,
             },
             to: [{ email: to }],
             subject: subject,

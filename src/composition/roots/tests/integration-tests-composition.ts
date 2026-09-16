@@ -181,7 +181,10 @@ import { EmailQueueRatingApprovedHandlerService } from "#/application/services/e
 import { EmailQueueRatingRejectedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-rejected-handler.service.js";
 import { EmailQueueRatingSubmittedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-submitted-handler.service.js";
 import { EmailQueueUserRegisteredHandlerService } from "#/application/services/email-queue-handlers/email-queue-user-registered-handler.service.js";
-import { BrevoEmailGateway } from "#/infrastructure/gateways/brevo-email-gateway.js";
+import {
+  BrevoEmailGateway,
+  type BrevoEmailGatewayConfig,
+} from "#/infrastructure/gateways/brevo-email-gateway.js";
 import { CreateOrderInShippingProviderService } from "#/application/services/outbox-handlers/create-order-in-shipping-provider.service.js";
 import { ActivateShipmentInShippingProviderService } from "#/application/services/outbox-handlers/activate-shipment-in-shipping-provider.service.js";
 import { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
@@ -372,13 +375,19 @@ export function buildIntegrationTestsContainer(): Container {
     "scoped",
   );
 
+  const brevoConfig: BrevoEmailGatewayConfig = {
+    API_KEY: env.BREVO_API_KEY,
+    EMAIL_SENDER_ADDRESS: env.EMAIL_SENDER_ADDRESS,
+    EMAIL_SENDER_NAME: env.EMAIL_SENDER_NAME,
+  };
+
   container.register(
     EMAIL_GATEWAY,
     (scope) =>
       new BrevoEmailGateway(
         scope.resolve(HTTP_CLIENT),
         env.BREVO_BASE_URL,
-        env.BREVO_API_KEY,
+        brevoConfig,
       ),
     "singleton",
   );
