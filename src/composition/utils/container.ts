@@ -164,9 +164,9 @@ export class Scope {
   }
 }
 
-export interface Disposable {
+export type Disposable = {
   dispose(): Promise<void> | void;
-}
+};
 
 function isDisposable(x: unknown): x is Disposable {
   return (
