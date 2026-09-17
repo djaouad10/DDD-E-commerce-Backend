@@ -3,6 +3,6 @@ dist
 .env.dev
 .env.test
 .env.prod
-README.md
+Notes.md
 7Q Framework
 coverage

@@ -2,6 +2,7 @@ node_modules
 dist
 .env*
 README.md
+Notes.md
 7Q Framework
 coverage
 src/tests
