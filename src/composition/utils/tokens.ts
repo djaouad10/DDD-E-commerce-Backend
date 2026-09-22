@@ -92,6 +92,11 @@ import type { ResetStuckOutboxRowsService } from "#/application/services/stuck-o
 import type { DBClient } from "#/shared/types/db-client.js";
 import type { AuthPort } from "#/application/ports/auth/auth.port.js";
 import type { Auth } from "#/infrastructure/config/auth.js";
+import type { GoogleGenAI } from "@google/genai";
+import type { TextEmbeddingModelPort } from "#/application/ports/ai/text-embedding-model.port.js";
+import type { ProductEmbeddingRepository } from "#/application/ports/persistence/product-embedding.repository.js";
+import type { EmbeddingQueueProductUpsertedEventsHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-upserted-events-handler.service.js";
+import type { EmbeddingQueueProductDeletedEventHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DBClient>;
@@ -136,6 +141,18 @@ export const OUTBOX_REPOSITORY = Symbol(
 export const IDEMPOTENCY_KEYS_REPOSITORY = Symbol(
   "idempotencyKeysRepository",
 ) as InjectionToken<IdempotencyKeysRepository>;
+
+export const PRODUCT_EMBEDDING_REPOSITORY = Symbol(
+  "productEmbeddingRepository",
+) as InjectionToken<ProductEmbeddingRepository>;
+
+export const GEMENI_CLIENT = Symbol(
+  "gemeniClient",
+) as InjectionToken<GoogleGenAI>;
+
+export const TEXT_EMBEDDING_MODEL_PORT = Symbol(
+  "textEmbeddingModel",
+) as InjectionToken<TextEmbeddingModelPort>;
 
 // read model tokens
 export const CART_QUERIES = Symbol(
@@ -475,3 +492,11 @@ export const CLEAN_OUTBOX_SERVICE = Symbol(
 export const RESET_STUCK_OUTBOX_ROWS_SERVICE = Symbol(
   "resetStuckOutboxRowsService",
 ) as InjectionToken<ResetStuckOutboxRowsService>;
+
+export const EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE = Symbol(
+  "embeddingQueueProductUpsertedEventsHandlerService",
+) as InjectionToken<EmbeddingQueueProductUpsertedEventsHandlerService>;
+
+export const EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE = Symbol(
+  "embeddingQueueProductDeletedEventsHandlerService",
+) as InjectionToken<EmbeddingQueueProductDeletedEventHandlerService>;
