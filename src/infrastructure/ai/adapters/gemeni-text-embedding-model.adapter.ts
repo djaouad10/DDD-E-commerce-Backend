@@ -27,13 +27,17 @@ export class GemeniTextEmbeddingModelAdapter implements TextEmbeddingModelPort {
           "text array length exceeds the gemeni limit for synchronous batched embeddings",
         );
 
-      const response = await this.gemeniClient.models.embedContent({
-        contents: text,
-        model: this.config.GEMINI_EMBEDDING_MODEL,
-        config: {
-          outputDimensionality: this.config.EMBEDDING_DIMENSIONS,
-        },
-      });
+      const response = await this.logger.measure(
+        "gemeniClient.models.embedContent",
+        () =>
+          this.gemeniClient.models.embedContent({
+            contents: text,
+            model: this.config.GEMINI_EMBEDDING_MODEL,
+            config: {
+              outputDimensionality: this.config.EMBEDDING_DIMENSIONS,
+            },
+          }),
+      );
 
       if (!response.embeddings)
         throw new GatewayError("Gemeni", new Error("No embeddings returned"));
