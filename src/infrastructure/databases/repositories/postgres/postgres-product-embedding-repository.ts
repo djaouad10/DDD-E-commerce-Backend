@@ -24,20 +24,18 @@ export class PostgresProductEmbeddingRepository implements ProductEmbeddingRepos
     try {
       // next queries are atomic in postgres, they use the same tx client
 
-      await this.logger.measure("db.delete(productEmbeddings)", () =>
-        db
-          .delete(productEmbeddings)
-          .where(eq(productEmbeddings.product_id, params.productId)),
-      );
+      await this.deleteByProductId(params.productId, tx);
 
       await this.logger.measure("db.insert(productEmbeddings)", () =>
-        db.insert(productEmbeddings).values({
-          id: generateProductEmbeddingId(),
-          product_id: params.productId,
-          embedding: params.embedding,
-          content: params.content,
-          chunk_index: params.chunkIndex,
-        }),
+        db.insert(productEmbeddings).values(
+          params.batch.map((b) => ({
+            id: generateProductEmbeddingId(),
+            product_id: params.productId,
+            embedding: b.embedding,
+            content: b.content,
+            chunk_index: b.chunkIndex,
+          })),
+        ),
       );
     } catch (error) {
       this.logger.error("upsert failed", error as Error, {
