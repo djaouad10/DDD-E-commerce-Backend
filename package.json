@@ -45,6 +45,7 @@
     "dev:db:reset": "npm run dev:db:down && npm run dev:db:up && npm run dev:db:migrate"
   },
   "dependencies": {
+    "@google/genai": "^2.24.0",
     "@t3-oss/env-core": "^0.13.11",
     "better-auth": "^1.6.19",
     "bullmq": "^5.81.2",
