@@ -95,7 +95,7 @@ import {
 import { UTApi } from "uploadthing/server";
 import { FetchHttpClient } from "#/infrastructure/http/client/fetch-http-client.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { CreateCategoryService } from "#/application/services/api/create-category.service.js";
 import { UpdateCategoryService } from "#/application/services/api/update-category.service.js";

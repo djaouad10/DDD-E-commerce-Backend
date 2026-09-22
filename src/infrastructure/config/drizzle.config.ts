@@ -1,5 +1,5 @@
 import { defineConfig } from "drizzle-kit";
-import { env } from "./env.js";
+import { env } from "./env/env.js";
 
 export default defineConfig({
   // paths relative to root directory, not to the location of this file

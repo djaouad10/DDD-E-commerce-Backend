@@ -2,7 +2,7 @@ import { CreateOrderInShippingProviderService } from "#/application/services/out
 import { ActivateShipmentInShippingProviderService } from "#/application/services/outbox-handlers/activate-shipment-in-shipping-provider.service.js";
 import { DeleteOrderFromShippingProviderService } from "#/application/services/outbox-handlers/delete-order-from-shipping-provider.service.js";
 import { UpdateOrderInShippingProviderService } from "#/application/services/outbox-handlers/update-order-in-shipping-provider.service.js";
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/postgres/postgres-idempotency-keys-repository.js";
 import { PostgresOrderRepository } from "#/infrastructure/databases/repositories/postgres/postgres-order-repository.js";
 import { WorldExpressShippingProviderGateway } from "#/infrastructure/gateways/world-express-shipping-provider-gateway.js";

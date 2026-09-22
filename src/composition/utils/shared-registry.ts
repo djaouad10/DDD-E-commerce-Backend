@@ -3,7 +3,7 @@ import { DB, DRIZZLE_DB, REDIS } from "./tokens.js";
 import { createDrizzleDB } from "#/infrastructure/config/database.js";
 
 import { createRedisConnection } from "#/infrastructure/config/redis-connection.js";
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 
 export function registerSharedInfrastructure(container: Container): void {
   // registers shared infra singeltons: db, redis connection, queues,... etc.

@@ -1,5 +1,5 @@
 import { createDrizzleDB } from "#/infrastructure/config/database.js";
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 import { createRedisConnection } from "#/infrastructure/config/redis-connection.js";
 import { Container } from "../../utils/container.js";
 

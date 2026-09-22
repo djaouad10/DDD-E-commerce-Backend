@@ -7,7 +7,7 @@ import { EmailQueueRatingApprovedHandlerService } from "#/application/services/e
 import { EmailQueueRatingRejectedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-rejected-handler.service.js";
 import { EmailQueueRatingSubmittedHandlerService } from "#/application/services/email-queue-handlers/email-queue-rating-submitted-handler.service.js";
 import { EmailQueueUserRegisteredHandlerService } from "#/application/services/email-queue-handlers/email-queue-user-registered-handler.service.js";
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 import { PostgresUserQueries } from "#/infrastructure/databases/read-models/postgres/postgres-user-queries.js";
 import { PostgresIdempotencyKeysRepository } from "#/infrastructure/databases/repositories/postgres/postgres-idempotency-keys-repository.js";
 import { PostgresOrderRepository } from "#/infrastructure/databases/repositories/postgres/postgres-order-repository.js";

@@ -4,7 +4,7 @@ import { cleanupTestApp, createTestApp } from "#/tests/helpers/test-app.js";
 import nock from "nock";
 import supertest from "supertest";
 import type { Express } from "express";
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 
 describe("GET /api/v1/shipping/wilayas", () => {
   let app: Express;
