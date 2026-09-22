@@ -189,6 +189,10 @@ export const ANALYTICS_QUEUE = Symbol(
   "analyticsQueue",
 ) as InjectionToken<Queue>;
 
+export const EMBEDDING_QUEUE = Symbol(
+  "embeddingQueue",
+) as InjectionToken<Queue>;
+
 // ports
 export const EVENT_PUBLISHER = Symbol(
   "eventPublisher",

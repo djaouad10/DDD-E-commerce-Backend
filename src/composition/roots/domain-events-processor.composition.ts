@@ -10,6 +10,7 @@ import {
   DOMAIN_EVENTS_PROCESSOR_SERVICE,
   DRIZZLE_DB,
   EMAIL_QUEUE,
+  EMBEDDING_QUEUE,
   EVENT_PUBLISHER,
   INVENTORY_QUEUE,
   OUTBOX_REPOSITORY,
@@ -18,6 +19,7 @@ import {
 import { createBullMqFlowProducer } from "#/infrastructure/messaging/bullmq/utils/bullmq-flow-producer.js";
 import { BullMqEventPublisher } from "#/infrastructure/messaging/bullmq/bullmq-event-publisher.js";
 import { DomainEventsProcessorService } from "#/application/services/domain-events-processor/domain-events-processor.service.js";
+import { createBullMqEmbeddingQueue } from "#/infrastructure/messaging/bullmq/queue/embedding.queue.js";
 
 export function buildDomainEventsProcessorContainer(): Container {
   const container = new Container();
@@ -43,6 +45,12 @@ export function buildDomainEventsProcessorContainer(): Container {
   );
 
   container.register(
+    EMBEDDING_QUEUE,
+    (scope) => createBullMqEmbeddingQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
     BULLMQ_FLOW_PRODUCER,
     (scope) => createBullMqFlowProducer(scope.resolve(REDIS)),
     "singleton",
@@ -56,6 +64,7 @@ export function buildDomainEventsProcessorContainer(): Container {
         scope.resolve(EMAIL_QUEUE),
         scope.resolve(ANALYTICS_QUEUE),
         scope.resolve(INVENTORY_QUEUE),
+        scope.resolve(EMBEDDING_QUEUE),
       ),
     "singleton",
   );
