@@ -25,6 +25,7 @@ export const DomainEventCode = {
   // Product events
   PRODUCT_CREATED: "product.created",
   PRODUCT_UPDATED: "product.updated",
+  PRODUCT_DELETED: "product.deleted",
   PRODUCT_VARIATION_ADDED: "product.variation-added",
   PRODUCT_VARIATION_REMOVED: "product.variation-removed",
   PRODUCT_IMAGE_ADDED: "product.image-added",
