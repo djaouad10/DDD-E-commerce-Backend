@@ -33,7 +33,27 @@ export const env = createEnv({
   /*
    * Tell T3 Env to validate against the standard Node process object.
    */
-  runtimeEnv: process.env,
+  runtimeEnv: {
+    NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
+    DATABASE_URL: process.env.DATABASE_URL,
+    DEBUG_DB: process.env.DEBUG_DB,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    LOG_LEVEL: process.env.LOG_LEVEL,
+    UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
+    UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
+    REDIS_HOST: process.env.REDIS_HOST,
+    REDIS_PORT: process.env.REDIS_PORT,
+    WORLD_EXPRESS_API_URL: process.env.WORLD_EXPRESS_API_URL,
+    WORLD_EXPRESS_API_KEY: process.env.WORLD_EXPRESS_API_KEY,
+    EMAIL_SENDER_NAME: process.env.EMAIL_SENDER_NAME,
+    EMAIL_SENDER_ADDRESS: process.env.EMAIL_SENDER_ADDRESS,
+    SERVICE_NAME: process.env.SERVICE_NAME,
+    BREVO_API_KEY: process.env.BREVO_API_KEY,
+    BREVO_BASE_URL: process.env.BREVO_BASE_URL,
+  },
 
   /*
    * Treats empty strings like "" as undefined, allowing defaults to take over.
