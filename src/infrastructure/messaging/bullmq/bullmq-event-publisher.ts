@@ -8,6 +8,7 @@ export class BullMqEventPublisher implements EventPublisher {
     private emailQueue: Queue,
     private inventoryQueue: Queue,
     private analyticsQueue: Queue,
+    private embeddingQueue: Queue,
   ) {}
 
   async publish(
@@ -66,8 +67,9 @@ export class BullMqEventPublisher implements EventPublisher {
       "user.unbanned": [],
       "category.created": [],
       "category.updated": [],
-      "product.created": [],
-      "product.updated": [],
+      "product.created": [this.embeddingQueue],
+      "product.updated": [this.embeddingQueue],
+      'product.deleted': [this.embeddingQueue],
       "product.variation-added": [],
       "product.variation-removed": [],
       "product.image-added": [],
