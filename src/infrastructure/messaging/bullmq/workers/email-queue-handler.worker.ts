@@ -12,7 +12,7 @@ import {
 } from "../../jobs/email-handler-utils.js";
 import {
   domainEventsPayloadSchemas,
-  type DomainEventsPayloadTypes,
+  type EmailDomainEventsPayloadTypes,
 } from "../../jobs/validation.js";
 import type { Container } from "#/composition/utils/container.js";
 
@@ -70,7 +70,7 @@ export class EmailQueueHandlerWorker {
 
               const payload = payloadSchema.parse(
                 job.data,
-              ) as DomainEventsPayloadTypes<typeof eventCode>;
+              ) as EmailDomainEventsPayloadTypes<typeof eventCode>;
 
               // 2. Build typed command
               const command = buildEmailQueueEventCommand(eventCode, payload);
