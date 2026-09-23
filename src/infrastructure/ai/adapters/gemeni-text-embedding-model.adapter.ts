@@ -4,7 +4,7 @@ import type { GoogleGenAI } from "@google/genai";
 import { handleGeminiClientErrors } from "../errors/handle-gemeni-client-errors.js";
 import { GatewayError, ValidationError } from "#/shared/errors/errors.js";
 
-export type config = {
+export type GemeniTextEmbeddingModelAdapterConfig = {
   GEMINI_EMBEDDING_MODEL: string;
   EMBEDDING_DIMENSIONS: number;
 };
@@ -14,7 +14,7 @@ export class GemeniTextEmbeddingModelAdapter implements TextEmbeddingModelPort {
 
   constructor(
     private gemeniClient: GoogleGenAI,
-    private config: config,
+    private config: GemeniTextEmbeddingModelAdapterConfig,
   ) {}
 
   async embed(text: string[]): Promise<number[][]> {
