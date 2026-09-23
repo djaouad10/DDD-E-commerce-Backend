@@ -2,9 +2,10 @@ import { EmbeddingQueueProductUpsertedEventsHandlerCommand } from "#/application
 import { EmbeddingQueueProductDeletedEventHandlerCommand } from "#/application/commands/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.command.js";
 import { EmbeddingQueueProductDeletedEventHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.service.js";
 import { EmbeddingQueueProductUpsertedEventsHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-upserted-events-handler.service.js";
-import type {
-  EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE,
+import type { InjectionToken, Scope } from "#/composition/utils/container.js";
+import {
   EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
+  EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE,
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
 import type { EmbeddingDomainEventsPayloadTypes } from "./validation.js";
@@ -74,4 +75,57 @@ export function buildEmbeddingQueueEventCommand<
       throw new Error(`Unhandled Embedding Queue Domain Event: ${_exhaustive}`);
     }
   }
+}
+
+type EmbeddingQueueEventHandlerRegistryEntry<
+  T extends EmbeddingQueueDomainEvents,
+> = {
+  token: EmbeddingQueueEventToToken[T];
+  handlerMethod: (
+    handler: EmbeddingQueueEventToService[T],
+    command: EmbeddingQueueEventToCommand[T],
+    jobId: string,
+  ) => Promise<void>;
+};
+
+const embeddingQueueEventeHandlerRegistry: {
+  [K in EmbeddingQueueDomainEvents]: EmbeddingQueueEventHandlerRegistryEntry<K>;
+} = {
+  [DomainEventCode.PRODUCT_CREATED]: {
+    token: EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.PRODUCT_UPDATED]: {
+    token: EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+
+  [DomainEventCode.PRODUCT_DELETED]: {
+    token: EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE,
+    async handlerMethod(handler, command, jobId) {
+      return handler.execute(command, jobId);
+    },
+  },
+};
+
+export async function executeEmbeddingQueueEventHandler<
+  T extends EmbeddingQueueDomainEvents,
+>(
+  event: T,
+  scope: Scope,
+  command: EmbeddingQueueEventToCommand[T],
+  jobId: string,
+): Promise<unknown> {
+  const entry = embeddingQueueEventeHandlerRegistry[event];
+
+  const service = scope.resolve<EmbeddingQueueEventToService[T]>(
+    entry.token as InjectionToken<EmbeddingQueueEventToService[T]>,
+  );
+
+  return entry.handlerMethod(service, command, jobId);
 }
