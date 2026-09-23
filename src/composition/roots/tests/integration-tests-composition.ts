@@ -118,6 +118,8 @@ import {
   EMBEDDING_QUEUE,
   TEXT_EMBEDDING_MODEL_PORT,
   PRODUCT_EMBEDDING_REPOSITORY,
+  EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
+  EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE,
 } from "../../utils/tokens.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -210,6 +212,8 @@ import { createBullMqEmbeddingQueue } from "#/infrastructure/messaging/bullmq/qu
 import { createFakeTextEmbeddingModel } from "#/tests/helpers/fake-text-embedding-model.js";
 import { aiEnv } from "#/infrastructure/config/env/env.ai.js";
 import { PostgresProductEmbeddingRepository } from "#/infrastructure/databases/repositories/postgres/postgres-product-embedding-repository.js";
+import { EmbeddingQueueProductUpsertedEventsHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-upserted-events-handler.service.js";
+import { EmbeddingQueueProductDeletedEventHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -1126,6 +1130,30 @@ export function buildIntegrationTestsContainer(): Container {
     RESET_STUCK_OUTBOX_ROWS_SERVICE,
     (scope) =>
       new ResetStuckOutboxRowsService(scope.resolve(OUTBOX_REPOSITORY)),
+    "scoped",
+  );
+
+  container.register(
+    EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
+    (scope) =>
+      new EmbeddingQueueProductUpsertedEventsHandlerService(
+        scope.resolve(DB),
+        scope.resolve(TEXT_EMBEDDING_MODEL_PORT),
+        scope.resolve(PRODUCT_EMBEDDING_REPOSITORY),
+        scope.resolve(PRODUCT_QUERIES),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE,
+    (scope) =>
+      new EmbeddingQueueProductDeletedEventHandlerService(
+        scope.resolve(DB),
+        scope.resolve(PRODUCT_EMBEDDING_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
     "scoped",
   );
 
