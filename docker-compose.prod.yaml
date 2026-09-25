@@ -29,6 +29,27 @@ services:
       retries: 3
       start_period: 15s
 
+  mcp:
+    <<: *service-defaults
+    env_file:
+      - .env
+      - .env.mcp
+    command: ["node", "./dist/entrypoints/mcp/index.js"]
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(8000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
   outbox-handler:
     <<: *service-defaults
     command: ["node", "./dist/entrypoints/workers/outbox-handler.js"]
@@ -56,3 +77,7 @@ services:
     <<: *service-defaults
     command: ["node", "./dist/entrypoints/workers/reset-stuck-outbox-rows.js"]
     scale: 1
+
+  embedding-queue-handler:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/workers/embedding-queue-handler.js"]
