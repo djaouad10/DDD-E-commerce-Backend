@@ -65,7 +65,7 @@ Returns lightweight product records, including productId, name, price,
 and similarityDistance.
 
 When you need more information about a candidate, call
-getProductStaticDetails with its productId. Do not fetch full details
+get-product-static-details with its productId. Do not fetch full details
 for every result unnecessarily.
 
 Results are ordered by ascending cosine distance (smaller is a closer
