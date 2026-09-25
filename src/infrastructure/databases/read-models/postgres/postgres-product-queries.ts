@@ -559,7 +559,7 @@ export class PostgresProductQueries implements ProductQueries {
     limit: number;
     filters: SemanticSearchFilters;
   }): Promise<SemanticProductHit[]> {
-    this.logger.debug("semanticSearch called", params);
+    this.logger.debug("semanticSearch called");
 
     const { queryVector, limit, filters } = params;
 
@@ -622,7 +622,7 @@ export class PostgresProductQueries implements ProductQueries {
         similarityDistance: Number(r.similarityDistance.toFixed(4)),
       }));
     } catch (error) {
-      this.logger.error("semanticSearch failed", error as Error, params);
+      this.logger.error("semanticSearch failed", error as Error);
 
       handleDrizzleErrors(error, "PostgresProductQueries.semanticSearch");
     }
