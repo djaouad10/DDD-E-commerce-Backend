@@ -1,5 +1,5 @@
-import type {  Scope } from "#/composition/utils/container.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import type { Scope } from "#/composition/utils/container.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { productSemanticSearchToolRegistration } from "./tools/product-semantic-search.tool.js";
 import { getProductStaticDataToolRegistration } from "./tools/product-static-data.tool.js";
 

@@ -3,8 +3,8 @@ import express from "express";
 import { requireMcpApiKey } from "./middleware/require-mcp-key.middleware.js";
 import { mcpEnv } from "../config/env/mcp.js";
 import { createMcpServer } from "./server.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp";
-import type { Transport } from "@modelcontextprotocol/sdk/shared/transport";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 
 export function createMcpTransport(container: Container): express.Express {
   const app = express();
