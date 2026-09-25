@@ -1,14 +1,14 @@
 import { ProductSemanticSearchQuery } from "#/application/queries/product-semantic-search.query.js";
-import type { Container } from "#/composition/utils/container.js";
 import { PRODUCT_SEMANTIC_SEARCH_SERVICE } from "#/composition/utils/tokens.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import {
   productSemanticSearchInputSchema,
   productSemanticSearchOutputSchema,
 } from "../validation/product-semantic-search-schemas.js";
+import type { Scope } from "#/composition/utils/container.js";
 
 export function productSemanticSearchToolRegistration(
-  container: Container,
+  scope: Scope,
   server: McpServer,
 ) {
   server.registerTool(
@@ -19,39 +19,29 @@ export function productSemanticSearchToolRegistration(
       outputSchema: productSemanticSearchOutputSchema,
     },
     async ({ query, limit, filters }) => {
-      const scope = container.createScope();
+      const service = scope.resolve(PRODUCT_SEMANTIC_SEARCH_SERVICE);
+      const semanticSearchQuery = new ProductSemanticSearchQuery(query, limit, {
+        ...(filters?.colors !== undefined && { colors: filters.colors }),
+        ...(filters?.sizes !== undefined && { sizes: filters.sizes }),
+        ...(filters?.maxPrice !== undefined && {
+          maxPrice: filters.maxPrice,
+        }),
+        ...(filters?.minPrice !== undefined && {
+          minPrice: filters.minPrice,
+        }),
+        ...(filters?.inStock !== undefined && { inStock: filters.inStock }),
+      });
 
-      try {
-        const service = scope.resolve(PRODUCT_SEMANTIC_SEARCH_SERVICE);
-        const semanticSearchQuery = new ProductSemanticSearchQuery(
-          query,
-          limit,
+      const result = await service.execute(semanticSearchQuery);
+
+      return {
+        content: [
           {
-            ...(filters?.colors !== undefined && { colors: filters.colors }),
-            ...(filters?.sizes !== undefined && { sizes: filters.sizes }),
-            ...(filters?.maxPrice !== undefined && {
-              maxPrice: filters.maxPrice,
-            }),
-            ...(filters?.minPrice !== undefined && {
-              minPrice: filters.minPrice,
-            }),
-            ...(filters?.inStock !== undefined && { inStock: filters.inStock }),
+            type: "text",
+            text: JSON.stringify(result),
           },
-        );
-
-        const result = await service.execute(semanticSearchQuery);
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(result),
-            },
-          ],
-        };
-      } finally {
-        await scope.dispose();
-      }
+        ],
+      };
     },
   );
 }

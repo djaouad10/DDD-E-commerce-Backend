@@ -1,4 +1,3 @@
-import type { Container } from "#/composition/utils/container.js";
 import { GET_PRODUCT_STATIC_DATA_SERVICE } from "#/composition/utils/tokens.js";
 import { GetProductStaticDataQuery } from "#/application/queries/get-product-static-data.query.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -6,9 +5,10 @@ import {
   getProductStaticDataInputSchema,
   getProductStaticDataOutputSchema,
 } from "../validation/product-static-data.schemas.js";
+import type { Scope } from "#/composition/utils/container.js";
 
 export function getProductStaticDataToolRegistration(
-  container: Container,
+  scope: Scope,
   server: McpServer,
 ) {
   server.registerTool(
@@ -19,27 +19,21 @@ export function getProductStaticDataToolRegistration(
       outputSchema: getProductStaticDataOutputSchema,
     },
     async ({ productId }) => {
-      const scope = container.createScope();
+      const service = scope.resolve(GET_PRODUCT_STATIC_DATA_SERVICE);
 
-      try {
-        const service = scope.resolve(GET_PRODUCT_STATIC_DATA_SERVICE);
+      const result = await service.execute(
+        new GetProductStaticDataQuery(productId),
+      );
 
-        const result = await service.execute(
-          new GetProductStaticDataQuery(productId),
-        );
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(result),
-            },
-          ],
-          structuredContent: result,
-        };
-      } finally {
-        await scope.dispose();
-      }
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result),
+          },
+        ],
+        structuredContent: result,
+      };
     },
   );
 }
