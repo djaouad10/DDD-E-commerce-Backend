@@ -3,7 +3,7 @@ import type { CategoryDTO } from "./category.dto.js";
 import type { ImageDTO } from "./file.dto.js";
 import type { VariationSearchDTO } from "./variation.dto.js";
 
-export type ProductSearchDTO = Omit<ProductStaticDataDTO, "images"> ;
+export type ProductSearchDTO = Omit<ProductStaticDataDTO, "images">;
 
 export type ProductStaticDataDTO = {
   id: string;
@@ -21,6 +21,16 @@ export type ProductStaticDataDTO = {
   createdAt: string;
   updatedAt: string;
 };
+
+export interface SemanticProductHit {
+  productId: string;
+  name: string;
+  slug: string;
+  price: number;
+  discountedPrice: number | null;
+  currency: string;
+  similarityDistance: number; // 0 = identical, meaning: smallest = best
+}
 
 export type VariationDTO = {
   id: string;
