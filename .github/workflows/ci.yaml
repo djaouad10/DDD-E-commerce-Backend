@@ -71,6 +71,9 @@ jobs:
           DEBUG_DB=false
           GOOGLE_CLIENT_ID=sdfsfsdf
           GOOGLE_CLIENT_SECRET=sssdf
+          GEMINI_API_KEY=blablabla
+          GEMINI_EMBEDDING_MODEL=blablabla
+          EMBEDDING_DIMENSIONS=768
           LOG_LEVEL=fatal
           EOF
       - run: npm run test:integration

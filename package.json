@@ -21,6 +21,7 @@
     "start:domain-events-processor": "node --env-file=.env.prod ./dist/entrypoints/workers/domain-events-processor.js",
     "start:outbox-cleaner": "node --env-file=.env.prod ./dist/entrypoints/workers/clean-outbox.js",
     "start:email-queue-handler": "node --env-file=.env.prod ./dist/entrypoints/workers/email-queue-handler.js",
+    "start:embedding-queue-handler": "node --env-file=.env.prod ./dist/entrypoints/workers/embedding-queue-handler.js",
     "start:outbox-handler": "node --env-file=.env.prod ./dist/entrypoints/workers/outbox-handler.js",
     "start:reset-stuck-outbox": "node --env-file=.env.prod ./dist/entrypoints/workers/reset-stuck-outbox-rows.js",
     "lint": "eslint .",
@@ -45,6 +46,7 @@
     "dev:db:reset": "npm run dev:db:down && npm run dev:db:up && npm run dev:db:migrate"
   },
   "dependencies": {
+    "@google/genai": "^2.24.0",
     "@t3-oss/env-core": "^0.13.11",
     "better-auth": "^1.6.19",
     "bullmq": "^5.81.2",

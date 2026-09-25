@@ -6,6 +6,7 @@ import { Currency } from "#/domain/value-objects/money.js";
 import z from "zod";
 import type { EmailQueueDomainEvents } from "./email-handler-utils.js";
 import { UserRole } from "#/domain/entities/user.js";
+import type { EmbeddingQueueDomainEvents } from "./embedding-handler-utils.js";
 
 export const outboxJobPayloadsSchemas = z.object({
   [OutboxAction.CREATE_ORDER_IN_SHIPPING_API]: z.object({
@@ -214,6 +215,11 @@ export const domainEventsPayloadSchemas = z.object({
     aggregateId: z.string(),
     changedFields: z.array(z.string()),
   }),
+  [DomainEventCode.PRODUCT_DELETED]: z.object({
+    eventType: z.literal(DomainEventCode.PRODUCT_DELETED),
+    occurredOn: z.iso.datetime().pipe(z.coerce.date()),
+    aggregateId: z.string(),
+  }),
   [DomainEventCode.PRODUCT_VARIATION_ADDED]: z.object({
     eventType: z.literal(DomainEventCode.PRODUCT_VARIATION_ADDED),
     occurredOn: z.iso.datetime().pipe(z.coerce.date()),
@@ -332,5 +338,9 @@ export const domainEventsPayloadSchemas = z.object({
   }),
 });
 
-export type DomainEventsPayloadTypes<T extends EmailQueueDomainEvents> =
+export type EmailDomainEventsPayloadTypes<T extends EmailQueueDomainEvents> =
   z.infer<typeof domainEventsPayloadSchemas>[T];
+
+export type EmbeddingDomainEventsPayloadTypes<
+  T extends EmbeddingQueueDomainEvents,
+> = z.infer<typeof domainEventsPayloadSchemas>[T];

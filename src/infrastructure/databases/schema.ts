@@ -14,6 +14,7 @@ import {
   timestamp,
   uniqueIndex,
   varchar,
+  vector,
 } from "drizzle-orm/pg-core";
 
 type ShippingDetails = {
@@ -404,6 +405,34 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
   payload: jsonb("payload"),
 });
 
+export const productEmbeddings = pgTable(
+  "product_embeddings",
+  {
+    id: varchar("id", { length: 40 }).notNull().primaryKey(),
+    product_id: varchar("product_id", { length: 40 }).notNull(),
+    chunk_index: smallint("chunk_index").notNull(),
+    content: text("content").notNull(),
+    embedding: vector("embedding", { dimensions: 768 }).notNull(),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updated_at: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date())
+      .defaultNow(),
+  },
+  (t) => [
+    index("product_embeddings_hnsw_idx").using(
+      "hnsw",
+      t.embedding.op("vector_cosine_ops"),
+    ),
+    uniqueIndex("product_embeddings_product_chunk_idx").on(
+      t.product_id,
+      t.chunk_index,
+    ),
+  ],
+);
+
 // Relations
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
@@ -500,3 +529,5 @@ export type DrizzleRatingSelect = InferSelectModel<typeof rating>;
 export type DrizzleUserSelect = InferSelectModel<typeof user>;
 
 export type DrizzleOutboxSelect = InferSelectModel<typeof outbox>;
+
+export type ProductEmbeddingRow = InferSelectModel<typeof productEmbeddings>;

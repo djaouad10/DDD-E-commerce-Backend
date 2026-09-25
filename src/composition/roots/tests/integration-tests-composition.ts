@@ -1,5 +1,5 @@
 import { createDrizzleDB } from "#/infrastructure/config/database.js";
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 import { createRedisConnection } from "#/infrastructure/config/redis-connection.js";
 import { Container } from "../../utils/container.js";
 
@@ -115,6 +115,12 @@ import {
   RESET_STUCK_OUTBOX_ROWS_SERVICE,
   DRIZZLE_DB,
   BETTER_AUTH,
+  EMBEDDING_QUEUE,
+  TEXT_EMBEDDING_MODEL_PORT,
+  PRODUCT_EMBEDDING_REPOSITORY,
+  EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
+  EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE,
+  PRODUCT_SEMANTIC_SEARCH_SERVICE,
 } from "../../utils/tokens.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -203,6 +209,13 @@ import { DomainEventsProcessorService } from "#/application/services/domain-even
 import { BullMqEventPublisher } from "#/infrastructure/messaging/bullmq/bullmq-event-publisher.js";
 import { ResetStuckOutboxRowsService } from "#/application/services/stuck-outbox-resetter/reset-stuck-outbox-rows.service.js";
 import { type Auth } from "#/infrastructure/config/auth.js";
+import { createBullMqEmbeddingQueue } from "#/infrastructure/messaging/bullmq/queue/embedding.queue.js";
+import { createFakeTextEmbeddingModel } from "#/tests/helpers/fake-text-embedding-model.js";
+import { aiEnv } from "#/infrastructure/config/env/env.ai.js";
+import { PostgresProductEmbeddingRepository } from "#/infrastructure/databases/repositories/postgres/postgres-product-embedding-repository.js";
+import { EmbeddingQueueProductUpsertedEventsHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-upserted-events-handler.service.js";
+import { EmbeddingQueueProductDeletedEventHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.service.js";
+import { ProductSemanticSearchService } from "#/application/services/mcp/product-semantic-search.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -252,6 +265,12 @@ export function buildIntegrationTestsContainer(): Container {
   );
 
   container.register(
+    EMBEDDING_QUEUE,
+    (scope) => createBullMqEmbeddingQueue(scope.resolve(REDIS)),
+    "singleton",
+  );
+
+  container.register(
     BULLMQ_FLOW_PRODUCER,
     (scope) => createBullMqFlowProducer(scope.resolve(REDIS)),
     "singleton",
@@ -265,7 +284,14 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(EMAIL_QUEUE),
         scope.resolve(INVENTORY_QUEUE),
         scope.resolve(ANALYTICS_QUEUE),
+        scope.resolve(EMBEDDING_QUEUE),
       ),
+    "singleton",
+  );
+
+  container.register(
+    TEXT_EMBEDDING_MODEL_PORT,
+    () => createFakeTextEmbeddingModel(aiEnv.EMBEDDING_DIMENSIONS),
     "singleton",
   );
 
@@ -315,6 +341,12 @@ export function buildIntegrationTestsContainer(): Container {
   container.register(
     IDEMPOTENCY_KEYS_REPOSITORY,
     () => new PostgresIdempotencyKeysRepository(),
+    "singleton",
+  );
+
+  container.register(
+    PRODUCT_EMBEDDING_REPOSITORY,
+    () => new PostgresProductEmbeddingRepository(),
     "singleton",
   );
 
@@ -1100,6 +1132,40 @@ export function buildIntegrationTestsContainer(): Container {
     RESET_STUCK_OUTBOX_ROWS_SERVICE,
     (scope) =>
       new ResetStuckOutboxRowsService(scope.resolve(OUTBOX_REPOSITORY)),
+    "scoped",
+  );
+
+  container.register(
+    EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
+    (scope) =>
+      new EmbeddingQueueProductUpsertedEventsHandlerService(
+        scope.resolve(DB),
+        scope.resolve(TEXT_EMBEDDING_MODEL_PORT),
+        scope.resolve(PRODUCT_EMBEDDING_REPOSITORY),
+        scope.resolve(PRODUCT_QUERIES),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE,
+    (scope) =>
+      new EmbeddingQueueProductDeletedEventHandlerService(
+        scope.resolve(DB),
+        scope.resolve(PRODUCT_EMBEDDING_REPOSITORY),
+        scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    PRODUCT_SEMANTIC_SEARCH_SERVICE,
+    (scope) =>
+      new ProductSemanticSearchService(
+        scope.resolve(PRODUCT_QUERIES),
+        scope.resolve(TEXT_EMBEDDING_MODEL_PORT),
+      ),
     "scoped",
   );
 

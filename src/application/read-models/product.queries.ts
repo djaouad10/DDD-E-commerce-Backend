@@ -1,3 +1,4 @@
+import type { Color, Size } from "#/domain/entities/product.js";
 import type { CategoryId } from "#/domain/value-objects/category-id.js";
 import type { Money } from "#/domain/value-objects/money.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
@@ -7,6 +8,7 @@ import type {
   ProductLowStockDTO,
   ProductSearchDTO,
   ProductStaticDataDTO,
+  SemanticProductHit,
 } from "../dto/product.dto.js";
 import type {
   VariationDTO,
@@ -22,6 +24,14 @@ export type ProductSearchCriteria = {
   max_price?: Money;
   min_price?: Money;
 };
+
+export interface SemanticSearchFilters {
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean; // at least one variation with available qty > 0
+  colors?: Color[]; // at least one variation matching ANY of these
+  sizes?: Size[]; // at least one variation matching ANY of these
+}
 
 export type ProductQueries = {
   search: (criteria: ProductSearchCriteria) => Promise<{
@@ -52,4 +62,10 @@ export type ProductQueries = {
   Promise<VariationWithCartItemDTO[]>;
 
   findVariation: (variationId: VariationId) => Promise<VariationDTO | null>;
+
+  semanticSearch(params: {
+    queryVector: number[];
+    limit: number;
+    filters: SemanticSearchFilters;
+  }): Promise<SemanticProductHit[]>;
 };

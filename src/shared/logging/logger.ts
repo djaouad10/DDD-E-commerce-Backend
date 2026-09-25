@@ -1,4 +1,4 @@
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 import { getContext, getRequestId } from "../context/request-context.js";
 
 export type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace";

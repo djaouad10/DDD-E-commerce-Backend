@@ -29,7 +29,7 @@ import {
   EMAIL_QUEUE_USER_REGISTERED_HANDLER_SERVICE,
 } from "#/composition/utils/tokens.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
-import type { DomainEventsPayloadTypes } from "./validation.js";
+import type { EmailDomainEventsPayloadTypes } from "./validation.js";
 
 // build services and commands first
 
@@ -82,11 +82,11 @@ type EmailQueueEventToToken = {
 
 export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
   event: T,
-  payload: DomainEventsPayloadTypes<T>,
+  payload: EmailDomainEventsPayloadTypes<T>,
 ): EmailQueueEventToCommand[T] {
   switch (event) {
     case DomainEventCode.ORDER_CREATED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.ORDER_CREATED
       >;
 
@@ -103,7 +103,7 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
     }
 
     case DomainEventCode.ORDER_CONFIRMED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.ORDER_CONFIRMED
       >;
 
@@ -120,7 +120,7 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
     }
 
     case DomainEventCode.ORDER_CANCELLED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.ORDER_CANCELLED
       >;
 
@@ -133,7 +133,7 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
     }
 
     case DomainEventCode.ORDER_DELIVERED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.ORDER_DELIVERED
       >;
 
@@ -148,7 +148,7 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
     }
 
     case DomainEventCode.ORDER_RETURNED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.ORDER_RETURNED
       >;
 
@@ -163,7 +163,7 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
     }
 
     case DomainEventCode.RATING_APPROVED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.RATING_APPROVED
       >;
 
@@ -178,7 +178,7 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
     }
 
     case DomainEventCode.RATING_REJECTED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.RATING_REJECTED
       >;
 
@@ -192,7 +192,7 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
     }
 
     case DomainEventCode.RATING_SUBMITTED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.RATING_SUBMITTED
       >;
 
@@ -208,7 +208,7 @@ export function buildEmailQueueEventCommand<T extends EmailQueueDomainEvents>(
     }
 
     case DomainEventCode.USER_REGISTERED: {
-      const p = payload as DomainEventsPayloadTypes<
+      const p = payload as EmailDomainEventsPayloadTypes<
         typeof DomainEventCode.USER_REGISTERED
       >;
 

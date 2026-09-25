@@ -15,9 +15,9 @@ import { Color, Size, type Product } from "#/domain/entities/product.js";
 import type { Rating } from "#/domain/entities/rating.js";
 import type { User } from "#/domain/entities/user.js";
 import { Variation } from "#/domain/entities/variation.js";
-import { outbox, user } from "#/infrastructure/databases/schema.js";
+import { category, outbox, user } from "#/infrastructure/databases/schema.js";
 
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { orderFactory, productFactory } from "./domain-helpers.js";
 import { Weight } from "#/domain/value-objects/weight.js";
 import { OrderItem } from "#/domain/entities/order-item.js";
@@ -29,6 +29,7 @@ import {
   OutboxStatus,
 } from "#/application/ports/persistence/outbox.repository.port.js";
 import { DomainEventCode } from "#/domain/events/domain-event.js";
+import { CategoryId } from "#/domain/value-objects/category-id.js";
 
 export async function createCategoryInDB(
   container: Container,
@@ -40,6 +41,21 @@ export async function createCategoryInDB(
   await db.transaction(async (tx) => {
     await categoryRepository.save(category, tx);
   });
+}
+
+export async function getCategoryByName(container: Container, name: string) {
+  const db = container.resolveSingleton(DRIZZLE_DB);
+
+  const categoryInDB = await db.query.category.findFirst({
+    where: eq(category.name, name),
+  });
+
+  if (!categoryInDB) return null;
+
+  return Category.reconstitute(
+    CategoryId.of(categoryInDB!.id),
+    categoryInDB!.name,
+  );
 }
 
 export async function saveCartInDB(

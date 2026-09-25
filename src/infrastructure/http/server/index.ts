@@ -12,7 +12,7 @@ import { toNodeHandler } from "better-auth/node";
 import { AUTH, BETTER_AUTH } from "#/composition/utils/tokens.js";
 import { createRouteHandler } from "uploadthing/express";
 import { createUploadThingFileRouter } from "#/infrastructure/upload/uploadthing.js";
-import { env } from "#/infrastructure/config/env.js";
+import { env } from "#/infrastructure/config/env/env.js";
 export async function createServer(container: Container) {
   const app = express();
 
