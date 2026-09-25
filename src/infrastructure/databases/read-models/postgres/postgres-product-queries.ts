@@ -2,17 +2,34 @@ import type {
   ProductLowStockDTO,
   ProductSearchDTO,
   ProductStaticDataDTO,
+  SemanticProductHit,
 } from "#/application/dto/product.dto.js";
 import type {
   ProductCursor,
   ProductQueries,
   ProductSearchCriteria,
+  SemanticSearchFilters,
 } from "#/application/read-models/product.queries.js";
 import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
 import { createLogger } from "#/shared/logging/logger.js";
-import { and, avg, eq, inArray, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  avg,
+  cosineDistance,
+  eq,
+  inArray,
+  SQL,
+  sql,
+} from "drizzle-orm";
 import { handleDrizzleErrors } from "#/infrastructure/databases/errors/handle-drizzle-errors.js";
-import { cartItem, rating, variation } from "../../schema.js";
+import {
+  cartItem,
+  product,
+  productEmbeddings,
+  rating,
+  variation,
+} from "../../schema.js";
 import type { ProductId } from "#/domain/value-objects/product-id.js";
 import type {
   VariationDTO,
@@ -20,6 +37,7 @@ import type {
 } from "#/application/dto/variation.dto.js";
 import type { VariationId } from "#/domain/value-objects/variation-id.js";
 import type { UserId } from "#/domain/value-objects/user-id.js";
+import { Currency } from "#/domain/value-objects/money.js";
 
 export class PostgresProductQueries implements ProductQueries {
   private logger = createLogger("PostgresProductQueries");
@@ -533,6 +551,80 @@ export class PostgresProductQueries implements ProductQueries {
         error,
         "PostgresProductQueries.findVariationsWithCartItems",
       );
+    }
+  }
+
+  async semanticSearch(params: {
+    queryVector: number[];
+    limit: number;
+    filters: SemanticSearchFilters;
+  }): Promise<SemanticProductHit[]> {
+    this.logger.debug("semanticSearch called", params);
+
+    const { queryVector, limit, filters } = params;
+
+    try {
+      const conditions: SQL[] = [];
+
+      if (filters.minPrice != null || filters.maxPrice != null) {
+        const displayPrice = sql`coalesce(${product.discount_price}, ${product.price})`;
+
+        if (filters.minPrice != null)
+          conditions.push(sql`${displayPrice} >= ${filters.minPrice}`);
+
+        if (filters.maxPrice != null)
+          conditions.push(sql`${displayPrice} <= ${filters.maxPrice}`);
+      }
+
+      if (filters.colors && filters.colors.length > 0) {
+        conditions.push(sql`exists (select 1 from ${variation}
+      where ${variation.product_id} = ${product.id}
+        and ${inArray(variation.color, filters.colors)})`);
+      }
+
+      if (filters.sizes && filters.sizes.length > 0) {
+        conditions.push(sql`exists (select 1 from ${variation}
+      where ${variation.product_id} = ${product.id}
+        and ${inArray(variation.size, filters.sizes)})`);
+      }
+
+      if (filters.inStock) {
+        conditions.push(sql`exists (select 1 from ${variation}
+      where ${variation.product_id} = ${product.id}
+        and ${variation.total_qty} - ${variation.reserved_qty} > 0)`);
+      }
+
+      const distance = cosineDistance(productEmbeddings.embedding, queryVector);
+
+      const rows = await this.logger.measure(
+        "db.select.product.join.embedding",
+        () =>
+          this.db
+            .select({
+              productId: product.id,
+              name: product.name,
+              slug: product.slug,
+              price: product.price,
+              discountedPrice: product.discount_price,
+              similarityDistance: sql<number>`min(${distance})`,
+            })
+            .from(productEmbeddings)
+            .innerJoin(product, eq(productEmbeddings.product_id, product.id))
+            .where(and(...conditions))
+            .groupBy(product.id)
+            .orderBy(asc(sql`min(${distance})`))
+            .limit(limit),
+      );
+
+      return rows.map((r) => ({
+        ...r,
+        currency: Currency.DZD,
+        similarityDistance: Number(r.similarityDistance.toFixed(4)),
+      }));
+    } catch (error) {
+      this.logger.error("semanticSearch failed", error as Error, params);
+
+      handleDrizzleErrors(error, "PostgresProductQueries.semanticSearch");
     }
   }
 }
