@@ -120,6 +120,7 @@ import {
   PRODUCT_EMBEDDING_REPOSITORY,
   EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
   EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE,
+  PRODUCT_SEMANTIC_SEARCH_SERVICE,
 } from "../../utils/tokens.js";
 import GetCategoriesService from "#/application/services/api/get-categories.service.js";
 import { UTApi } from "uploadthing/server";
@@ -214,6 +215,7 @@ import { aiEnv } from "#/infrastructure/config/env/env.ai.js";
 import { PostgresProductEmbeddingRepository } from "#/infrastructure/databases/repositories/postgres/postgres-product-embedding-repository.js";
 import { EmbeddingQueueProductUpsertedEventsHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-upserted-events-handler.service.js";
 import { EmbeddingQueueProductDeletedEventHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.service.js";
+import { ProductSemanticSearchService } from "#/application/services/mcp/product-semantic-search.service.js";
 
 export function buildIntegrationTestsContainer(): Container {
   const container = new Container();
@@ -1153,6 +1155,16 @@ export function buildIntegrationTestsContainer(): Container {
         scope.resolve(DB),
         scope.resolve(PRODUCT_EMBEDDING_REPOSITORY),
         scope.resolve(IDEMPOTENCY_KEYS_REPOSITORY),
+      ),
+    "scoped",
+  );
+
+  container.register(
+    PRODUCT_SEMANTIC_SEARCH_SERVICE,
+    (scope) =>
+      new ProductSemanticSearchService(
+        scope.resolve(PRODUCT_QUERIES),
+        scope.resolve(TEXT_EMBEDDING_MODEL_PORT),
       ),
     "scoped",
   );

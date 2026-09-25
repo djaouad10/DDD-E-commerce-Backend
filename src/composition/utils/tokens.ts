@@ -97,6 +97,7 @@ import type { TextEmbeddingModelPort } from "#/application/ports/ai/text-embeddi
 import type { ProductEmbeddingRepository } from "#/application/ports/persistence/product-embedding.repository.js";
 import type { EmbeddingQueueProductUpsertedEventsHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-upserted-events-handler.service.js";
 import type { EmbeddingQueueProductDeletedEventHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.service.js";
+import type { ProductSemanticSearchService } from "#/application/services/mcp/product-semantic-search.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DBClient>;
@@ -500,3 +501,7 @@ export const EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE = Symbol(
 export const EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE = Symbol(
   "embeddingQueueProductDeletedEventsHandlerService",
 ) as InjectionToken<EmbeddingQueueProductDeletedEventHandlerService>;
+
+export const PRODUCT_SEMANTIC_SEARCH_SERVICE = Symbol(
+  "productSemanticSearchService",
+) as InjectionToken<ProductSemanticSearchService>;
