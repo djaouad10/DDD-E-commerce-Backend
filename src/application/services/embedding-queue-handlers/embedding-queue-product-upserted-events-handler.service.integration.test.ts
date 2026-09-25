@@ -1,10 +1,8 @@
 import { EmbeddingQueueProductUpsertedEventsHandlerCommand } from "#/application/commands/embedding-queue-handlers/embedding-queue-product-created-event-handler.command.js";
-import type { ProductEmbeddingRepository } from "#/application/ports/persistence/product-embedding.repository.js";
 import { buildIntegrationTestsContainer } from "#/composition/roots/tests/integration-tests-composition.js";
 import type { Container } from "#/composition/utils/container.js";
 import {
   EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
-  PRODUCT_EMBEDDING_REPOSITORY,
   TEXT_EMBEDDING_MODEL_PORT,
 } from "#/composition/utils/tokens.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
@@ -23,15 +21,11 @@ describe("EmbeddingQueueProductUpsertedEventsHandlerService", () => {
   let container: Container;
   let service: EmbeddingQueueProductUpsertedEventsHandlerService;
   let fakeEmbedModel: FakeTextEmbeddingModel;
-  let productEmbeddingRepo: ProductEmbeddingRepository;
 
   beforeAll(() => {
     container = buildIntegrationTestsContainer();
     service = container.resolveSingleton(
       EMBEDDING_QUEUE_PRODUCT_UPSERTED_EVENTS_HANDLER_SERVICE,
-    );
-    productEmbeddingRepo = container.resolveSingleton(
-      PRODUCT_EMBEDDING_REPOSITORY,
     );
     fakeEmbedModel = container.resolveSingleton(
       TEXT_EMBEDDING_MODEL_PORT,
