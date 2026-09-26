@@ -1,3 +1,5 @@
+import type { ToolDeclaration } from "../clients/mcp-client.gateway.js";
+
 export type ChatTextPart = {
   text: string;
 };
@@ -24,12 +26,6 @@ export type ChatPart =
 export type ChatMessage = {
   role: "user" | "model";
   parts: ChatPart[];
-};
-
-export type ToolDeclaration = {
-  name: string;
-  description: string;
-  parameters: Record<string, unknown>;
 };
 
 export type GenerateParams = {

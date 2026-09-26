@@ -1,4 +1,9 @@
-import type { ToolDeclaration } from "../ai/chat-model.port.js";
+
+export type ToolDeclaration = {
+  name: string;
+  description: string;
+  parameters: Record<string, unknown>;
+};
 
 export type McpToolsMap = Map<string, ToolDeclaration>;
 
