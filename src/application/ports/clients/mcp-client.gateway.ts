@@ -1,4 +1,3 @@
-
 export type ToolDeclaration = {
   name: string;
   description: string;
@@ -12,7 +11,7 @@ export type McpClientGateway = {
   loadTools(): Promise<void>;
 
   /** return cached tools declarations, if none exist, load them first */
-  listTools(): Promise<McpToolsMap>;
+  listTools(): Promise<ToolDeclaration[]>;
 
   safeToolCall(name: string, args: unknown): Promise<unknown>;
 };
