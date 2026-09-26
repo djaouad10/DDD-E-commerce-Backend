@@ -2,6 +2,7 @@ import type {
   McpClientGateway,
   ToolDeclaration,
 } from "#/application/ports/clients/mcp-client.gateway.js";
+import { GatewayError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -36,25 +37,29 @@ export class McpClientGatwayAdapter implements McpClientGateway {
       },
     );
 
-    await this.logger.measure("client.connect", () =>
-      this.client.connect(transport as Transport),
-    );
+    try {
+      await this.logger.measure("client.connect", () =>
+        this.client.connect(transport as Transport),
+      );
 
-    const { tools } = await this.logger.measure("client.listTools", () =>
-      this.client.listTools(),
-    );
+      const { tools } = await this.logger.measure("client.listTools", () =>
+        this.client.listTools(),
+      );
 
-    this.toolsMap = new Map();
+      this.toolsMap = new Map();
 
-    tools.map((tool) => {
-      this.logger.info("loaded tool", { toolName: tool.name });
+      tools.map((tool) => {
+        this.logger.info("loaded tool", { toolName: tool.name });
 
-      this.toolsMap!.set(tool.name, {
-        name: tool.name,
-        description: tool.description ?? "",
-        parameters: tool.inputSchema.properties ?? {},
+        this.toolsMap!.set(tool.name, {
+          name: tool.name,
+          description: tool.description ?? "",
+          parameters: tool.inputSchema.properties ?? {},
+        });
       });
-    });
+    } catch (error) {
+      throw new GatewayError("MCP", error);
+    }
   }
 
   async listTools(): Promise<ToolDeclaration[]> {
