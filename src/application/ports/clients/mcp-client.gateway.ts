@@ -14,4 +14,6 @@ export type McpClientGateway = {
   listTools(): Promise<ToolDeclaration[]>;
 
   safeToolCall(name: string, args: unknown): Promise<unknown>;
+
+  close(): Promise<void>;
 };
