@@ -25,7 +25,7 @@ import {
   RUN_ASSISTANT_AGENT_SERVICE,
 } from "../utils/tokens.js";
 
-export function buildAssistantAgentComposition(): Container {
+export function buildAssistantAgentContainer(): Container {
   const container = new Container();
 
   const mcpClient = createMcpClient({
