@@ -1,4 +1,6 @@
-export function buildSystemPrompt(deps: { storeName: string }): string {
+export function buildAssistantAgentSystemPrompt(deps: {
+  storeName: string;
+}): string {
   return `You are ${deps.storeName}'s AI shopping assistant.
 
 YOUR TOOLS
