@@ -7,7 +7,8 @@ type ErrorCodes =
   | "UNAUTHORIZED"
   | "CONFLICT"
   | "BAD_REQUEST"
-  | "FORBIDDEN";
+  | "FORBIDDEN"
+  | "MAX_STEPS_EXCEEDED";
 
 export abstract class DomainError extends Error {
   abstract readonly code: ErrorCodes;
@@ -94,6 +95,15 @@ export class ConflictError extends DomainError {
       identifier,
       reason,
     });
+  }
+}
+
+export class MaxStepsExceededError extends DomainError {
+  readonly code = "MAX_STEPS_EXCEEDED";
+  readonly statusCode = 408;
+
+  constructor(message: string) {
+    super(message);
   }
 }
 
