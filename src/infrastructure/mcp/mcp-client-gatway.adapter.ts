@@ -138,7 +138,7 @@ export class McpClientGatwayAdapter implements McpClientGateway {
   }
 
   // helpers
-  isObject(value: unknown): value is Record<string, unknown> {
+  private isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
   }
 }
