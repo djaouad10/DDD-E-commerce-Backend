@@ -92,7 +92,7 @@ export class McpClientGatwayAdapter implements McpClientGateway {
         throw error;
       }
 
-      if (typeof args !== "object" || args === null || Array.isArray(args)) {
+      if (!this.isObject(args)) {
         const error = new Error(
           `Invalid arguments for tool ${name}: expected an object`,
         );
@@ -105,7 +105,7 @@ export class McpClientGatwayAdapter implements McpClientGateway {
       const result = await this.logger.measure("client.callTool", () =>
         this.client.callTool({
           name: tool.name,
-          arguments: args as Record<string, unknown>,
+          arguments: args,
         }),
       );
 
@@ -135,5 +135,10 @@ export class McpClientGatwayAdapter implements McpClientGateway {
 
   async close(): Promise<void> {
     await this.client.close();
+  }
+
+  // helpers
+  isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
   }
 }
