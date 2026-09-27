@@ -8,6 +8,7 @@ export const agentEnv = createEnv({
     MCP_API_KEY: z.string(),
     MCP_SERVER_URL: z.string(),
     STORE_NAME: z.string(),
+    ASSISTANT_MAX_STEPS: z.coerce.number().default(8),
   },
 
   runtimeEnv: {
@@ -16,6 +17,7 @@ export const agentEnv = createEnv({
     MCP_API_KEY: process.env.MCP_API_KEY,
     MCP_SERVER_URL: process.env.MCP_SERVER_URL,
     STORE_NAME: process.env.STORE_NAME,
+    ASSISTANT_MAX_STEPS: process.env.ASSISTANT_MAX_STEPS,
   },
 
   emptyStringAsUndefined: true,
