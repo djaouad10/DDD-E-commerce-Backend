@@ -98,6 +98,11 @@ import type { ProductEmbeddingRepository } from "#/application/ports/persistence
 import type { EmbeddingQueueProductUpsertedEventsHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-upserted-events-handler.service.js";
 import type { EmbeddingQueueProductDeletedEventHandlerService } from "#/application/services/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.service.js";
 import type { ProductSemanticSearchService } from "#/application/services/mcp/product-semantic-search.service.js";
+import type { McpClientGateway } from "#/application/ports/clients/mcp-client.gateway.js";
+import type { ChatModelPort } from "#/application/ports/ai/chat-model.port.js";
+import type { AssistantAgent } from "#/application/ai/agents/assistant-agent.js";
+import type { RunAssistantAgentService } from "#/application/services/assistant-agent/run-assistant-agent.service.js";
+import type { Client } from "@modelcontextprotocol/sdk/client";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DBClient>;
@@ -505,3 +510,21 @@ export const EMBEDDING_QUEUE_PRODUCT_DELETED_EVENTS_HANDLER_SERVICE = Symbol(
 export const PRODUCT_SEMANTIC_SEARCH_SERVICE = Symbol(
   "productSemanticSearchService",
 ) as InjectionToken<ProductSemanticSearchService>;
+
+export const MCP_CLIENT = Symbol("mcpClient") as InjectionToken<Client>;
+
+export const MCP_CLIENT_GATEWAY = Symbol(
+  "mcpClientGateway",
+) as InjectionToken<McpClientGateway>;
+
+export const CHAT_MODEL_PORT = Symbol(
+  "chatModelPort",
+) as InjectionToken<ChatModelPort>;
+
+export const ASSISTANT_AGENT = Symbol(
+  "assistantAgent",
+) as InjectionToken<AssistantAgent>;
+
+export const RUN_ASSISTANT_AGENT_SERVICE = Symbol(
+  "runAssistantAgentService",
+) as InjectionToken<RunAssistantAgentService>;
