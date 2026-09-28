@@ -41,6 +41,7 @@ export function productSemanticSearchToolRegistration(
             text: JSON.stringify(result),
           },
         ],
+        structuredContent: { products: result },
       };
     },
   );
