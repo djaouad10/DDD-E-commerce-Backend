@@ -26,6 +26,13 @@ export type ChatPart =
 export type ChatMessage = {
   role: "user" | "model";
   parts: ChatPart[];
+  /**
+   * Opaque, adapter-owned continuation state. Some providers return reasoning
+   * state (signatures, encrypted reasoning items) that must be sent back
+   * unmodified on the next turn. The application never inspects this; it only
+   * keeps it attached to the message. Must be JSON-serializable.
+   */
+  providerState?: unknown;
 };
 
 export type GenerateParams = {
