@@ -1,7 +1,7 @@
 import type { Scope } from "#/composition/utils/container.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { productSemanticSearchToolRegistration } from "./tools/product-semantic-search.tool.js";
-import { getProductStaticDataToolRegistration } from "./tools/product-static-data.tool.js";
+import { getProductFullDetailsToolRegistration } from "./tools/product-full-details.tool.js";
 
 export function createMcpServer(scope: Scope): McpServer {
   const server = new McpServer({
@@ -11,7 +11,7 @@ export function createMcpServer(scope: Scope): McpServer {
 
   productSemanticSearchToolRegistration(scope, server);
 
-  getProductStaticDataToolRegistration(scope, server);
+  getProductFullDetailsToolRegistration(scope, server);
 
   return server;
 }
