@@ -24,10 +24,16 @@ export class ProductSemanticSearchService {
         new Error("No embedding returned"),
       );
 
-    return await this.productQueries.semanticSearch({
+    const hits = await this.productQueries.semanticSearch({
       queryVector: embedding,
       limit: query.limit ?? 5,
       filters: query.filters ?? {},
     });
+
+    this.logger.info("ProductSemanticSearchService.execute completed", {
+      hits,
+    });
+
+    return hits;
   }
 }
