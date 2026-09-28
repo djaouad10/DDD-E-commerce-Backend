@@ -103,6 +103,7 @@ import type { ChatModelPort } from "#/application/ports/ai/chat-model.port.js";
 import type { AssistantAgent } from "#/application/ai/agents/assistant-agent.js";
 import type { RunAssistantAgentService } from "#/application/services/assistant-agent/run-assistant-agent.service.js";
 import type { Client } from "@modelcontextprotocol/sdk/client";
+import type { GetProductFullDetailsService } from "#/application/services/mcp/get-product-full-details.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DBClient>;
@@ -528,3 +529,7 @@ export const ASSISTANT_AGENT = Symbol(
 export const RUN_ASSISTANT_AGENT_SERVICE = Symbol(
   "runAssistantAgentService",
 ) as InjectionToken<RunAssistantAgentService>;
+
+export const GET_PRODUCT_FULL_DETAILS_SERVICE = Symbol(
+  "getProductFullDetailsService",
+) as InjectionToken<GetProductFullDetailsService>;

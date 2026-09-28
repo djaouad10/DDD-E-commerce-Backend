@@ -1,4 +1,4 @@
-import { GetProductStaticDataService } from "#/application/services/api/get-product-static-data.service.js";
+import { GetProductFullDetailsService } from "#/application/services/mcp/get-product-full-details.service.js";
 import { ProductSemanticSearchService } from "#/application/services/mcp/product-semantic-search.service.js";
 import {
   GemeniTextEmbeddingModelAdapter,
@@ -12,7 +12,7 @@ import { registerSharedInfrastructure } from "../utils/shared-registry.js";
 import {
   DRIZZLE_DB,
   GEMENI_CLIENT,
-  GET_PRODUCT_STATIC_DATA_SERVICE,
+  GET_PRODUCT_FULL_DETAILS_SERVICE,
   PRODUCT_QUERIES,
   PRODUCT_SEMANTIC_SEARCH_SERVICE,
   TEXT_EMBEDDING_MODEL_PORT,
@@ -59,8 +59,8 @@ export function buildMcpContainer(): Container {
   );
 
   container.register(
-    GET_PRODUCT_STATIC_DATA_SERVICE,
-    (scope) => new GetProductStaticDataService(scope.resolve(PRODUCT_QUERIES)),
+    GET_PRODUCT_FULL_DETAILS_SERVICE,
+    (scope) => new GetProductFullDetailsService(scope.resolve(PRODUCT_QUERIES)),
     "scoped",
   );
 
