@@ -44,7 +44,15 @@ export class GemeniChatModelAdapter implements ChatModelPort {
               systemInstruction,
               ...(tools &&
                 tools.length > 0 && {
-                  tools: [{ functionDeclarations: tools }],
+                  tools: [
+                    {
+                      functionDeclarations: tools.map((t) => ({
+                        name: t.name,
+                        description: t.description,
+                        parametersJsonSchema: t.parameters,
+                      })),
+                    },
+                  ],
                 }),
             },
           }),

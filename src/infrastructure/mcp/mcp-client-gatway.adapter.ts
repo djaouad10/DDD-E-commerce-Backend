@@ -54,7 +54,7 @@ export class McpClientGatwayAdapter implements McpClientGateway {
         this.toolsMap!.set(tool.name, {
           name: tool.name,
           description: tool.description ?? "",
-          parameters: tool.inputSchema.properties ?? {},
+          parameters: tool.inputSchema ?? {},
         });
       });
     } catch (error) {
