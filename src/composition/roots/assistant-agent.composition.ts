@@ -9,7 +9,11 @@ import {
   type GemeniChatModelAdapterConfig,
 } from "#/infrastructure/ai/adapters/gemeni-chat-model.adapter.js";
 import { createGemeniClient } from "#/infrastructure/ai/clients/gemeni-client.js";
+import { BetterAuthAdapter } from "#/infrastructure/auth/better-auth.adapter.js";
+import type { BetterAuthConfig } from "#/infrastructure/config/auth.js";
+import { createDrizzleDB } from "#/infrastructure/config/database.js";
 import { agentEnv } from "#/infrastructure/config/env/env.agent.js";
+import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres/postgres-user-repository.js";
 import { createMcpClient } from "#/infrastructure/mcp/client.js";
 import {
   McpClientGatwayAdapter,
@@ -18,11 +22,14 @@ import {
 import { Container } from "../utils/container.js";
 import {
   ASSISTANT_AGENT,
+  AUTH,
   CHAT_MODEL_PORT,
+  DRIZZLE_DB,
   GEMENI_CLIENT,
   MCP_CLIENT,
   MCP_CLIENT_GATEWAY,
   RUN_ASSISTANT_AGENT_SERVICE,
+  USER_REPOSITORY,
 } from "../utils/tokens.js";
 
 export function buildAssistantAgentContainer(): Container {
@@ -82,6 +89,38 @@ export function buildAssistantAgentContainer(): Container {
         assistantAgentConfig,
       ),
     "scoped", // can be singleton since it doesn't contain any internal state, but I will keep it scoped for safety in case of future changes
+  );
+
+  const db = createDrizzleDB({
+    connectionUrl: agentEnv.DATABASE_URL,
+    maxPoolSize: 10,
+    debug: agentEnv.DEBUG_DB,
+  });
+
+  container.registerInstance(DRIZZLE_DB, db);
+
+  const betteAuthConfig: BetterAuthConfig = {
+    GOOGLE_CLIENT_ID: agentEnv.GOOGLE_CLIENT_ID,
+    BETTER_AUTH_URL: agentEnv.BETTER_AUTH_URL,
+    GOOGLE_CLIENT_SECRET: agentEnv.GOOGLE_CLIENT_SECRET,
+    NODE_ENV: agentEnv.NODE_ENV,
+  };
+
+  container.register(
+    AUTH,
+    (scope) =>
+      new BetterAuthAdapter(
+        scope.resolve(DRIZZLE_DB),
+        scope.resolve(USER_REPOSITORY),
+        betteAuthConfig,
+      ),
+    "singleton",
+  );
+
+  container.register(
+    USER_REPOSITORY,
+    (scope) => new PostgresUserRepository(scope.resolve(DRIZZLE_DB)),
+    "singleton",
   );
 
   container.register(
