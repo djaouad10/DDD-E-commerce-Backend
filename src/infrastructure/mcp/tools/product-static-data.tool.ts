@@ -19,21 +19,37 @@ export function getProductStaticDataToolRegistration(
       outputSchema: getProductStaticDataOutputSchema,
     },
     async ({ productId }) => {
-      const service = scope.resolve(GET_PRODUCT_STATIC_DATA_SERVICE);
+      try {
+        const service = scope.resolve(GET_PRODUCT_STATIC_DATA_SERVICE);
 
-      const result = await service.execute(
-        new GetProductStaticDataQuery(productId),
-      );
+        const result = await service.execute(
+          new GetProductStaticDataQuery(productId),
+        );
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(result),
-          },
-        ],
-        structuredContent: result,
-      };
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+          structuredContent: result,
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown product static data search error",
+            },
+          ],
+          structuredContent: {},
+        };
+      }
     },
   );
 }

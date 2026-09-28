@@ -19,30 +19,50 @@ export function productSemanticSearchToolRegistration(
       outputSchema: productSemanticSearchOutputSchema,
     },
     async ({ query, limit, filters }) => {
-      const service = scope.resolve(PRODUCT_SEMANTIC_SEARCH_SERVICE);
-      const semanticSearchQuery = new ProductSemanticSearchQuery(query, limit, {
-        ...(filters?.colors !== undefined && { colors: filters.colors }),
-        ...(filters?.sizes !== undefined && { sizes: filters.sizes }),
-        ...(filters?.maxPrice !== undefined && {
-          maxPrice: filters.maxPrice,
-        }),
-        ...(filters?.minPrice !== undefined && {
-          minPrice: filters.minPrice,
-        }),
-        ...(filters?.inStock !== undefined && { inStock: filters.inStock }),
-      });
-
-      const result = await service.execute(semanticSearchQuery);
-
-      return {
-        content: [
+      try {
+        const service = scope.resolve(PRODUCT_SEMANTIC_SEARCH_SERVICE);
+        const semanticSearchQuery = new ProductSemanticSearchQuery(
+          query,
+          limit,
           {
-            type: "text",
-            text: JSON.stringify(result),
+            ...(filters?.colors !== undefined && { colors: filters.colors }),
+            ...(filters?.sizes !== undefined && { sizes: filters.sizes }),
+            ...(filters?.maxPrice !== undefined && {
+              maxPrice: filters.maxPrice,
+            }),
+            ...(filters?.minPrice !== undefined && {
+              minPrice: filters.minPrice,
+            }),
+            ...(filters?.inStock !== undefined && { inStock: filters.inStock }),
           },
-        ],
-        structuredContent: { products: result },
-      };
+        );
+
+        const result = await service.execute(semanticSearchQuery);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+          structuredContent: { products: result },
+        };
+      } catch (error) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown semantic search error",
+            },
+          ],
+          structuredContent: { products: [] },
+        };
+      }
     },
   );
 }
