@@ -1,7 +1,7 @@
 import type { Container } from "#/composition/utils/container.js";
 import express from "express";
 import { requireMcpApiKey } from "./middleware/require-mcp-key.middleware.js";
-import { mcpEnv } from "../config/env/mcp.js";
+import { mcpEnv } from "../config/env/env.mcp.js";
 import { createMcpServer } from "./server.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";

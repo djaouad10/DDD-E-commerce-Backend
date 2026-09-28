@@ -1,5 +1,5 @@
 import { buildMcpContainer } from "#/composition/roots/mcp.composition.js";
-import { mcpEnv } from "#/infrastructure/config/env/mcp.js";
+import { mcpEnv } from "#/infrastructure/config/env/env.mcp.js";
 import { createMcpTransport } from "#/infrastructure/mcp/transport.js";
 
 function bootstrap() {
