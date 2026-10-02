@@ -13,7 +13,7 @@ import {
 } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { handleDrizzleErrors } from "../../errors/handle-drizzle-errors.js";
 import { conversation, conversationMessage } from "../../schema.js";
 import {
@@ -38,7 +38,9 @@ export class PostgresConversationRepository implements ConversationRepository {
             where: (conversation, { eq }) =>
               eq(conversation.id, conversationId),
             with: {
-              messages: true,
+              messages: {
+                orderBy: (message, { asc }) => [asc(message.sequence)],
+              },
             },
           }),
       );
@@ -61,7 +63,7 @@ export class PostgresConversationRepository implements ConversationRepository {
           role: message.role,
           parts: message.parts,
           providerState: message.provider_state,
-        })),
+        })), // ordered by sequence number
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       };
@@ -337,6 +339,64 @@ export class PostgresConversationRepository implements ConversationRepository {
       handleDrizzleErrors(
         error,
         "PostgresConversationRepository.appendMessages",
+      );
+    }
+  }
+
+  async findStuckConversations(
+    batchSize: number,
+    stuckforMs: number,
+    tx?: TransactionClient,
+  ): Promise<Conversation[]> {
+    this.logger.debug("findStuckConversations called");
+
+    const db = tx ? (tx as DrizzleTransactionClient) : this.db;
+
+    try {
+      const dateToDeleteBefore = new Date(Date.now() - stuckforMs);
+
+      const rows = await this.logger.measure("db.select(conversation)", () =>
+        db.query.conversation.findMany({
+          where: and(
+            eq(conversation.is_processing, true),
+            lte(conversation.processing_started_at, dateToDeleteBefore),
+          ),
+
+          limit: batchSize,
+          with: {
+            messages: true,
+          },
+        }),
+      );
+
+      const rowsToReturn: Conversation[] = rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        userId: row.user_id,
+        isProcessing: row.is_processing,
+        processingStartedAt: row.processing_started_at,
+        maxContextWindowReached: row.max_context_window_reached,
+        modelId: row.model_id,
+        messages: row.messages.map((message) => ({
+          role: message.role,
+          parts: message.parts,
+          providerState: message.provider_state,
+        })),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+
+      this.logger.debug("found stuck conversations", {
+        rowsCount: rowsToReturn.length,
+      });
+
+      return rowsToReturn;
+    } catch (error) {
+      this.logger.error("findStuckConversations failed", error as Error);
+
+      handleDrizzleErrors(
+        error,
+        "PostgresConversationRepository.findStuckConversations",
       );
     }
   }

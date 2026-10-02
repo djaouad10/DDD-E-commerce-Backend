@@ -26,7 +26,11 @@ export type ConversationRepository = {
     startIndex: number,
   ): Promise<void>;
   /** isProcessing (claimed) && processingStartedAt > x minutes */
-  findStuckConversations(): Promise<Conversation[]>;
+  findStuckConversations(
+    batchSize: number,
+    stuckforMs: number, // number of milliseconds since the convo's isProcessing nad processingStartedAt were set
+    tx?: TransactionClient,
+  ): Promise<Conversation[]>;
   /** sets isProcessing to true and processingStartedAt to now, if failed to claim throws error */
   claimConversation(conversationId: string): Promise<void>;
   /** sets isProcessing to false and processingStartedAt to null  if failed to release throws error*/
