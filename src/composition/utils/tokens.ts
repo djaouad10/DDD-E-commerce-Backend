@@ -104,6 +104,7 @@ import type { AssistantAgent } from "#/application/ai/agents/assistant-agent.js"
 import type { RunAssistantAgentService } from "#/application/services/assistant-agent/run-assistant-agent.service.js";
 import type { Client } from "@modelcontextprotocol/sdk/client";
 import type { GetProductFullDetailsService } from "#/application/services/mcp/get-product-full-details.service.js";
+import type { ConversationRepository } from "#/application/ports/persistence/conversation.repository.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DBClient>;
@@ -152,6 +153,10 @@ export const IDEMPOTENCY_KEYS_REPOSITORY = Symbol(
 export const PRODUCT_EMBEDDING_REPOSITORY = Symbol(
   "productEmbeddingRepository",
 ) as InjectionToken<ProductEmbeddingRepository>;
+
+export const CONVERSATION_REPOSITORY = Symbol(
+  "conversationRepository",
+) as InjectionToken<ConversationRepository>;
 
 export const GEMENI_CLIENT = Symbol(
   "gemeniClient",

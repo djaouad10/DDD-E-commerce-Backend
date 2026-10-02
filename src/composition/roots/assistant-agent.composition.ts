@@ -13,6 +13,7 @@ import { BetterAuthAdapter } from "#/infrastructure/auth/better-auth.adapter.js"
 import type { BetterAuthConfig } from "#/infrastructure/config/auth.js";
 import { createDrizzleDB } from "#/infrastructure/config/database.js";
 import { agentEnv } from "#/infrastructure/config/env/env.agent.js";
+import { PostgresConversationRepository } from "#/infrastructure/databases/repositories/postgres/postgres-conversation-repository.js";
 import { PostgresUserRepository } from "#/infrastructure/databases/repositories/postgres/postgres-user-repository.js";
 import { createMcpClient } from "#/infrastructure/mcp/client.js";
 import {
@@ -24,6 +25,7 @@ import {
   ASSISTANT_AGENT,
   AUTH,
   CHAT_MODEL_PORT,
+  CONVERSATION_REPOSITORY,
   DRIZZLE_DB,
   GEMENI_CLIENT,
   MCP_CLIENT,
@@ -99,6 +101,12 @@ export function buildAssistantAgentContainer(): Container {
 
   container.registerInstance(DRIZZLE_DB, db);
 
+  container.register(
+    CONVERSATION_REPOSITORY,
+    (scope) => new PostgresConversationRepository(scope.resolve(DRIZZLE_DB)),
+    "scoped",
+  );
+
   const betteAuthConfig: BetterAuthConfig = {
     GOOGLE_CLIENT_ID: agentEnv.GOOGLE_CLIENT_ID,
     BETTER_AUTH_URL: agentEnv.BETTER_AUTH_URL,
@@ -125,7 +133,11 @@ export function buildAssistantAgentContainer(): Container {
 
   container.register(
     RUN_ASSISTANT_AGENT_SERVICE,
-    (scope) => new RunAssistantAgentService(scope.resolve(ASSISTANT_AGENT)),
+    (scope) =>
+      new RunAssistantAgentService(
+        scope.resolve(ASSISTANT_AGENT),
+        scope.resolve(CONVERSATION_REPOSITORY),
+      ),
     "scoped",
   );
 
