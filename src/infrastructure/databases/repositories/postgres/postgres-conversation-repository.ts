@@ -15,8 +15,12 @@ import { createLogger } from "#/shared/logging/logger.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { and, eq } from "drizzle-orm";
 import { handleDrizzleErrors } from "../../errors/handle-drizzle-errors.js";
-import { conversation } from "../../schema.js";
-import { generateConversationId } from "../../utils.js";
+import { conversation, conversationMessage } from "../../schema.js";
+import {
+  generateConversationId,
+  generateConversationMessageId,
+} from "../../utils.js";
+import type { ChatMessage } from "#/application/ports/ai/chat-model.port.js";
 
 export class PostgresConversationRepository implements ConversationRepository {
   private logger = createLogger("PostgresConversationRepository");
@@ -293,6 +297,46 @@ export class PostgresConversationRepository implements ConversationRepository {
       handleDrizzleErrors(
         error,
         "PostgresConversationRepository.releaseConversation",
+      );
+    }
+  }
+
+  async appendMessages(
+    conversationId: string,
+    newMessages: ChatMessage[],
+    startIndex: number,
+  ): Promise<void> {
+    this.logger.debug("appendMessages called", { conversationId });
+
+    // startIndex is the index of the first new message in the existing conversation
+    let sqnsNumber = startIndex - 1; // decrement so first .map() loop uses the actual startIndex as a sequence number
+
+    const rows = newMessages.map((message) => {
+      // increment sqnsNumber
+      sqnsNumber++;
+
+      return {
+        conversation_id: conversationId,
+        id: generateConversationMessageId(),
+        role: message.role,
+        parts: message.parts,
+        provider_state: message.providerState,
+        sequence: sqnsNumber,
+      };
+    });
+
+    try {
+      await this.logger.measure("db.insert(conversationMessage)", () =>
+        this.db.insert(conversationMessage).values(rows),
+      );
+    } catch (error) {
+      this.logger.error("appendMessages failed", error as Error, {
+        conversationId,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresConversationRepository.appendMessages",
       );
     }
   }

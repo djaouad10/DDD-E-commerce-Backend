@@ -23,6 +23,7 @@ export type ConversationRepository = {
   appendMessages(
     conversationId: string,
     newMessages: ChatMessage[],
+    startIndex: number,
   ): Promise<void>;
   /** isProcessing (claimed) && processingStartedAt > x minutes */
   findStuckConversations(): Promise<Conversation[]>;
