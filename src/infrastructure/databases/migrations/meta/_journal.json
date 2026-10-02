@@ -64,6 +64,13 @@
       "when": 1790950967718,
       "tag": "0008_fast_payback",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790952843177,
+      "tag": "0009_strong_shooting_star",
+      "breakpoints": true
     }
   ]
 }

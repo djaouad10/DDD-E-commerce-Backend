@@ -98,6 +98,11 @@ export const outboxStatusEnum = pgEnum("outbox_status", [
   "FAILED",
 ]);
 
+export const conversationRolesEnum = pgEnum("conversation_roles", [
+  "user",
+  "model",
+]);
+
 export const user = pgTable(
   "user",
   {
@@ -464,7 +469,7 @@ export const conversationMessage = pgTable(
       .notNull()
       .references(() => conversation.id, { onDelete: "cascade" }),
     sequence: integer("sequence").notNull(), // ordering within the conversation
-    role: varchar("role", { length: 20 }).notNull(), // "user" | "model"
+    role: conversationRolesEnum("role").notNull(),
     parts: jsonb("parts").notNull().$type<ChatPart[]>(),
     provider_state: jsonb("provider_state").$type<unknown>(), // opaque, e.g. Gemini's raw parts
     created_at: timestamp("created_at").notNull().defaultNow(),
