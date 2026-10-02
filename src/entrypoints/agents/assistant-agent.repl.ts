@@ -1,8 +1,7 @@
-import { RunAssistantAgentQuery } from "#/application/queries/run-assistant-agent.query.js";
 import { buildAssistantAgentContainer } from "#/composition/roots/assistant-agent.composition.js";
 import {
+  ASSISTANT_AGENT,
   MCP_CLIENT_GATEWAY,
-  RUN_ASSISTANT_AGENT_SERVICE,
 } from "#/composition/utils/tokens.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import readLine from "readline/promises";
@@ -14,7 +13,7 @@ async function bootstrap() {
   const scope = container.createScope();
 
   const mcpClientGateway = scope.resolve(MCP_CLIENT_GATEWAY);
-  const runAssistantAgentService = scope.resolve(RUN_ASSISTANT_AGENT_SERVICE);
+  const assistantAgent = scope.resolve(ASSISTANT_AGENT);
 
   await mcpClientGateway.loadTools();
 
@@ -29,9 +28,9 @@ async function bootstrap() {
     const input = (await rl.question("you> ")).trim();
     if (input === "exit") break;
 
-    const { response } = await runAssistantAgentService.execute(
-      new RunAssistantAgentQuery(input),
-    );
+    const { response } = await assistantAgent.run([
+      { role: "user", parts: [{ text: input }] },
+    ]);
 
     console.log(`agent> ${response}\n`);
   }
