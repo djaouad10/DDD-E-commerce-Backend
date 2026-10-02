@@ -6,7 +6,11 @@ import type {
   DrizzleDBClient,
   DrizzleTransactionClient,
 } from "#/infrastructure/config/database.js";
-import { ConflictError, DatabaseError } from "#/shared/errors/errors.js";
+import {
+  ConflictError,
+  DatabaseError,
+  NotFoundError,
+} from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
 import { and, eq } from "drizzle-orm";
@@ -154,6 +158,7 @@ export class PostgresConversationRepository implements ConversationRepository {
       );
 
       if (!deletedRow) {
+        // if(!deleteRow) could either mean the convo doesn't exist or it's still processing, I assume that the service calling this already checked the existence of the convo.
         this.logger.debug("conversation deletion failed", { conversationId });
 
         throw new ConflictError(
@@ -162,12 +167,53 @@ export class PostgresConversationRepository implements ConversationRepository {
           "can't delete a processing conversation",
         );
       }
+
+      this.logger.debug("conversation deleted", { conversationId });
     } catch (error) {
       this.logger.error("deleteConversation failed", error as Error, {
         conversationId,
       });
 
       handleDrizzleErrors(error, "PostgresConversationRepository.delete");
+    }
+  }
+
+  async setConversationCtxLimitAsReached(
+    conversationId: string,
+  ): Promise<void> {
+    this.logger.debug("setConversationCtxLimitAsReached called", {
+      conversationId,
+    });
+
+    try {
+      const [row] = await this.logger.measure("db.update(conversation)", () =>
+        this.db
+          .update(conversation)
+          .set({ max_context_window_reached: true })
+          .where(eq(conversation.id, conversationId))
+          .returning(),
+      );
+
+      if (!row) {
+        this.logger.debug("conversation update failed", { conversationId });
+
+        throw new NotFoundError("conversation", conversationId);
+      }
+
+      this.logger.debug("conversation updated", { conversationId });
+    } catch (error) {
+      this.logger.error(
+        "setConversationCtxLimitAsReached failed",
+        error as Error,
+        {
+          conversationId,
+        },
+      );
+
+      handleDrizzleErrors(
+        error,
+        "PostgresConversationRepository.setConversationCtxLimitAsReached",
+      );
     }
   }
 }
