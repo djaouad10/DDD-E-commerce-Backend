@@ -310,20 +310,14 @@ export class PostgresConversationRepository implements ConversationRepository {
   ): Promise<void> {
     this.logger.debug("appendMessages called", { conversationId });
 
-    // startIndex is the index of the first new message in the existing conversation
-    let sqnsNumber = startIndex - 1; // decrement so first .map() loop uses the actual startIndex as a sequence number
-
-    const rows = newMessages.map((message) => {
-      // increment sqnsNumber
-      sqnsNumber++;
-
+    const rows = newMessages.map((message, index) => {
       return {
         conversation_id: conversationId,
         id: generateConversationMessageId(),
         role: message.role,
         parts: message.parts,
         provider_state: message.providerState,
-        sequence: sqnsNumber,
+        sequence: startIndex + index,
       };
     });
 
