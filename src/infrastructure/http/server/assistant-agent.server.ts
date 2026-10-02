@@ -27,9 +27,14 @@ export function createAssistantAgentServer(container: Container) {
 
   app.post("/api/assistant-agent/chat", authMiddleware, async (req, res) => {
     const safeBody = validate(assistantAgentChatBodySchema, req.body);
+    const userId = req.user!.id; //  auth middleware ensures req.user is defined
 
     const service = req.scope.resolve(RUN_ASSISTANT_AGENT_SERVICE);
-    const query = new RunAssistantAgentQuery(safeBody.query);
+    const query = new RunAssistantAgentQuery(
+      safeBody.query,
+      userId,
+      safeBody.conversationId,
+    );
 
     const { response } = await service.execute(query);
 
