@@ -256,4 +256,44 @@ export class PostgresConversationRepository implements ConversationRepository {
       );
     }
   }
+
+  async releaseConversation(conversationId: string): Promise<void> {
+    this.logger.debug("releaseConversation called", { conversationId });
+
+    try {
+      const [row] = await this.logger.measure("db.update(conversation)", () =>
+        this.db
+          .update(conversation)
+          .set({ is_processing: false, processing_started_at: null })
+          .where(
+            and(
+              eq(conversation.id, conversationId),
+              eq(conversation.is_processing, true),
+            ),
+          )
+          .returning({ id: conversation.id }),
+      );
+
+      if (!row) {
+        this.logger.debug("conversation release failed", { conversationId });
+
+        throw new ConflictError(
+          "conversation",
+          conversationId,
+          "can't release a not processing conversation",
+        );
+      }
+
+      this.logger.debug("conversation released", { conversationId });
+    } catch (error) {
+      this.logger.error("releaseConversation failed", error as Error, {
+        conversationId,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresConversationRepository.releaseConversation",
+      );
+    }
+  }
 }

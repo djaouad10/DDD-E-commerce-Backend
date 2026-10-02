@@ -17,7 +17,7 @@ export type Conversation = {
 export type ConversationRepository = {
   /** returns an existing convo or null if not found */
   find(conversationId: string): Promise<Conversation | null>;
-  /** creates and claims convo by default */
+  /** creates and claims convo by default, throw if creation fails */
   create(userId: string, modelId: string): Promise<Conversation>;
   /** appends new messages to the existing convo */
   appendMessages(
@@ -26,15 +26,15 @@ export type ConversationRepository = {
   ): Promise<void>;
   /** isProcessing (claimed) && processingStartedAt > x minutes */
   findStuckConversations(): Promise<Conversation[]>;
-  /** sets isProcessing to true and processingStartedAt to now, if failed to claim throw error */
+  /** sets isProcessing to true and processingStartedAt to now, if failed to claim throws error */
   claimConversation(conversationId: string): Promise<void>;
-  /** sets isProcessing to false and processingStartedAt to null */
+  /** sets isProcessing to false and processingStartedAt to null  if failed to release throws error*/
   releaseConversation(conversationId: string): Promise<void>;
   /** deletes conversation forever, throws if convo is still processing*/
   deleteConversation(
     conversationId: string,
     tx: TransactionClient,
   ): Promise<void>;
-  /** sets maxContextWindowReached flag to true */
+  /** sets maxContextWindowReached flag to true, throw if update failsS */
   setConversationCtxLimitAsReached(conversationId: string): Promise<void>;
 };
