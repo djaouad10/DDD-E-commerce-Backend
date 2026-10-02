@@ -216,4 +216,44 @@ export class PostgresConversationRepository implements ConversationRepository {
       );
     }
   }
+
+  async claimConversation(conversationId: string): Promise<void> {
+    this.logger.debug("claimConversation called", { conversationId });
+
+    try {
+      const [row] = await this.logger.measure("db.update(conversation)", () =>
+        this.db
+          .update(conversation)
+          .set({ is_processing: true, processing_started_at: new Date() })
+          .where(
+            and(
+              eq(conversation.id, conversationId),
+              eq(conversation.is_processing, false),
+            ),
+          )
+          .returning({ id: conversation.id }),
+      );
+
+      if (!row) {
+        this.logger.debug("conversation claim failed", { conversationId });
+
+        throw new ConflictError(
+          "conversation",
+          conversationId,
+          "can't claim a processing conversation",
+        );
+      }
+
+      this.logger.debug("conversation claimed", { conversationId });
+    } catch (error) {
+      this.logger.error("claimConversation failed", error as Error, {
+        conversationId,
+      });
+
+      handleDrizzleErrors(
+        error,
+        "PostgresConversationRepository.claimConversation",
+      );
+    }
+  }
 }
