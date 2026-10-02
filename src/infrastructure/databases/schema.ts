@@ -555,6 +555,14 @@ export const ratingRelations = relations(rating, ({ one }) => ({
   }),
 }));
 
+export const conversationRelations = relations(
+  conversation,
+  ({ one, many }) => ({
+    messages: many(conversationMessage),
+    user: one(user, { fields: [conversation.user_id], references: [user.id] }),
+  }),
+);
+
 export type DrizzleOrderSelect = InferSelectModel<typeof order>;
 
 export type DrizzleOrderItemSelect = InferSelectModel<typeof orderItem>;
