@@ -30,7 +30,7 @@ export type ConversationRepository = {
   claimConversation(conversationId: string): Promise<void>;
   /** sets isProcessing to false and processingStartedAt to null */
   releaseConversation(conversationId: string): Promise<void>;
-  /** deletes conversation forever*/
+  /** deletes conversation forever, throws if convo is still processing*/
   deleteConversation(
     conversationId: string,
     tx: TransactionClient,

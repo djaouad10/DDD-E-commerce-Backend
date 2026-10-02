@@ -2,9 +2,14 @@ import type {
   Conversation,
   ConversationRepository,
 } from "#/application/ports/persistence/conversation.repository.js";
-import type { DrizzleDBClient } from "#/infrastructure/config/database.js";
-import { DatabaseError } from "#/shared/errors/errors.js";
+import type {
+  DrizzleDBClient,
+  DrizzleTransactionClient,
+} from "#/infrastructure/config/database.js";
+import { ConflictError, DatabaseError } from "#/shared/errors/errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
+import type { TransactionClient } from "#/shared/types/transaction-client.js";
+import { and, eq } from "drizzle-orm";
 import { handleDrizzleErrors } from "../../errors/handle-drizzle-errors.js";
 import { conversation } from "../../schema.js";
 import { generateConversationId } from "../../utils.js";
@@ -122,6 +127,47 @@ export class PostgresConversationRepository implements ConversationRepository {
       this.logger.error("create failed", error as Error, { userId, modelId });
 
       handleDrizzleErrors(error, "PostgresConversationRepository.create");
+    }
+  }
+
+  async deleteConversation(
+    conversationId: string,
+    tx: TransactionClient,
+  ): Promise<void> {
+    this.logger.debug("deleteConversation called", { conversationId });
+
+    const db = tx as DrizzleTransactionClient;
+
+    try {
+      const [deletedRow] = await this.logger.measure(
+        "db.delete(conversation)",
+        () =>
+          db
+            .delete(conversation)
+            .where(
+              and(
+                eq(conversation.id, conversationId),
+                eq(conversation.is_processing, false),
+              ),
+            )
+            .returning(),
+      );
+
+      if (!deletedRow) {
+        this.logger.debug("conversation deletion failed", { conversationId });
+
+        throw new ConflictError(
+          "conversation",
+          conversationId,
+          "can't delete a processing conversation",
+        );
+      }
+    } catch (error) {
+      this.logger.error("deleteConversation failed", error as Error, {
+        conversationId,
+      });
+
+      handleDrizzleErrors(error, "PostgresConversationRepository.delete");
     }
   }
 }
