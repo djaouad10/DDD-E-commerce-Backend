@@ -68,4 +68,60 @@ export class PostgresConversationRepository implements ConversationRepository {
       handleDrizzleErrors(error, "PostgresConversationRepository.find");
     }
   }
+
+  async create(userId: string, modelId: string): Promise<Conversation> {
+    this.logger.debug("create called", { userId, modelId });
+
+    try {
+      const [row] = await this.logger.measure("db.insert(conversation)", () =>
+        this.db
+          .insert(conversation)
+          .values({
+            id: generateConversationId(),
+            user_id: userId,
+            model_id: modelId,
+            is_processing: true, // claimed by default
+            processing_started_at: new Date(),
+            max_context_window_reached: false,
+            title: "New conversation",
+          })
+          .returning(),
+      );
+
+      if (!row) {
+        this.logger.debug("conversation creation failed", { userId, modelId });
+
+        throw new DatabaseError(
+          "conversation creation failed",
+          "PostgresConversationRepository.create",
+          new Error("conversation creation failed"),
+        );
+      }
+
+      const convo: Conversation = {
+        id: row.id,
+        title: row.title,
+        userId: row.user_id,
+        isProcessing: row.is_processing,
+        processingStartedAt: row.processing_started_at,
+        maxContextWindowReached: row.max_context_window_reached,
+        modelId: row.model_id,
+        messages: [],
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+
+      this.logger.debug("conversation created", {
+        userId,
+        modelId,
+        conversationId: row.id,
+      });
+
+      return convo;
+    } catch (error) {
+      this.logger.error("create failed", error as Error, { userId, modelId });
+
+      handleDrizzleErrors(error, "PostgresConversationRepository.create");
+    }
+  }
 }
