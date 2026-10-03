@@ -31,6 +31,31 @@ services:
       timeout: 3s
       retries: 10
 
+  mcp:
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    container_name: ecommerce-ddd-dev-mcp
+    env_file: .env.dev
+    environment:
+      # override just the two host-specific values from .env.dev to use docker network
+      # everything else (GEMINI_API_KEY, MCP_API_KEY, etc...) comes from the file
+      DATABASE_URL: postgres://postgres:password@postgres-dev:5432/ecommerce_ddd_dev
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    command: ["npx", "tsx", "watch", "src/entrypoints/mcp/index.ts"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+
 volumes:
   postgres-dev-data:
   redis-data:

@@ -1,3 +1,4 @@
+import type { ChatPart } from "#/application/ports/ai/chat-model.port.js";
 import { relations, type InferSelectModel } from "drizzle-orm";
 import {
   bigint,
@@ -95,6 +96,11 @@ export const outboxStatusEnum = pgEnum("outbox_status", [
   "PROCESSING",
   "COMPLETED",
   "FAILED",
+]);
+
+export const conversationRolesEnum = pgEnum("conversation_roles", [
+  "user",
+  "model",
 ]);
 
 export const user = pgTable(
@@ -433,6 +439,50 @@ export const productEmbeddings = pgTable(
   ],
 );
 
+export const conversation = pgTable(
+  "conversation",
+  {
+    id: varchar("id", { length: 40 }).notNull().primaryKey(),
+    user_id: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: varchar("title", { length: 200 }),
+    is_processing: boolean("is_processing").notNull().default(false),
+    processing_started_at: timestamp("processing_started_at"),
+    max_context_window_reached: boolean("max_context_window_reached")
+      .notNull()
+      .default(false),
+    model_id: varchar("model_id", { length: 100 }).notNull(),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at")
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("conversation_user_id_idx").on(t.user_id)],
+);
+
+export const conversationMessage = pgTable(
+  "conversation_message",
+  {
+    id: varchar("id", { length: 40 }).notNull().primaryKey(),
+    conversation_id: varchar("conversation_id", { length: 40 })
+      .notNull()
+      .references(() => conversation.id, { onDelete: "cascade" }),
+    sequence: integer("sequence").notNull(), // ordering within the conversation
+    role: conversationRolesEnum("role").notNull(),
+    parts: jsonb("parts").notNull().$type<ChatPart[]>(),
+    provider_state: jsonb("provider_state").$type<unknown>(), // opaque, e.g. Gemini's raw parts
+    created_at: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("conversation_message_conv_seq_idx").on(
+      t.conversation_id,
+      t.sequence,
+    ),
+    index("conversation_message_conversation_id_idx").on(t.conversation_id),
+  ],
+);
+
 // Relations
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
@@ -509,6 +559,24 @@ export const ratingRelations = relations(rating, ({ one }) => ({
     references: [product.id],
   }),
 }));
+
+export const conversationRelations = relations(
+  conversation,
+  ({ one, many }) => ({
+    messages: many(conversationMessage),
+    user: one(user, { fields: [conversation.user_id], references: [user.id] }),
+  }),
+);
+
+export const conversationMessageRelations = relations(
+  conversationMessage,
+  ({ one }) => ({
+    conversation: one(conversation, {
+      fields: [conversationMessage.conversation_id],
+      references: [conversation.id],
+    }),
+  }),
+);
 
 export type DrizzleOrderSelect = InferSelectModel<typeof order>;
 

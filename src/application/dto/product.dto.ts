@@ -22,6 +22,13 @@ export type ProductStaticDataDTO = {
   updatedAt: string;
 };
 
+export type ProductFullDetailsDTO = ProductStaticDataDTO & {
+  variations: Pick<
+    VariationDTO,
+    "id" | "size" | "color" | "availableQty" | "weightInGrams"
+  >[];
+};
+
 export interface SemanticProductHit {
   productId: string;
   name: string;

@@ -7,7 +7,9 @@ type ErrorCodes =
   | "UNAUTHORIZED"
   | "CONFLICT"
   | "BAD_REQUEST"
-  | "FORBIDDEN";
+  | "FORBIDDEN"
+  | "MAX_STEPS_EXCEEDED"
+  | "MAX_CONTEXT_WINDOW_REACHED";
 
 export abstract class DomainError extends Error {
   abstract readonly code: ErrorCodes;
@@ -94,6 +96,26 @@ export class ConflictError extends DomainError {
       identifier,
       reason,
     });
+  }
+}
+
+export class MaxStepsExceededError extends DomainError {
+  readonly code = "MAX_STEPS_EXCEEDED";
+  readonly statusCode = 408;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class MaxContextWindowReachedError extends DomainError {
+  readonly code = "MAX_CONTEXT_WINDOW_REACHED";
+  readonly statusCode = 400;
+
+  constructor(conversationId?: string) {
+    super(
+      `the maximum context window size was reached by the conversation with id: ${conversationId ?? "unknown"}`,
+    );
   }
 }
 

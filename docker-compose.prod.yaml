@@ -50,6 +50,27 @@ services:
       retries: 3
       start_period: 15s
 
+  assistant-agent:
+    <<: *service-defaults
+    env_file:
+      - .env
+      - .env.agent
+    command: ["node", "./dist/entrypoints/agents/assistant-agent.js"]
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('net').connect(8080,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
   outbox-handler:
     <<: *service-defaults
     command: ["node", "./dist/entrypoints/workers/outbox-handler.js"]
@@ -81,3 +102,8 @@ services:
   embedding-queue-handler:
     <<: *service-defaults
     command: ["node", "./dist/entrypoints/workers/embedding-queue-handler.js"]
+
+  reset-stuck-convos:
+    <<: *service-defaults
+    command: ["node", "./dist/entrypoints/workers/reset-stuck-convos.js"]
+    scale: 1
