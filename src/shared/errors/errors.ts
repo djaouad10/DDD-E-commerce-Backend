@@ -112,9 +112,9 @@ export class MaxContextWindowReachedError extends DomainError {
   readonly code = "MAX_CONTEXT_WINDOW_REACHED";
   readonly statusCode = 400;
 
-  constructor(conversationId: string) {
+  constructor(conversationId?: string) {
     super(
-      `the maximum context window size was reached by the conversation with id: ${conversationId}`,
+      `the maximum context window size was reached by the conversation with id: ${conversationId ?? "unknown"}`,
     );
   }
 }

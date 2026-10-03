@@ -5,6 +5,7 @@ import {
   DomainError,
   ForbiddenError,
   GatewayError,
+  MaxContextWindowReachedError,
   NotFoundError,
   UnauthorizedError,
   ValidationError,
@@ -26,6 +27,10 @@ export function handleGeminiClientErrors(
   err: unknown,
   context?: string,
 ): never {
+  if (isContextWindowError(err)) {
+    throw new MaxContextWindowReachedError();
+  }
+
   if (err instanceof DomainError) {
     throw err;
   }
@@ -118,4 +123,11 @@ function extractStatusCodeFromMessage(message: string): number | null {
     return code >= 400 && code < 600 ? code : null;
   }
   return null;
+}
+
+function isContextWindowError(error: unknown): boolean {
+  // Gemini surfaces this as 400 INVALID_ARGUMENT with a message about token/context limits
+  // there's no distinct status code for it, so match on the message.
+  const message = error instanceof Error ? error.message : String(error);
+  return /context.*(length|window)|token.*limit|exceeds.*token/i.test(message);
 }
