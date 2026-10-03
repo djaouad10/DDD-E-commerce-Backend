@@ -27,7 +27,7 @@ A production-grade, distributed e-commerce backend built with **Domain-Driven De
 14. [Persistence & Read Models](#14-persistence--read-models)
 15. [Testing Strategy](#15-testing-strategy)
 16. [CI/CD Pipeline](#16-cicd-pipeline)
-17. [Diagrams](#17-diagrams)
+17. [Appendices](#17-appendices)
 18. [The MCP Server & Semantic Product Search (Online RAG)](#18-the-mcp-server--semantic-product-search-online-rag)
 19. [Offline RAG: The Product Embedding Pipeline](#19-offline-rag-the-product-embedding-pipeline)
 20. [The AI Shopping Assistant Agent](#20-the-ai-shopping-assistant-agent)
