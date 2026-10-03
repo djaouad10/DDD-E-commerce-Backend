@@ -568,6 +568,16 @@ export const conversationRelations = relations(
   }),
 );
 
+export const conversationMessageRelations = relations(
+  conversationMessage,
+  ({ one }) => ({
+    conversation: one(conversation, {
+      fields: [conversationMessage.conversation_id],
+      references: [conversation.id],
+    }),
+  }),
+);
+
 export type DrizzleOrderSelect = InferSelectModel<typeof order>;
 
 export type DrizzleOrderItemSelect = InferSelectModel<typeof orderItem>;
