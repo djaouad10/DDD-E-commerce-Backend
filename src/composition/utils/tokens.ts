@@ -105,6 +105,7 @@ import type { RunAssistantAgentService } from "#/application/services/assistant-
 import type { Client } from "@modelcontextprotocol/sdk/client";
 import type { GetProductFullDetailsService } from "#/application/services/mcp/get-product-full-details.service.js";
 import type { ConversationRepository } from "#/application/ports/persistence/conversation.repository.js";
+import type { ResetStuckConvosService } from "#/application/services/stuck-convos-resetter/reset-stuck-convos.service.js";
 
 // Infrastructure tokens
 export const DB = Symbol("db") as InjectionToken<DBClient>;
@@ -538,3 +539,7 @@ export const RUN_ASSISTANT_AGENT_SERVICE = Symbol(
 export const GET_PRODUCT_FULL_DETAILS_SERVICE = Symbol(
   "getProductFullDetailsService",
 ) as InjectionToken<GetProductFullDetailsService>;
+
+export const RESET_STUCK_CONVOS_SERVICE = Symbol(
+  "resetStuckConvosService",
+) as InjectionToken<ResetStuckConvosService>;
