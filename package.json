@@ -27,6 +27,7 @@
     "start:embedding-queue-handler": "node --env-file=.env.prod ./dist/entrypoints/workers/embedding-queue-handler.js",
     "start:outbox-handler": "node --env-file=.env.prod ./dist/entrypoints/workers/outbox-handler.js",
     "start:reset-stuck-outbox": "node --env-file=.env.prod ./dist/entrypoints/workers/reset-stuck-outbox-rows.js",
+    "start:reset-stuck-convos": "node --env-file=.env.prod ./dist/entrypoints/workers/reset-stuck-convos.js",
     "lint": "eslint .",
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:unit:watch": "vitest --config vitest.unit.config.ts",
