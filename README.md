@@ -28,6 +28,11 @@ A production-grade, distributed e-commerce backend built with **Domain-Driven De
 15. [Testing Strategy](#15-testing-strategy)
 16. [CI/CD Pipeline](#16-cicd-pipeline)
 17. [Diagrams](#17-diagrams)
+18. [The MCP Server & Semantic Product Search (Online RAG)](#18-the-mcp-server--semantic-product-search-online-rag)
+19. [Offline RAG: The Product Embedding Pipeline](#19-offline-rag-the-product-embedding-pipeline)
+20. [The AI Shopping Assistant Agent](#20-the-ai-shopping-assistant-agent)
+21. [Conversation Persistence & Concurrency Control](#21-conversation-persistence--concurrency-control)
+22. [Reset Stuck Conversations Worker](#22-reset-stuck-conversations-worker)
 
 ---
 
@@ -37,7 +42,7 @@ This backend powers an e-commerce platform (products, cart, orders, ratings, use
 
 - **Correctness under concurrency**: optimistic locking, idempotency keys, and transactional outbox.
 - **Reliable external integrations**: a shipping provider API (World Express) is never called inside a DB transaction; instead, outbox jobs schedule those calls.
-- **Distributed processing**: a single Docker image runs as 7 different processes (1 API + 6 workers), each with its own DI container.
+- **Distributed processing**: a single Docker image runs as 11 different processes (1 API Server + 1 MCP Server + 1 Assistant Agent API Server + 8 workers), each with its own DI container.
 - **Testability**: in-memory adapters for unit tests, real Postgres + fake gateways for integration tests, and per-endpoint integration tests.
 
 The DI container and composition-root design are documented in detail in the companion blog post: [*Dependency Injection from Scratch*](https://www.djaouadgharbi.tech/blog/dependency-injection-from-scratch).
@@ -55,7 +60,7 @@ The DI container and composition-root design are documented in detail in the com
 | Email              | Brevo                              |
 | Validation         | Zod                                |
 | Test               | vitest + Supertest                 |
-| Container          | Docker (single image, 7 processes) |
+| Container          | Docker (single image, 11 processes) |
 | Registry           | GHCR                               |
 | CI/CD              | GitHub Actions                     |
 
@@ -63,7 +68,7 @@ The DI container and composition-root design are documented in detail in the com
 
 ## 2. Distributed Topology
 
-The system is deployed as **one Docker image** (`ghcr.io/djaouad10/ddd-e-commerce-backend:latest`) running as **seven independent processes**, each with its own command:
+The system is deployed as **one Docker image** (`ghcr.io/djaouad10/ddd-e-commerce-backend:latest`) running as **eleven independent processes**, each with its own command:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -88,7 +93,7 @@ Each process:
 
 This is the essence of **"one deployable, many processes"**, a modular monolith packaged as a distributed system. The blog post calls this out in [Part V — Composition Roots and the Object Graph Per Process](https://www.djaouadgharbi.tech/blog/dependency-injection-from-scratch#part-v-composition-roots-and-the-object-graph-per-process).
 
-The orchestrator is [`docker-compose.yml`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/docker-compose.yml), which defines the seven services with a shared `x-service-defaults` anchor.
+The orchestrator is [`docker-compose.yml`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/docker-compose.yml), which defines the eleven services with a shared `x-service-defaults` anchor.
 
 Entry points:
 
@@ -1020,7 +1025,7 @@ checkout → login to GHCR → setup buildx → docker build & push
 
 ### [`docker-compose.prod.yaml`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/docker-compose.prod.yaml)
 
-One image, seven services, each with a different `command`. The API has a TCP-based healthcheck (connect to port 3000). All services share `x-service-defaults` (restart, env file, JSON log rotation).
+One image, eleven services, each with a different `command`. The API, MCP server and Assistant Agent API has a TCP-based healthcheck (connect to a port). All services share `x-service-defaults` (restart, env file, JSON log rotation).
 
 **Diagram:**
 
@@ -1043,7 +1048,8 @@ flowchart LR
 
 
 ---
-## Appendix A — Key Files & Directories
+## 17. Appendices
+### Appendix A — Key Files & Directories
 
 ```
 src/
@@ -1142,7 +1148,7 @@ Direct links to the key files above:
 
 ---
 
-## Appendix B — Design Principles Recap
+### Appendix B — Design Principles Recap
 
 1. **Every process is isolated**: own entry point, own composition root, own scope lifecycle. See the blog post: [Part V — Composition Roots and the Object Graph Per Process](https://www.djaouadgharbi.tech/blog/dependency-injection-from-scratch#part-v-composition-roots-and-the-object-graph-per-process).
 2. **Dependency rule is enforced**: domain knows nothing; application knows domain; infrastructure knows both. See [§6 Onion Architecture](https://www.djaouadgharbi.tech/blog/dependency-injection-from-scratch#6-onion-architecture--dip-applied-to-the-layer-graph).
@@ -1155,6 +1161,248 @@ Direct links to the key files above:
 9. **Testability is a first-class concern**: integration + unit tests composition roots, in-memory adapters, fake gateways, per-endpoint integration tests, and `runIteration()` exposure on workers. See [Part VIII — Testing: The Registration Matrix](https://www.djaouadgharbi.tech/blog/dependency-injection-from-scratch#part-viii-testing-the-registration-matrix).
 
 ---
+
+
+---
+
+## 18. The MCP Server & Semantic Product Search (Online RAG)
+
+A dedicated MCP (Model Context Protocol) process exposes product discovery as tools an LLM can call directly, this is the "online" half of the RAG pipeline: a live query embedded and matched against Postgres at request time.
+
+### Process & entry point
+
+- Entry point: [`src/entrypoints/mcp/index.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/entrypoints/mcp/index.ts)
+- Composition root: [`src/composition/roots/mcp.composition.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/composition/roots/mcp.composition.ts): registers `GemeniTextEmbeddingModelAdapter`, `PostgresProductQueries`, `ProductSemanticSearchService`, `GetProductFullDetailsService`.
+- Transport: [`src/infrastructure/mcp/transport.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/mcp/transport.ts) mounts `StreamableHTTPServerTransport` on `POST /mcp`, behind [`requireMcpApiKey`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/mcp/middleware/require-mcp-key.middleware.ts). A fresh DI scope and a fresh `McpServer` are created **per request** ([`src/infrastructure/mcp/server.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/mcp/server.ts)), with the transport, server, and scope all disposed in a nested `finally`.
+- Runs as the `mcp` service in [`docker-compose.prod.yaml`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/docker-compose.prod.yaml), its own port (`8000`) and its own healthcheck, exactly like `api`.
+
+### Tools
+
+| Tool | File | Purpose |
+|---|---|---|
+| `product-semantic-search` | [`src/infrastructure/mcp/tools/product-semantic-search.tool.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/mcp/tools/product-semantic-search.tool.ts) | Embeds the caller's natural-language query, runs a cosine-distance search over `product_embeddings`, with optional `colors`/`sizes`/`minPrice`/`maxPrice`/`inStock` filters applied in SQL. |
+| `get-product-full-details` | [`src/infrastructure/mcp/tools/product-full-details.tool.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/mcp/tools/product-full-details.tool.ts) | Expands one candidate's full DTO (description, brand, material, rating, images) by `productId`. |
+
+Application-layer services behind the tools:
+
+- [`src/application/services/mcp/product-semantic-search.service.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/services/mcp/product-semantic-search.service.ts): embeds the query via `TextEmbeddingModelPort`, then calls `ProductQueries.semanticSearch`.
+- [`src/application/services/mcp/get-product-full-details.service.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/services/mcp/get-product-full-details.service.ts)
+- Read model: [`src/infrastructure/databases/read-models/postgres/postgres-product-queries.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/databases/read-models/postgres/postgres-product-queries.ts): `semanticSearch` builds the `pgvector` `cosineDistance` query.
+- Embedding model port: [`src/application/ports/ai/text-embedding-model.port.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/ports/ai/text-embedding-model.port.ts), implemented by [`src/infrastructure/ai/adapters/gemeni-text-embedding-model.adapter.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/ai/adapters/gemeni-text-embedding-model.adapter.ts).
+
+**Diagram:**
+
+```mermaid
+sequenceDiagram
+    participant Agent as Assistant Agent
+    participant MCP as MCP Server (Streamable HTTP)
+    participant Embed as GemeniTextEmbeddingModelAdapter
+    participant PQ as PostgresProductQueries
+    participant PG as Postgres + pgvector
+
+    Agent->>MCP: POST /mcp — tools/call product-semantic-search
+    MCP->>Embed: embed([query.text])
+    Embed-->>MCP: queryVector (768-d)
+    MCP->>PQ: semanticSearch(queryVector, filters, limit)
+    PQ->>PG: SELECT ... ORDER BY embedding <=> queryVector
+    PG-->>PQ: ranked product rows
+    PQ-->>MCP: SemanticProductHit[]
+    MCP-->>Agent: content + structuredContent { products }
+```
+
+---
+
+## 19. Offline RAG: The Product Embedding Pipeline
+
+[#19-offline-rag-the-product-embedding-pipeline](#19-offline-rag-the-product-embedding-pipeline)
+
+The "offline" half of the RAG pipeline keeps `product_embeddings` in sync with the product catalog, driven by the same domain events and transactional outbox used everywhere else in the system, a product create/update/delete is never embedded synchronously inside the request that caused it.
+
+### Flow
+
+1. `Product` records `PRODUCT_CREATED` / `PRODUCT_UPDATED` / `PRODUCT_DELETED` domain events, same as any other aggregate (see [§9](#9-domain-events--event-publishing)).
+2. `domain-events-processor` claims the `outbox` row and fans it out via `FlowProducer`. `BullMqEventPublisher`'s `eventToQueuesMapper` now routes these three product events to an `embedding-queue` in addition to the existing queues.
+3. `embedding-queue-handler` consumes the job.
+
+### New process: `embedding-queue-handler`
+
+- Entry point: [`src/entrypoints/workers/embedding-queue-handler.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/entrypoints/workers/embedding-queue-handler.ts)
+- Composition root: [`src/composition/roots/embedding-queue-handler.composition.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/composition/roots/embedding-queue-handler.composition.ts)
+- Worker: [`src/infrastructure/messaging/bullmq/workers/embedding-queue-handler.worker.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/messaging/bullmq/workers/embedding-queue-handler.worker.ts) (queue: `embedding-queue`) the same scope-per-job, typed-registry pattern as `OutboxHandlerWorker`/`EmailQueueHandlerWorker`: [`src/infrastructure/messaging/jobs/embedding-handler-utils.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/messaging/jobs/embedding-handler-utils.ts) maps `PRODUCT_CREATED`/`PRODUCT_UPDATED` → `EmbeddingQueueProductUpsertedEventsHandlerCommand` and `PRODUCT_DELETED` → `EmbeddingQueueProductDeletedEventHandlerCommand`, each resolved to its service via a typed registry with an exhaustive `never` check.
+- Runs as the `embedding-queue-handler` service in [`docker-compose.prod.yaml`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/docker-compose.prod.yaml).
+
+### Upsert path (created/updated)
+
+[`EmbeddingQueueProductUpsertedEventsHandlerService`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/services/embedding-queue-handlers/embedding-queue-product-upserted-events-handler.service.ts):
+
+1. Fetches the product's current static data via `ProductQueries.getStaticData`.
+2. Chunks it with [`chunkProduct`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/ai/product-chunker.js) : name+category, brand+material, and description (when present) as separate chunks. Prices, colors, sizes, and stock are **never embedded**; they stay filter dimensions handled by SQL in the semantic-search read model.
+3. Embeds all chunks in one batched call via `TextEmbeddingModelPort.embed`.
+4. Inside one DB transaction: writes an idempotency key (`jobId` as the key, same pattern as [§10](#10-idempotency--at-least-once-delivery)) and upserts the embedding rows via [`src/application/ports/persistence/product-embedding.repository.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/ports/persistence/product-embedding.repository.ts), implemented by [`src/infrastructure/databases/repositories/postgres/postgres-product-embedding-repository.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/databases/repositories/postgres/postgres-product-embedding-repository.ts), which deletes all existing chunks for that `product_id` before inserting the new ones, so an update never leaves stale chunks behind.
+
+### Delete path
+
+[`EmbeddingQueueProductDeletedEventHandlerService`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/services/embedding-queue-handlers/embedding-queue-product-deleted-event-handler.service.ts) does the same idempotency-key-plus-delete inside one transaction, with no embedding call needed.
+
+### Table
+
+`product_embeddings` in [`schema.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/databases/schema.ts): one row per chunk (`product_id`, `chunk_index`, `content`, `embedding vector(768)`), a `uniqueIndex` on `(product_id, chunk_index)`, and an `hnsw` index on `embedding` using `vector_cosine_ops`, the index the online semantic search in [§18](#18-the-mcp-server--semantic-product-search-online-rag) actually queries against.
+
+**Diagram:**
+
+```mermaid
+flowchart LR
+    PROD[Product aggregate] -->|recordThat| EVT[PRODUCT_CREATED / UPDATED / DELETED]
+    EVT --> OB[(outbox, category=domain-event)]
+    OB --> DP[Domain Events Processor]
+    DP -->|FlowProducer| QEMB[[embedding-queue]]
+    QEMB --> EQH[Embedding Queue Handler]
+
+    EQH -->|upserted| CHUNK[chunkProduct]
+    CHUNK --> EMBED[GemeniTextEmbeddingModelAdapter.embed]
+    EMBED --> TX1[(TX: idempotency_keys + product_embeddings upsert)]
+
+    EQH -->|deleted| TX2[(TX: idempotency_keys + product_embeddings delete)]
+
+    TX1 --> PG[(product_embeddings<br/>hnsw index)]
+    TX2 --> PG
+```
+
+---
+
+## 20. The AI Shopping Assistant Agent
+
+[#20-the-ai-shopping-assistant-agent](#20-the-ai-shopping-assistant-agent)
+
+A Gemini-backed shopping assistant runs as its own HTTP process, calling the MCP tools from [§18](#18-the-mcp-server--semantic-product-search-online-rag) in a bounded tool-use loop.
+
+### Process & entry point
+
+- Entry point: [`src/entrypoints/agents/assistant-agent.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/entrypoints/agents/assistant-agent.ts): loads MCP tools once at startup (`mcpClientGateway.loadTools()`) before the HTTP server starts listening.
+- A standalone REPL entry point also exists for local testing without HTTP: [`src/entrypoints/agents/assistant-agent.repl.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/entrypoints/agents/assistant-agent.repl.ts).
+- Composition root: [`src/composition/roots/assistant-agent.composition.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/composition/roots/assistant-agent.composition.ts): registers the MCP client gateway, the Gemini chat model adapter, `AssistantAgent`, a dedicated `DRIZZLE_DB` connection, `PostgresConversationRepository`, `BetterAuthAdapter` + `PostgresUserRepository` (the agent authenticates its own HTTP callers independently of the main `api` process), and `RunAssistantAgentService`.
+- HTTP server: [`src/infrastructure/http/server/assistant-agent.server.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/http/server/assistant-agent.server.ts): the same middleware shape as the main API (`requestTimerMiddleware` → `scopeMiddleware` → `attachUserMiddleware` → `contextMiddleware` → `requestLogger`), exposing a single route: `POST /api/assistant-agent/chat`, guarded by [`authMiddleware`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/http/middleware/auth-middleware.js) and validated with [`assistantAgentChatBodySchema`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/http/validators/assistant-agent.ts) (`query`, optional `conversationId`).
+- Runs as the `assistant-agent` service in [`docker-compose.prod.yaml`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/docker-compose.prod.yaml), its own port (`8080`) and TCP healthcheck, with `.env.agent` layered on top of the shared `.env`.
+
+### The tool-use loop
+
+[`AssistantAgent.run`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/ai/agents/assistant-agent.js) drives up to `maxSteps` rounds: call `ChatModelPort.generate` with the current message history and the MCP tool declarations, and if the model returns function calls, execute each via `McpClientGateway.safeToolCall` and push a `functionResponse` message before looping again. It returns once the model replies with no further function calls, or throws `MaxStepsExceededError` if the loop runs out of steps.
+
+### Provider-neutral tool & message contracts
+
+Two ports keep Gemini specifics out of the application layer, consistent with the dependency rule in [§3](#3-onion-architecture-layers):
+
+- [`src/application/ports/ai/chat-model.port.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/ports/ai/chat-model.port.ts): `ChatMessage` carries `parts: ChatPart[]` (text / functionCall / functionResponse) plus an optional `providerState?: unknown`: an opaque, adapter-owned continuation blob. The application never reads it; it only keeps it attached to a message so the adapter that produced it can round-trip whatever it needs on the next turn.
+- [`src/infrastructure/ai/adapters/gemeni-chat-model.adapter.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/ai/adapters/gemeni-chat-model.adapter.ts) is the one piece of code that knows what `providerState` means for Gemini: it stores Gemini's raw response `Part[]` there (these carry `thoughtSignature`s that Gemini's newer models require to be echoed back verbatim on tool-use turns), and on the way out, `toContent` sends a message's raw `providerState` when present (model-authored turns) and falls back to the neutral `parts` otherwise (user/function-response turns).
+- [`src/infrastructure/mcp/mcp-client-gatway.adapter.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/mcp/mcp-client-gatway.adapter.ts)'s `loadTools` stores each tool's full `inputSchema` (not just `.properties`) as `ToolDeclaration.parameters`, and the Gemini adapter sends it via Gemini's `parametersJsonSchema` field, the one Gemini field that accepts standard JSON Schema directly, rather than its own restricted `Schema` subset.
+
+### Context window limit as a domain error
+
+[`handle-gemeni-client-errors.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/ai/errors/handle-gemeni-client-errors.ts) pattern-matches Gemini's 400 context/token-limit message (there's no distinct status code for it) and translates it to [`MaxContextWindowReachedError`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/shared/errors/errors.ts), a `DomainError` the application layer can catch by type, same leak-free adapter boundary described in [§12](#12-error-handling-strategy).
+
+**Diagram:**
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant Srv as assistant-agent.server.ts
+    participant Svc as RunAssistantAgentService
+    participant Agent as AssistantAgent
+    participant Gem as GemeniChatModelAdapter
+    participant MCP as McpClientGatwayAdapter
+
+    U->>Srv: POST /api/assistant-agent/chat
+    Srv->>Svc: execute(RunAssistantAgentQuery)
+    Svc->>Agent: run([...history, userMessage])
+    loop up to maxSteps
+        Agent->>Gem: generate(messages, tools)
+        Gem-->>Agent: text and/or functionCalls + providerState
+        alt functionCalls present
+            Agent->>MCP: safeToolCall(name, args)
+            MCP-->>Agent: tool result
+            Agent->>Agent: push functionResponse message
+        else no functionCalls
+            Agent-->>Svc: { response, newMessages }
+        end
+    end
+```
+
+---
+
+## 21. Conversation Persistence & Concurrency Control
+
+[#21-conversation-persistence--concurrency-control](#21-conversation-persistence--concurrency-control)
+
+Conversations are append-only in Postgres, with a claim/release flag protecting against two concurrent turns on the same conversation, the same "claim with a conditional UPDATE, release in a `finally`" shape used for outbox rows in [§8](#8-the-transactional-outbox-pattern), applied here to conversations instead.
+
+### Schema
+
+`conversation` and `conversation_message` in [`schema.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/databases/schema.ts):
+
+- `conversation`: `id`, `user_id`, `title`, **`is_processing` + `processing_started_at`** (the claim/release pair), **`max_context_window_reached`** (set once and checked on every subsequent turn so a dead-end conversation fails fast instead of re-hitting Gemini), `model_id` (so a future change of default model doesn't retroactively change how an old conversation is interpreted).
+- `conversation_message`: `conversation_id`, **`sequence`** (ordering within the conversation, with a `uniqueIndex` on `(conversation_id, sequence)` so a retried append can't double-insert), `role`, `parts` (jsonb, the neutral `ChatPart[]`), **`provider_state`** (jsonb, opaque, see [§20](#20-the-ai-shopping-assistant-agent)).
+
+### Port & Postgres implementation
+
+- Port: [`src/application/ports/persistence/conversation.repository.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/ports/persistence/conversation.repository.ts): `find`, `create` (claims by default), `appendMessages`, `claimConversation`, `releaseConversation`, `setConversationCtxLimitAsReached`, `findStuckConversations`, `deleteConversation`.
+- Adapter: [`src/infrastructure/databases/repositories/postgres/postgres-conversation-repository.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/databases/repositories/postgres/postgres-conversation-repository.ts).
+
+`claimConversation` and `releaseConversation` are both single conditional `UPDATE ... WHERE is_processing = <expected>` statements with `.returning()` checked for an empty result, not a read-then-write, so the claim itself is race-free at the database level regardless of how many `assistant-agent` replicas are running.
+
+### The orchestrating service
+
+[`RunAssistantAgentService`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/services/assistant-agent/run-assistant-agent.service.ts):
+
+1. Loads the conversation (or creates one, which claims it by default), checking `userId` ownership, `maxContextWindowReached`, and `isProcessing` before claiming.
+2. Builds `[...conversation.messages, userMessage]` and runs the agent loop on a **copy** of that array (`this.agent.run([...messages])`), since `AssistantAgent.run` mutates its argument, the copy is what stops that mutation from corrupting the service's own view of `messages.length`.
+3. Appends `[userMessage, ...newMessages]` with `startIndex = conversation.messages.length`, captured **before** the agent loop runs, so the written sequence numbers are correct regardless of how many internal tool-call steps happened, a value read after `agent.run()` returns would already reflect the loop's own mutations.
+4. On `MaxContextWindowReachedError` specifically, flips `max_context_window_reached` before rethrowing.
+5. Releases the conversation in a `finally`, so it's released whether the turn succeeded, threw a context-window error, or threw anything else.
+
+**Diagram:**
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: is_processing = false
+    Idle --> Claimed: claimConversation()<br/>UPDATE ... WHERE is_processing=false
+    Claimed --> Idle: releaseConversation() (success or error)
+    Claimed --> MaxContextReached: MaxContextWindowReachedError
+    MaxContextReached --> Idle: releaseConversation() (finally)
+    MaxContextReached --> [*]: every future turn throws immediately
+    Idle --> [*]
+```
+
+---
+
+## 22. Reset Stuck Conversations Worker
+
+[#22-reset-stuck-conversations-worker](#22-reset-stuck-conversations-worker)
+
+A fifth cron worker, alongside the four in [§7](#7-the-cron-workers), using the exact same shape (`running` flag + `AbortController` + `runIteration()` + `start()` + `stop()` + `loop()`) as `ResetStuckOutboxRowsWorker`, applied to conversations whose releasing DB call crashed mid-turn instead of outbox rows stuck mid-`PROCESSING`.
+
+| Worker | Interval | Purpose |
+|---|---|---|
+| [`ResetStuckConvosWorker`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/infrastructure/messaging/bullmq/workers/reset-stuck-convos.worker.ts) | 10 min | Find conversations with `is_processing = true` for longer than 10 minutes → release them back to `is_processing = false` |
+
+- Entry point: [`src/entrypoints/workers/reset-stuck-convos.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/entrypoints/workers/reset-stuck-convos.ts)
+- Composition root: [`src/composition/roots/reset-stuck-convos-worker.composition.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/composition/roots/reset-stuck-convos-worker.composition.ts)
+- Service: [`src/application/services/stuck-convos-resetter/reset-stuck-convos.service.ts`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/src/application/services/stuck-convos-resetter/reset-stuck-convos.service.ts): calls `findStuckConversations(batchSize, stuckforMs)`, then `releaseConversation(id)` on each; a release failure for one conversation is logged and skipped rather than aborting the batch, so the next poll cycle retries just that one.
+- Runs as the `reset-stuck-convos` service in [`docker-compose.prod.yaml`](https://github.com/djaouad10/DDD-E-commerce-Backend/blob/main/docker-compose.prod.yaml), `scale: 1` like the other single-instance maintenance workers.
+
+**Diagram:**
+
+```mermaid
+flowchart TD
+    A[Poll every 10 min] --> B[findStuckConversations<br/>is_processing=true AND processing_started_at < now-10min]
+    B --> C{Any found?}
+    C -- no --> A
+    C -- yes --> D[releaseConversation per row]
+    D --> E{Release ok?}
+    E -- yes --> F[is_processing=false]
+    E -- no --> G[log + skip, retry next poll]
+    F --> A
+    G --> A
+```
 
 ### Companion reading
 
