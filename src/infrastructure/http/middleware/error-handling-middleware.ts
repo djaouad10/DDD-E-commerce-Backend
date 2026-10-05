@@ -8,17 +8,29 @@ const logger = createLogger("ErrorMiddleware");
 //  Frontend uses these for toast notifications.
 
 const userFriendlyMessages: Record<string, string> = {
-  VALIDATION_ERROR: "Please check your information and try again.",
-  NOT_FOUND: "We couldn't find what you're looking for.",
+  VALIDATION_ERROR: "Invalid {field}: {reason}.",
+  BAD_REQUEST: "The request could not be processed.",
+  NOT_FOUND: "{resource} with identifier '{identifier}' was not found.",
   INSUFFICIENT_INVENTORY:
-    "Only {available} items left in stock. Please reduce quantity.",
-  ORDER_ALREADY_PAID: "This order has already been paid.",
-  PAYMENT_DECLINED:
-    "Your payment was declined. Please try another card or contact your bank.",
-  UNAUTHORIZED: "You don't have permission to do that.",
+    "Only {available} units are available, but {requested} were requested.",
+  UNAUTHORIZED: "You are not authorized to perform this action.",
+  FORBIDDEN: "You are not authorized to {action}.",
+  CONFLICT: "{resource} with identifier '{identifier}' conflicts: {reason}.",
+  MAX_STEPS_EXCEEDED:
+    "The operation exceeded the maximum number of steps allowed.",
+  MAX_CONTEXT_WINDOW_REACHED:
+    "The maximum context window size has been reached. Please start a new conversation.",
   DATABASE_ERROR: "Something went wrong on our end. Please try again later.",
-  EXTERNAL_API_ERROR:
-    "A service we depend on is temporarily unavailable. Please try again.",
+  GATEWAY_ERROR:
+    "A service we depend on is temporarily unavailable. Please try again later.",
+  GATEWAY_TIMEOUT_ERROR:
+    "A service we depend on took too long to respond. Please try again later.",
+  CONNECTION_ERROR:
+    "We couldn't connect to a service we depend on. Please try again later.",
+  MALFORMED_RESPONSE_ERROR:
+    "A service we depend on returned an unexpected response. Please try again later.",
+  DEPENDENCY_RESOLUTION_ERROR:
+    "Something went wrong on our end. Please try again later.",
 };
 
 /**
