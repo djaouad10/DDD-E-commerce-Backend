@@ -7,7 +7,7 @@ import {
 } from "#/composition/utils/tokens.js";
 import { ProductId } from "#/domain/value-objects/product-id.js";
 import { generateOutboxId } from "#/infrastructure/databases/outbox/utils.js";
-import { ConflictError, NotFoundError } from "#/shared/errors/errors.js";
+import { NotFoundError } from "#/shared/errors/errors.js";
 import {
   clearDatabase,
   findIdempotencyKeyInDB,
@@ -34,6 +34,7 @@ describe("EmbeddingQueueProductUpsertedEventsHandlerService", () => {
 
   beforeEach(async () => {
     await clearDatabase(container);
+    fakeEmbedModel.embed.mockClear();
   });
 
   test("when called with valid arguments, it should chunk the product and save the chunks and their embeddings in the database", async () => {
@@ -54,7 +55,7 @@ describe("EmbeddingQueueProductUpsertedEventsHandlerService", () => {
     expect(fakeEmbedModel.embed).toHaveBeenCalledTimes(1);
   });
 
-  test("when called more than once with the same jobId, it should throw a conflict error", async () => {
+  test("when called more than once with the same jobId, it should safely return the second time (idempotency)", async () => {
     // Arrange
     const jobId = generateOutboxId();
     const { product } = await setupProductAndCategory(container);
@@ -66,12 +67,25 @@ describe("EmbeddingQueueProductUpsertedEventsHandlerService", () => {
     );
 
     // Assert
-    await expect(
-      service.execute(
-        new EmbeddingQueueProductUpsertedEventsHandlerCommand(product.id.value),
-        jobId,
-      ),
-    ).rejects.toThrow(ConflictError);
+
+    const keyAfterFirstExecution = await findIdempotencyKeyInDB(
+      container,
+      jobId,
+      "EmbeddingQueueProductUpsertedEventsHandlerService",
+    );
+
+    expect(keyAfterFirstExecution).not.toBeNull();
+
+    expect(fakeEmbedModel.embed).toHaveBeenCalledTimes(1);
+
+    fakeEmbedModel.embed.mockClear();
+
+    await service.execute(
+      new EmbeddingQueueProductUpsertedEventsHandlerCommand(product.id.value),
+      jobId,
+    );
+
+    expect(fakeEmbedModel.embed).toHaveBeenCalledTimes(0);
   });
 
   test("when product doesn't exist, it should throw a not found error and no chunks or idempotency key should be saved", async () => {
