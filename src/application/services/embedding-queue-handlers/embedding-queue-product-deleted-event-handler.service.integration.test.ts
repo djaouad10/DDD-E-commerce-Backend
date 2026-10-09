@@ -49,7 +49,11 @@ describe("EmbeddingQueueProductDeletedEventHandlerService", () => {
     const productChunks = await getChunksOfProduct(container, product.id.value);
     expect(productChunks.length).toBe(0);
 
-    const idempotencyKey = await findIdempotencyKeyInDB(container, jobId);
+    const idempotencyKey = await findIdempotencyKeyInDB(
+      container,
+      jobId,
+      "EmbeddingQueueProductDeletedEventHandlerService",
+    );
     expect(idempotencyKey?.id).toBe(jobId);
   });
 

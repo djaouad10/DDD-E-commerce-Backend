@@ -106,7 +106,11 @@ describe("EmailQueueOrderConfirmedHandlerService", () => {
         expect.any(String),
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId); // adjust to your repo API
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "EmailQueueOrderConfirmedHandlerService",
+      ); // adjust to your repo API
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe("EmailQueueOrderConfirmedHandlerService");
     });
@@ -276,7 +280,11 @@ describe("EmailQueueOrderConfirmedHandlerService", () => {
         "SMTP down",
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "EmailQueueOrderConfirmedHandlerService",
+      );
       expect(key).toBeNull(); // Critical: no key persisted so retry can succeed
       expect(emailGatewayMock.sendEmail).toHaveBeenCalledTimes(1);
     });

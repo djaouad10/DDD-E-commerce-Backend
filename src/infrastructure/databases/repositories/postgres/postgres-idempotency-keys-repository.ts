@@ -7,6 +7,7 @@ import type { DrizzleTransactionClient } from "#/infrastructure/config/database.
 import { handleDrizzleErrors } from "#/infrastructure/databases/errors/handle-drizzle-errors.js";
 import { createLogger } from "#/shared/logging/logger.js";
 import type { TransactionClient } from "#/shared/types/transaction-client.js";
+import { and } from "drizzle-orm";
 import { idempotencyKeys } from "../../schema.js";
 
 export class PostgresIdempotencyKeysRepository implements IdempotencyKeysRepository {
@@ -41,9 +42,10 @@ export class PostgresIdempotencyKeysRepository implements IdempotencyKeysReposit
 
   async find(
     key: string,
+    handlerName: string,
     tx: TransactionClient,
   ): Promise<IdempotencyKeyEntry | null> {
-    this.logger.debug("find called", { key });
+    this.logger.debug("find called", { key, handlerName });
 
     const db = tx as DrizzleTransactionClient;
 
@@ -52,7 +54,11 @@ export class PostgresIdempotencyKeysRepository implements IdempotencyKeysReposit
         "db.query.idempotencyKeys.findFirst",
         () =>
           db.query.idempotencyKeys.findFirst({
-            where: (idempotencyKeys, { eq }) => eq(idempotencyKeys.id, key),
+            where: (idempotencyKeys, { eq }) =>
+              and(
+                eq(idempotencyKeys.id, key),
+                eq(idempotencyKeys.handler_name, handlerName),
+              ),
           }),
       );
 

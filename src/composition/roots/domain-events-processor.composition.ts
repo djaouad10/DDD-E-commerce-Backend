@@ -62,8 +62,8 @@ export function buildDomainEventsProcessorContainer(): Container {
       new BullMqEventPublisher(
         scope.resolve(BULLMQ_FLOW_PRODUCER),
         scope.resolve(EMAIL_QUEUE),
-        scope.resolve(ANALYTICS_QUEUE),
         scope.resolve(INVENTORY_QUEUE),
+        scope.resolve(ANALYTICS_QUEUE),
         scope.resolve(EMBEDDING_QUEUE),
       ),
     "singleton",

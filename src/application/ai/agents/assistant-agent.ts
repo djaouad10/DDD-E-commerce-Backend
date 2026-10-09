@@ -19,7 +19,6 @@ export class AssistantAgent {
     private systemPrompt: string,
     private config: AssistantAgentConfig,
   ) {}
-  // should I do it the cron worker style?
   async run(
     messages: ChatMessage[],
   ): Promise<{ response: string; newMessages: ChatMessage[] }> {

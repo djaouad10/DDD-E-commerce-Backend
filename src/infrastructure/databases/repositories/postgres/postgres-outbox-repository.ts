@@ -255,6 +255,7 @@ export class PostgresOutboxRepository implements OutboxRepository {
             status: OutboxStatus.PENDING,
             error_message: params.errorMessage,
             scheduledAt: params.scheduledAt,
+            locked_at: null,
           })
           .where(eq(outbox.id, params.id)),
       );

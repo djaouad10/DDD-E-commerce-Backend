@@ -104,7 +104,11 @@ describe("ActivateShipmentInShippingProviderService", () => {
         trackingNumber,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe(
         "ActivateShipmentInShippingProviderService",
@@ -152,7 +156,11 @@ describe("ActivateShipmentInShippingProviderService", () => {
         shippingProviderGatewayMock.activateShipment,
       ).toHaveBeenCalledTimes(1);
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).not.toBeNull();
     });
   });
@@ -240,8 +248,17 @@ describe("ActivateShipmentInShippingProviderService", () => {
         shippingProviderGatewayMock.activateShipment,
       ).toHaveBeenCalledTimes(2);
 
-      const key1 = await findIdempotencyKeyInDB(container, jobId1);
-      const key2 = await findIdempotencyKeyInDB(container, jobId2);
+      const key1 = await findIdempotencyKeyInDB(
+        container,
+        jobId1,
+        "ActivateShipmentInShippingProviderService",
+      );
+
+      const key2 = await findIdempotencyKeyInDB(
+        container,
+        jobId2,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key1).not.toBeNull();
       expect(key2).not.toBeNull();
     });
@@ -264,7 +281,11 @@ describe("ActivateShipmentInShippingProviderService", () => {
         shippingProviderGatewayMock.activateShipment,
       ).not.toHaveBeenCalled();
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).toBeNull();
     });
 
@@ -392,7 +413,11 @@ describe("ActivateShipmentInShippingProviderService", () => {
         "Network timeout",
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).toBeNull(); // Critical: no key persisted so retry can succeed
       expect(
         shippingProviderGatewayMock.activateShipment,
@@ -436,7 +461,11 @@ describe("ActivateShipmentInShippingProviderService", () => {
         GatewayError,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).toBeNull(); // No key persisted since transaction rolled back
       expect(
         shippingProviderGatewayMock.activateShipment,
@@ -456,7 +485,11 @@ describe("ActivateShipmentInShippingProviderService", () => {
         NotFoundError,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).toBeNull();
       expect(
         shippingProviderGatewayMock.activateShipment,
@@ -506,7 +539,11 @@ describe("ActivateShipmentInShippingProviderService", () => {
         trackingNumber,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).not.toBeNull();
     });
 
@@ -547,7 +584,11 @@ describe("ActivateShipmentInShippingProviderService", () => {
         trackingNumber,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).not.toBeNull();
     });
   });

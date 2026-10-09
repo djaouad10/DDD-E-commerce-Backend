@@ -30,6 +30,26 @@ export class EmbeddingQueueProductUpsertedEventsHandlerService {
       "EmbeddingQueueProductUpsertedEventsHandlerService.execute called",
     );
 
+    // check if the product has already been embedded before calling the embedding model (costs money)
+    const existingKey = await this.db.transaction(async (tx) => {
+      return await this.idempotencyKeysRepository.find(
+        jobId,
+        "EmbeddingQueueProductUpsertedEventsHandlerService",
+        tx,
+      );
+    });
+
+    if (existingKey) {
+      this.logger.info(
+        "Skipping EmbeddingQueueProductUpsertedEventsHandlerService.execute",
+        {
+          jobId,
+          productId: command.productId,
+        },
+      );
+      return;
+    }
+
     const productDto = await this.productQueries.getStaticData(
       ProductId.of(command.productId),
     );

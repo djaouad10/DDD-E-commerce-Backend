@@ -192,6 +192,7 @@ export async function createRatingInDB(container: Container, rating: Rating) {
 export async function findIdempotencyKeyInDB(
   container: Container,
   key: string,
+  handlerName: string,
 ) {
   const db = container.resolveSingleton(DRIZZLE_DB);
   const idempotencyKeysRepository = container.resolveSingleton(
@@ -199,7 +200,7 @@ export async function findIdempotencyKeyInDB(
   );
 
   return await db.transaction(async (tx) => {
-    return await idempotencyKeysRepository.find(key, tx);
+    return await idempotencyKeysRepository.find(key, handlerName, tx);
   });
 }
 

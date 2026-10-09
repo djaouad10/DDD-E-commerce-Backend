@@ -122,7 +122,11 @@ describe("OutboxHandlerWorker Integration", () => {
       const persistedOrder = await orderRepo.find(order.id);
       expect(persistedOrder!.getTrackingNumber()).toBe("TRACK-999");
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "CreateOrderInShippingProviderService",
+      );
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe("CreateOrderInShippingProviderService");
     });
@@ -165,7 +169,11 @@ describe("OutboxHandlerWorker Integration", () => {
         trackingNumber,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "ActivateShipmentInShippingProviderService",
+      );
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe(
         "ActivateShipmentInShippingProviderService",
@@ -208,7 +216,11 @@ describe("OutboxHandlerWorker Integration", () => {
 
       // the idempotency key insert happens inside the same tx that rolls back,
       // so a failed gateway call must NOT leave a committed key behind
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "CreateOrderInShippingProviderService",
+      );
       expect(key).toBeNull();
     });
   });
@@ -234,7 +246,11 @@ describe("OutboxHandlerWorker Integration", () => {
         shippingProviderGatewayMock.updateUnShippedShipment,
       ).toHaveBeenCalledTimes(1);
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe("UpdateOrderInShippingProviderService");
     });
@@ -255,7 +271,11 @@ describe("OutboxHandlerWorker Integration", () => {
 
       await expect(job.waitUntilFinished(queueEvents)).rejects.toThrow();
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).toBeNull();
     });
   });
@@ -282,7 +302,11 @@ describe("OutboxHandlerWorker Integration", () => {
         shippingProviderGatewayMock.deleteUnshippedShipment,
       ).toHaveBeenCalledWith("TRACK-DELETE-1");
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "DeleteOrderFromShippingProviderService",
+      );
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe("DeleteOrderFromShippingProviderService");
     });
@@ -304,7 +328,11 @@ describe("OutboxHandlerWorker Integration", () => {
 
       await expect(job.waitUntilFinished(queueEvents)).rejects.toThrow();
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "DeleteOrderFromShippingProviderService",
+      );
       expect(key).toBeNull();
     });
   });
