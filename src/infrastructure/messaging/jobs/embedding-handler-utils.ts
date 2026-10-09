@@ -65,7 +65,7 @@ export function buildEmbeddingQueueEventCommand<
         typeof DomainEventCode.PRODUCT_DELETED
       >;
 
-      return new EmbeddingQueueProductUpsertedEventsHandlerCommand(
+      return new EmbeddingQueueProductDeletedEventHandlerCommand(
         p.aggregateId,
       ) as EmbeddingQueueEventToCommand[T];
     }
