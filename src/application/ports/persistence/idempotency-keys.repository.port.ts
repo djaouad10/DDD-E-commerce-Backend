@@ -14,5 +14,5 @@ export type IdempotencyKeysRepository = {
     tx: TransactionClient,
     payload?: unknown,
   ): Promise<void>;
-  find(id: string, tx: TransactionClient): Promise<IdempotencyKeyEntry | null>;
+  find(id: string, handlerName: string, tx: TransactionClient): Promise<IdempotencyKeyEntry | null>;
 };
