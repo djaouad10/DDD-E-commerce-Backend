@@ -88,7 +88,11 @@ describe("EmbeddingQueueProductUpsertedEventsHandlerService", () => {
       ),
     ).rejects.toThrow(NotFoundError);
 
-    const idempotencyKey = await findIdempotencyKeyInDB(container, jobId);
+    const idempotencyKey = await findIdempotencyKeyInDB(
+      container,
+      jobId,
+      "EmbeddingQueueProductUpsertedEventsHandlerService",
+    );
     expect(idempotencyKey).toBe(null);
   });
 
@@ -109,7 +113,11 @@ describe("EmbeddingQueueProductUpsertedEventsHandlerService", () => {
       ),
     ).rejects.toThrow("Something went wrong");
 
-    const idempotencyKey = await findIdempotencyKeyInDB(container, jobId);
+    const idempotencyKey = await findIdempotencyKeyInDB(
+      container,
+      jobId,
+      "EmbeddingQueueProductUpsertedEventsHandlerService",
+    );
     expect(idempotencyKey).toBe(null);
 
     const productChunks = await getChunksOfProduct(container, product.id.value);

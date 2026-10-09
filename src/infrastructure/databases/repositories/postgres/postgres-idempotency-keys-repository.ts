@@ -45,7 +45,7 @@ export class PostgresIdempotencyKeysRepository implements IdempotencyKeysReposit
     handlerName: string,
     tx: TransactionClient,
   ): Promise<IdempotencyKeyEntry | null> {
-    this.logger.debug("find called", { key });
+    this.logger.debug("find called", { key, handlerName });
 
     const db = tx as DrizzleTransactionClient;
 

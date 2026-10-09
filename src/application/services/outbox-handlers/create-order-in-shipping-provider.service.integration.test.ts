@@ -108,7 +108,11 @@ describe("CreateOrderInShippingProviderService", () => {
       expect(persistedOrder).not.toBeNull();
       expect(persistedOrder!.getTrackingNumber()).toBe("TRACK-12345");
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "CreateOrderInShippingProviderService",
+      );
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe("CreateOrderInShippingProviderService");
     });
@@ -129,7 +133,11 @@ describe("CreateOrderInShippingProviderService", () => {
       );
       expect(shippingProviderGatewayMock.createShipment).not.toHaveBeenCalled();
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "CreateOrderInShippingProviderService",
+      );
       expect(key).toBeNull();
     });
 
@@ -148,7 +156,11 @@ describe("CreateOrderInShippingProviderService", () => {
       );
 
       // Critical: transaction must roll back so a retry can call createShipment again
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "CreateOrderInShippingProviderService",
+      );
       expect(key).toBeNull();
 
       const orderRepo = container.resolveSingleton(ORDER_REPOSITORY);
@@ -203,7 +215,11 @@ describe("CreateOrderInShippingProviderService", () => {
       );
 
       // idempotency key should already be committed (transaction ended before save())
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "CreateOrderInShippingProviderService",
+      );
       expect(key).not.toBeNull();
 
       saveSpy.mockRestore();
@@ -235,8 +251,16 @@ describe("CreateOrderInShippingProviderService", () => {
         2,
       );
 
-      const key1 = await findIdempotencyKeyInDB(container, jobId1);
-      const key2 = await findIdempotencyKeyInDB(container, jobId2);
+      const key1 = await findIdempotencyKeyInDB(
+        container,
+        jobId1,
+        "CreateOrderInShippingProviderService",
+      );
+      const key2 = await findIdempotencyKeyInDB(
+        container,
+        jobId2,
+        "CreateOrderInShippingProviderService",
+      );
       expect(key1).not.toBeNull();
       expect(key2).not.toBeNull();
     });

@@ -49,6 +49,7 @@ export class CreateOrderService {
     const existingOrderId = await this.db.transaction(async (tx) => {
       const existingKey = await this.idempotencyKeysRepository.find(
         idempotencyKey,
+        "CreateOrderService",
         tx,
       );
 

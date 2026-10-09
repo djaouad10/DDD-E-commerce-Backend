@@ -99,7 +99,11 @@ describe("UpdateOrderInShippingProviderService", () => {
         shippingProviderGatewayMock.updateUnShippedShipment,
       ).toHaveBeenCalledWith(latestOrder);
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe("UpdateOrderInShippingProviderService");
     });
@@ -133,7 +137,11 @@ describe("UpdateOrderInShippingProviderService", () => {
         shippingProviderGatewayMock.updateUnShippedShipment,
       ).toHaveBeenCalledTimes(1);
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).not.toBeNull();
     });
   });
@@ -197,8 +205,16 @@ describe("UpdateOrderInShippingProviderService", () => {
         shippingProviderGatewayMock.updateUnShippedShipment,
       ).toHaveBeenCalledTimes(2);
 
-      const key1 = await findIdempotencyKeyInDB(container, jobId1);
-      const key2 = await findIdempotencyKeyInDB(container, jobId2);
+      const key1 = await findIdempotencyKeyInDB(
+        container,
+        jobId1,
+        "UpdateOrderInShippingProviderService",
+      );
+      const key2 = await findIdempotencyKeyInDB(
+        container,
+        jobId2,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key1).not.toBeNull();
       expect(key2).not.toBeNull();
     });
@@ -221,7 +237,11 @@ describe("UpdateOrderInShippingProviderService", () => {
         shippingProviderGatewayMock.updateUnShippedShipment,
       ).not.toHaveBeenCalled();
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).toBeNull();
     });
 
@@ -316,7 +336,11 @@ describe("UpdateOrderInShippingProviderService", () => {
         "Network timeout",
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).toBeNull(); // Critical: no key persisted so retry can succeed
       expect(
         shippingProviderGatewayMock.updateUnShippedShipment,
@@ -351,7 +375,11 @@ describe("UpdateOrderInShippingProviderService", () => {
         GatewayError,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).toBeNull(); // No key persisted since transaction rolled back
       expect(
         shippingProviderGatewayMock.updateUnShippedShipment,
@@ -371,7 +399,11 @@ describe("UpdateOrderInShippingProviderService", () => {
         NotFoundError,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).toBeNull();
       expect(
         shippingProviderGatewayMock.updateUnShippedShipment,
@@ -420,7 +452,11 @@ describe("UpdateOrderInShippingProviderService", () => {
         shippingProviderGatewayMock.updateUnShippedShipment,
       ).toHaveBeenCalledTimes(1);
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "UpdateOrderInShippingProviderService",
+      );
       expect(key).not.toBeNull();
     });
   });

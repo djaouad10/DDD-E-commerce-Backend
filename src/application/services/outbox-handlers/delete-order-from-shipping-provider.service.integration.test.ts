@@ -67,7 +67,11 @@ describe("DeleteOrderFromShippingProviderService", () => {
         shippingProviderGatewayMock.deleteUnshippedShipment,
       ).toHaveBeenCalledWith("TRACK123456");
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "DeleteOrderFromShippingProviderService",
+      );
       expect(key).not.toBeNull();
       expect(key!.handlerName).toBe("DeleteOrderFromShippingProviderService");
     });
@@ -92,7 +96,11 @@ describe("DeleteOrderFromShippingProviderService", () => {
         shippingProviderGatewayMock.deleteUnshippedShipment,
       ).toHaveBeenCalledTimes(1);
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "DeleteOrderFromShippingProviderService",
+      );
       expect(key).not.toBeNull();
     });
   });
@@ -138,8 +146,16 @@ describe("DeleteOrderFromShippingProviderService", () => {
         shippingProviderGatewayMock.deleteUnshippedShipment,
       ).toHaveBeenCalledTimes(2);
 
-      const key1 = await findIdempotencyKeyInDB(container, jobId1);
-      const key2 = await findIdempotencyKeyInDB(container, jobId2);
+      const key1 = await findIdempotencyKeyInDB(
+        container,
+        jobId1,
+        "DeleteOrderFromShippingProviderService",
+      );
+      const key2 = await findIdempotencyKeyInDB(
+        container,
+        jobId2,
+        "DeleteOrderFromShippingProviderService",
+      );
       expect(key1).not.toBeNull();
       expect(key2).not.toBeNull();
     });
@@ -210,7 +226,11 @@ describe("DeleteOrderFromShippingProviderService", () => {
         "Network timeout",
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "DeleteOrderFromShippingProviderService",
+      );
       expect(key).toBeNull(); // Critical: no key persisted so retry can succeed
       expect(
         shippingProviderGatewayMock.deleteUnshippedShipment,
@@ -236,7 +256,11 @@ describe("DeleteOrderFromShippingProviderService", () => {
         GatewayError,
       );
 
-      const key = await findIdempotencyKeyInDB(container, jobId);
+      const key = await findIdempotencyKeyInDB(
+        container,
+        jobId,
+        "DeleteOrderFromShippingProviderService",
+      );
       expect(key).toBeNull(); // No key persisted since transaction rolled back
       expect(
         shippingProviderGatewayMock.deleteUnshippedShipment,
