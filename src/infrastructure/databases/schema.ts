@@ -404,12 +404,19 @@ export const outbox = pgTable(
   ],
 );
 
-export const idempotencyKeys = pgTable("idempotency_keys", {
-  id: varchar("id", { length: 40 }).primaryKey(), // Maps directly to BullMQ jobId / Outbox ID
-  handler_name: varchar("handler_name", { length: 100 }).notNull(),
-  created_at: timestamp("created_at").notNull().defaultNow(),
-  payload: jsonb("payload"),
-});
+export const idempotencyKeys = pgTable(
+  "idempotency_keys",
+  {
+    id: varchar("id", { length: 40 }).notNull(), // Maps directly to BullMQ jobId / Outbox ID
+    handler_name: varchar("handler_name", { length: 100 }).notNull(),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    payload: jsonb("payload"),
+  },
+  (t) => [
+    primaryKey({ columns: [t.id, t.handler_name] }),
+    index("idempotency_keys_handler_name_idx").on(t.handler_name),
+  ],
+);
 
 export const productEmbeddings = pgTable(
   "product_embeddings",
